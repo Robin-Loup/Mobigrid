@@ -1,6 +1,6 @@
 <script>
 import {defineComponent} from "vue";
-import Transpolis from "@/components/Transpolis.vue";
+import Transpolis from "./components/Transpolis.vue";
 
 export default defineComponent({
     components: {Transpolis}
