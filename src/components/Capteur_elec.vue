@@ -5,7 +5,7 @@ import Graphs from "@/components/Graphs/Graphs.vue";
 
 
 export default {
-    name: "Capteur_ambiance",
+    name: "Capteur_elec",
     components: {Graphs, WindowPortal},
     props: {
         name: String,
@@ -41,7 +41,7 @@ export default {
 button{
     width: 30px;
     height: 30px;
-    background-image: url("../assets/capteur_ambiance.png");
+    background-image: url("../assets/capteur_elec.png");
     background-size: contain;
     background-repeat: no-repeat;
 }

@@ -1,6 +1,9 @@
 <script>
+import Capteur_ambiance from "@/components/Capteur_ambiance.vue";
+
 export default {
-    name: "Transpolis"
+    name: "Transpolis",
+    components: {Capteur_ambiance}
 }
 </script>
 
@@ -9,11 +12,12 @@ export default {
       <h1 class="text-center">Transpolis</h1>
   </header>
   <div class="row justify-content-center, transpolis">
-      <a id="superviseur" class="btn btn-primary">Superviseur</a>
-      <a id="bat" class="btn btn-primary">Bat 172</a>
+      <a id="superviseur" class="btn btn-primary" href="src/superviseur.html">Superviseur</a>
+      <a id="bat" class="btn btn-primary" href="src/bat172.html">Bat 172</a>
 
-      <a id="atelier" class="btn btn-primary">Atelier</a>
+      <a id="atelier" class="btn btn-primary" href="src/atelier.html">Atelier</a>
       <a id="bureau" class="btn btn-primary" href="src/bureau.html">Bureau</a>
+      <a id="plug" class="btn btn-secondary" href="src/plug.html">Plug</a>
   </div>
 </template>
 
@@ -60,5 +64,11 @@ export default {
     width: 80px;
     height: 42px;
     opacity: 70%;
+}
+#plug{
+    margin-top: -651px;
+    margin-left: 221px;
+    width: 80px;
+    height: 42px;
 }
 </style>
