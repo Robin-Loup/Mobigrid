@@ -6,10 +6,6 @@ import atelier from "@/components/Atelier.vue";
 import bureau from "@/components/Bureau.vue";
 import plug from "@/components/Plug.vue";
 import Superviseur from "@/components/Superviseur.vue";
-
-const routes = {
-    '/superviseur' : Superviseur
-}
 export default {
     name: "Transpolis",
     components: {Capteur_ambiance}
@@ -21,8 +17,8 @@ export default {
       <h1 class="text-center">Transpolis</h1>
   </header>
   <div class="row justify-content-center, transpolis">
-      <a id="superviseur" class="btn btn-primary" href="#/superviseur">Superviseur</a>
-      <a id="bat" class="btn btn-primary" href="#/bat172">Bat 172</a>
+      <router-link to="/superviseur" id="superviseur" class="btn btn-primary">Superviseur</router-link>
+      <router-link to="/bat172" id="bat" class="btn btn-primary">Bat 172</router-link>
 
       <a id="atelier" class="btn btn-primary" href="src/atelier.html">Atelier</a>
       <a id="bureau" class="btn btn-primary" href="src/bureau.html">Bureau</a>
