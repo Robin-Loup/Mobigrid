@@ -1,0 +1,372 @@
+<html>
+<head>
+<title>reactivity.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #629755; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+reactivity.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{ IfAny } from </span><span class="s2">'@vue/shared'</span><span class="s0">;</span>
+
+<span class="s1">declare type BaseTypes = string | number | boolean</span><span class="s0">;</span>
+
+<span class="s1">declare type Builtin = Primitive | Function | Date | Error | RegExp</span><span class="s0">;</span>
+
+<span class="s1">declare type CollectionTypes = IterableCollections | WeakCollections</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">computed&lt;T&gt;(getter: ComputedGetter&lt;T&gt;</span><span class="s0">, </span><span class="s1">debugOptions?: DebuggerOptions): ComputedRef&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">computed&lt;T&gt;(options: WritableComputedOptions&lt;T&gt;</span><span class="s0">, </span><span class="s1">debugOptions?: DebuggerOptions): WritableComputedRef&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type ComputedGetter&lt;T&gt; = (...args: any[]) =&gt; T</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ComputedRef&lt;T = any&gt; </span><span class="s0">extends </span><span class="s1">WritableComputedRef&lt;T&gt; {</span>
+    <span class="s1">readonly value: T</span><span class="s0">;</span>
+    <span class="s1">[ComputedRefSymbol]: </span><span class="s0">true;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">ComputedRefImpl&lt;T&gt; {</span>
+    <span class="s0">private </span><span class="s1">readonly _setter</span><span class="s0">;</span>
+    <span class="s1">dep?: Dep</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_value</span><span class="s0">;</span>
+    <span class="s1">readonly effect: ReactiveEffect&lt;T&gt;</span><span class="s0">;</span>
+    <span class="s1">readonly __v_isRef = </span><span class="s0">true;</span>
+    <span class="s1">readonly [ReactiveFlags.IS_READONLY]: boolean</span><span class="s0">;</span>
+    <span class="s1">_dirty: boolean</span><span class="s0">;</span>
+    <span class="s1">_cacheable: boolean</span><span class="s0">;</span>
+    <span class="s1">constructor(getter: ComputedGetter&lt;T&gt;</span><span class="s0">, </span><span class="s1">_setter: ComputedSetter&lt;T&gt;</span><span class="s0">, </span><span class="s1">isReadonly: boolean</span><span class="s0">, </span><span class="s1">isSSR: boolean)</span><span class="s0">;</span>
+    <span class="s1">get value(): T</span><span class="s0">;</span>
+    <span class="s1">set value(newValue: T)</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">ComputedRefSymbol: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type ComputedSetter&lt;T&gt; = (v: T) =&gt; </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">customRef&lt;T&gt;(factory: CustomRefFactory&lt;T&gt;): Ref&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type CustomRefFactory&lt;T&gt; = (track: () =&gt; </span><span class="s0">void, </span><span class="s1">trigger: () =&gt; </span><span class="s0">void</span><span class="s1">) =&gt; {</span>
+    <span class="s1">get: () =&gt; T</span><span class="s0">;</span>
+    <span class="s1">set: (value: T) =&gt; </span><span class="s0">void;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type DebuggerEvent = {</span>
+    <span class="s1">effect: ReactiveEffect</span><span class="s0">;</span>
+<span class="s1">} &amp; DebuggerEventExtraInfo</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type DebuggerEventExtraInfo = {</span>
+    <span class="s1">target: object</span><span class="s0">;</span>
+    <span class="s1">type: TrackOpTypes | TriggerOpTypes</span><span class="s0">;</span>
+    <span class="s1">key: any</span><span class="s0">;</span>
+    <span class="s1">newValue?: any</span><span class="s0">;</span>
+    <span class="s1">oldValue?: any</span><span class="s0">;</span>
+    <span class="s1">oldTarget?: Map&lt;any</span><span class="s0">, </span><span class="s1">any&gt; | Set&lt;any&gt;</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DebuggerOptions {</span>
+    <span class="s1">onTrack?: (event: DebuggerEvent) =&gt; </span><span class="s0">void;</span>
+    <span class="s1">onTrigger?: (event: DebuggerEvent) =&gt; </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type DeepReadonly&lt;T&gt; = T </span><span class="s0">extends </span><span class="s1">Builtin ? T : T </span><span class="s0">extends </span><span class="s1">Map&lt;infer K</span><span class="s0">, </span><span class="s1">infer V&gt; ? ReadonlyMap&lt;DeepReadonly&lt;K&gt;</span><span class="s0">, </span><span class="s1">DeepReadonly&lt;V&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">ReadonlyMap&lt;infer K</span><span class="s0">, </span><span class="s1">infer V&gt; ? ReadonlyMap&lt;DeepReadonly&lt;K&gt;</span><span class="s0">, </span><span class="s1">DeepReadonly&lt;V&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">WeakMap&lt;infer K</span><span class="s0">, </span><span class="s1">infer V&gt; ? WeakMap&lt;DeepReadonly&lt;K&gt;</span><span class="s0">, </span><span class="s1">DeepReadonly&lt;V&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">Set&lt;infer U&gt; ? ReadonlySet&lt;DeepReadonly&lt;U&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">ReadonlySet&lt;infer U&gt; ? ReadonlySet&lt;DeepReadonly&lt;U&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">WeakSet&lt;infer U&gt; ? WeakSet&lt;DeepReadonly&lt;U&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">Promise&lt;infer U&gt; ? Promise&lt;DeepReadonly&lt;U&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">Ref&lt;infer U&gt; ? Readonly&lt;Ref&lt;DeepReadonly&lt;U&gt;&gt;&gt; : T </span><span class="s0">extends </span><span class="s1">{} ? {</span>
+    <span class="s1">readonly [K </span><span class="s0">in </span><span class="s1">keyof T]: DeepReadonly&lt;T[K]&gt;</span><span class="s0">;</span>
+<span class="s1">} : Readonly&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">deferredComputed&lt;T&gt;(getter: () =&gt; T): ComputedRef&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare type Dep = Set&lt;ReactiveEffect&gt; &amp; TrackedMarkers</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">effect&lt;T = any&gt;(fn: () =&gt; T</span><span class="s0">, </span><span class="s1">options?: ReactiveEffectOptions): ReactiveEffectRunner</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type EffectScheduler = (...args: any[]) =&gt; any</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">class </span><span class="s1">EffectScope {</span>
+    <span class="s1">detached: boolean</span><span class="s0">;</span>
+    <span class="s3">/* Excluded from this release type: _active */</span>
+    <span class="s3">/* Excluded from this release type: effects */</span>
+    <span class="s3">/* Excluded from this release type: cleanups */</span>
+    <span class="s3">/* Excluded from this release type: parent */</span>
+    <span class="s3">/* Excluded from this release type: scopes */</span>
+    <span class="s3">/* Excluded from this release type: index */</span>
+    <span class="s1">constructor(detached?: boolean)</span><span class="s0">;</span>
+    <span class="s1">get active(): boolean</span><span class="s0">;</span>
+    <span class="s1">run&lt;T&gt;(fn: () =&gt; T): T | undefined</span><span class="s0">;</span>
+    <span class="s3">/* Excluded from this release type: on */</span>
+    <span class="s3">/* Excluded from this release type: off */</span>
+    <span class="s1">stop(fromParent?: boolean): </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">effectScope(detached?: boolean): EffectScope</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">enableTracking(): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getCurrentScope(): EffectScope | undefined</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isProxy(value: unknown): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isReactive(value: unknown): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isReadonly(value: unknown): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isRef&lt;T&gt;(r: Ref&lt;T&gt; | unknown): r is Ref&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isShallow(value: unknown): boolean</span><span class="s0">;</span>
+
+<span class="s1">declare type IterableCollections = Map&lt;any</span><span class="s0">, </span><span class="s1">any&gt; | Set&lt;any&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">ITERATE_KEY: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">markRaw&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(value: T): Raw&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">onScopeDispose(fn: () =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">pauseTracking(): </span><span class="s0">void;</span>
+
+<span class="s1">declare type Primitive = string | number | boolean | bigint | symbol | undefined | </span><span class="s0">null;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">proxyRefs&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(objectWithRefs: T): ShallowUnwrapRef&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type Raw&lt;T&gt; = T &amp; {</span>
+    <span class="s1">[RawSymbol]?: </span><span class="s0">true;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">RawSymbol: unique symbol</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Creates a reactive copy of the original object.</span>
+ <span class="s4">*</span>
+ <span class="s4">* The reactive conversion is &quot;deep&quot;—it affects all nested properties. In the</span>
+ <span class="s4">* ES2015 Proxy based implementation, the returned proxy is **not** equal to the</span>
+ <span class="s4">* original object. It is recommended to work exclusively with the reactive</span>
+ <span class="s4">* proxy and avoid relying on the original object.</span>
+ <span class="s4">*</span>
+ <span class="s4">* A reactive object also automatically unwraps refs contained in it, so you</span>
+ <span class="s4">* don't need to use `.value` when accessing and mutating their value:</span>
+ <span class="s4">*</span>
+ <span class="s4">* ```js</span>
+ <span class="s4">* const count = ref(0)</span>
+ <span class="s4">* const obj = reactive({</span>
+ <span class="s4">*   count</span>
+ <span class="s4">* })</span>
+ <span class="s4">*</span>
+ <span class="s4">* obj.count++</span>
+ <span class="s4">* obj.count // -&gt; 1</span>
+ <span class="s4">* count.value // -&gt; 1</span>
+ <span class="s4">* ```</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">reactive&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(target: T): UnwrapNestedRefs&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">class </span><span class="s1">ReactiveEffect&lt;T = any&gt; {</span>
+    <span class="s1">fn: () =&gt; T</span><span class="s0">;</span>
+    <span class="s1">scheduler: EffectScheduler | </span><span class="s0">null;</span>
+    <span class="s1">active: boolean</span><span class="s0">;</span>
+    <span class="s1">deps: Dep[]</span><span class="s0">;</span>
+    <span class="s1">parent: ReactiveEffect | undefined</span><span class="s0">;</span>
+    <span class="s3">/* Excluded from this release type: computed */</span>
+    <span class="s3">/* Excluded from this release type: allowRecurse */</span>
+    <span class="s3">/* Excluded from this release type: deferStop */</span>
+    <span class="s1">onStop?: () =&gt; </span><span class="s0">void;</span>
+    <span class="s1">onTrack?: (event: DebuggerEvent) =&gt; </span><span class="s0">void;</span>
+    <span class="s1">onTrigger?: (event: DebuggerEvent) =&gt; </span><span class="s0">void;</span>
+    <span class="s1">constructor(fn: () =&gt; T</span><span class="s0">, </span><span class="s1">scheduler?: EffectScheduler | </span><span class="s0">null, </span><span class="s1">scope?: EffectScope)</span><span class="s0">;</span>
+    <span class="s1">run(): T | undefined</span><span class="s0">;</span>
+    <span class="s1">stop(): </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ReactiveEffectOptions </span><span class="s0">extends </span><span class="s1">DebuggerOptions {</span>
+    <span class="s1">lazy?: boolean</span><span class="s0">;</span>
+    <span class="s1">scheduler?: EffectScheduler</span><span class="s0">;</span>
+    <span class="s1">scope?: EffectScope</span><span class="s0">;</span>
+    <span class="s1">allowRecurse?: boolean</span><span class="s0">;</span>
+    <span class="s1">onStop?: () =&gt; </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ReactiveEffectRunner&lt;T = any&gt; {</span>
+    <span class="s1">(): T</span><span class="s0">;</span>
+    <span class="s1">effect: ReactiveEffect</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">ReactiveFlags {</span>
+    <span class="s1">SKIP = </span><span class="s2">&quot;__v_skip&quot;</span><span class="s0">,</span>
+    <span class="s1">IS_REACTIVE = </span><span class="s2">&quot;__v_isReactive&quot;</span><span class="s0">,</span>
+    <span class="s1">IS_READONLY = </span><span class="s2">&quot;__v_isReadonly&quot;</span><span class="s0">,</span>
+    <span class="s1">IS_SHALLOW = </span><span class="s2">&quot;__v_isShallow&quot;</span><span class="s0">,</span>
+    <span class="s1">RAW = </span><span class="s2">&quot;__v_raw&quot;</span>
+<span class="s1">}</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Creates a readonly copy of the original object. Note the returned copy is not</span>
+ <span class="s4">* made reactive, but `readonly` can be called on an already reactive object.</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">readonly&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(target: T): DeepReadonly&lt;UnwrapNestedRefs&lt;T&gt;&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">Ref&lt;T = any&gt; {</span>
+    <span class="s1">value: T</span><span class="s0">;</span>
+    <span class="s4">/**</span>
+     <span class="s4">* Type differentiator only.</span>
+     <span class="s4">* We need this to be in public d.ts but don't want it to show up in IDE</span>
+     <span class="s4">* autocomplete, so we use a private Symbol instead.</span>
+     <span class="s4">*/</span>
+    <span class="s1">[RefSymbol]: </span><span class="s0">true;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">ref&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(value: T): [T] </span><span class="s0">extends </span><span class="s1">[Ref] ? T : Ref&lt;UnwrapRef&lt;T&gt;&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">ref&lt;T&gt;(value: T): Ref&lt;UnwrapRef&lt;T&gt;&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">ref&lt;T = any&gt;(): Ref&lt;T | undefined&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">RefSymbol: unique symbol</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* This is a special exported interface for other packages to declare</span>
+ <span class="s4">* additional types that should bail out for ref unwrapping. For example</span>
+ <span class="s4">* \@vue/runtime-dom can declare it like so in its d.ts:</span>
+ <span class="s4">*</span>
+ <span class="s4">* ``` ts</span>
+ <span class="s4">* declare module '@vue/reactivity' {</span>
+ <span class="s4">*   export interface RefUnwrapBailTypes {</span>
+ <span class="s4">*     runtimeDOMBailTypes: Node | Window</span>
+ <span class="s4">*   }</span>
+ <span class="s4">* }</span>
+ <span class="s4">* ```</span>
+ <span class="s4">*</span>
+ <span class="s4">* Note that api-extractor somehow refuses to include `declare module`</span>
+ <span class="s4">* augmentations in its generated d.ts, so we have to manually append them</span>
+ <span class="s4">* to the final generated d.ts in our build process.</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">RefUnwrapBailTypes {</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">resetTracking(): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare type ShallowReactive&lt;T&gt; = T &amp; {</span>
+    <span class="s1">[ShallowReactiveMarker]?: </span><span class="s0">true;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Return a shallowly-reactive copy of the original object, where only the root</span>
+ <span class="s4">* level properties are reactive. It also does not auto-unwrap refs (even at the</span>
+ <span class="s4">* root level).</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">shallowReactive&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(target: T): ShallowReactive&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">ShallowReactiveMarker: unique symbol</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Returns a reactive-copy of the original object, where only the root level</span>
+ <span class="s4">* properties are readonly, and does NOT unwrap refs nor recursively convert</span>
+ <span class="s4">* returned properties.</span>
+ <span class="s4">* This is used for creating the props proxy object for stateful components.</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">shallowReadonly&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(target: T): Readonly&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type ShallowRef&lt;T = any&gt; = Ref&lt;T&gt; &amp; {</span>
+    <span class="s1">[ShallowRefMarker]?: </span><span class="s0">true;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">shallowRef&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(value: T): T </span><span class="s0">extends </span><span class="s1">Ref ? T : ShallowRef&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">shallowRef&lt;T&gt;(value: T): ShallowRef&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">shallowRef&lt;T = any&gt;(): ShallowRef&lt;T | undefined&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">ShallowRefMarker: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type ShallowUnwrapRef&lt;T&gt; = {</span>
+    <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof T]: T[K] </span><span class="s0">extends </span><span class="s1">Ref&lt;infer V&gt; ? V : T[K] </span><span class="s0">extends </span><span class="s1">Ref&lt;infer V&gt; | undefined ? unknown </span><span class="s0">extends </span><span class="s1">V ? undefined : V | undefined : T[K]</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">function </span><span class="s1">stop_2(runner: ReactiveEffectRunner): </span><span class="s0">void;</span>
+<span class="s0">export </span><span class="s1">{ stop_2 as stop }</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">toRaw&lt;T&gt;(observed: T): T</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type ToRef&lt;T&gt; = IfAny&lt;T</span><span class="s0">, </span><span class="s1">Ref&lt;T&gt;</span><span class="s0">, </span><span class="s1">[T] </span><span class="s0">extends </span><span class="s1">[Ref] ? T : Ref&lt;T&gt;&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">toRef&lt;T </span><span class="s0">extends </span><span class="s1">object</span><span class="s0">, </span><span class="s1">K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(object: T</span><span class="s0">, </span><span class="s1">key: K): ToRef&lt;T[K]&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">toRef&lt;T </span><span class="s0">extends </span><span class="s1">object</span><span class="s0">, </span><span class="s1">K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(object: T</span><span class="s0">, </span><span class="s1">key: K</span><span class="s0">, </span><span class="s1">defaultValue: T[K]): ToRef&lt;Exclude&lt;T[K]</span><span class="s0">, </span><span class="s1">undefined&gt;&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type ToRefs&lt;T = any&gt; = {</span>
+    <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof T]: ToRef&lt;T[K]&gt;</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">toRefs&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(object: T): ToRefs&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">track(target: object</span><span class="s0">, </span><span class="s1">type: TrackOpTypes</span><span class="s0">, </span><span class="s1">key: unknown): </span><span class="s0">void;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* wasTracked and newTracked maintain the status for several levels of effect</span>
+ <span class="s4">* tracking recursion. One bit per level is used to define whether the dependency</span>
+ <span class="s4">* was/is tracked.</span>
+ <span class="s4">*/</span>
+<span class="s1">declare type TrackedMarkers = {</span>
+    <span class="s4">/**</span>
+     <span class="s4">* wasTracked</span>
+     <span class="s4">*/</span>
+    <span class="s1">w: number</span><span class="s0">;</span>
+    <span class="s4">/**</span>
+     <span class="s4">* newTracked</span>
+     <span class="s4">*/</span>
+    <span class="s1">n: number</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">TrackOpTypes {</span>
+    <span class="s1">GET = </span><span class="s2">&quot;get&quot;</span><span class="s0">,</span>
+    <span class="s1">HAS = </span><span class="s2">&quot;has&quot;</span><span class="s0">,</span>
+    <span class="s1">ITERATE = </span><span class="s2">&quot;iterate&quot;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">trigger(target: object</span><span class="s0">, </span><span class="s1">type: TriggerOpTypes</span><span class="s0">, </span><span class="s1">key?: unknown</span><span class="s0">, </span><span class="s1">newValue?: unknown</span><span class="s0">, </span><span class="s1">oldValue?: unknown</span><span class="s0">, </span><span class="s1">oldTarget?: Map&lt;unknown</span><span class="s0">, </span><span class="s1">unknown&gt; | Set&lt;unknown&gt;): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">TriggerOpTypes {</span>
+    <span class="s1">SET = </span><span class="s2">&quot;set&quot;</span><span class="s0">,</span>
+    <span class="s1">ADD = </span><span class="s2">&quot;add&quot;</span><span class="s0">,</span>
+    <span class="s1">DELETE = </span><span class="s2">&quot;delete&quot;</span><span class="s0">,</span>
+    <span class="s1">CLEAR = </span><span class="s2">&quot;clear&quot;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">triggerRef(ref: Ref): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">unref&lt;T&gt;(ref: T | Ref&lt;T&gt;): T</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type UnwrapNestedRefs&lt;T&gt; = T </span><span class="s0">extends </span><span class="s1">Ref ? T : UnwrapRefSimple&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type UnwrapRef&lt;T&gt; = T </span><span class="s0">extends </span><span class="s1">ShallowRef&lt;infer V&gt; ? V : T </span><span class="s0">extends </span><span class="s1">Ref&lt;infer V&gt; ? UnwrapRefSimple&lt;V&gt; : UnwrapRefSimple&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare type UnwrapRefSimple&lt;T&gt; = T </span><span class="s0">extends </span><span class="s1">Function | CollectionTypes | BaseTypes | Ref | RefUnwrapBailTypes[keyof RefUnwrapBailTypes] | {</span>
+    <span class="s1">[RawSymbol]?: </span><span class="s0">true;</span>
+<span class="s1">} ? T : T </span><span class="s0">extends </span><span class="s1">ReadonlyArray&lt;any&gt; ? {</span>
+    <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof T]: UnwrapRefSimple&lt;T[K]&gt;</span><span class="s0">;</span>
+<span class="s1">} : T </span><span class="s0">extends </span><span class="s1">object &amp; {</span>
+    <span class="s1">[ShallowReactiveMarker]?: never</span><span class="s0">;</span>
+<span class="s1">} ? {</span>
+    <span class="s1">[P </span><span class="s0">in </span><span class="s1">keyof T]: P </span><span class="s0">extends </span><span class="s1">symbol ? T[P] : UnwrapRef&lt;T[P]&gt;</span><span class="s0">;</span>
+<span class="s1">} : T</span><span class="s0">;</span>
+
+<span class="s1">declare type WeakCollections = WeakMap&lt;any</span><span class="s0">, </span><span class="s1">any&gt; | WeakSet&lt;any&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">WritableComputedOptions&lt;T&gt; {</span>
+    <span class="s1">get: ComputedGetter&lt;T&gt;</span><span class="s0">;</span>
+    <span class="s1">set: ComputedSetter&lt;T&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">WritableComputedRef&lt;T&gt; </span><span class="s0">extends </span><span class="s1">Ref&lt;T&gt; {</span>
+    <span class="s1">readonly effect: ReactiveEffect&lt;T&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ }</span>
+</pre>
+</body>
+</html>

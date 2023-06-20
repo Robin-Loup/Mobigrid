@@ -1,0 +1,663 @@
+<html>
+<head>
+<title>main.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">export </span><span class="s1">type Platform = </span><span class="s2">'browser' </span><span class="s1">| </span><span class="s2">'node' </span><span class="s1">| </span><span class="s2">'neutral'</span>
+<span class="s0">export </span><span class="s1">type Format = </span><span class="s2">'iife' </span><span class="s1">| </span><span class="s2">'cjs' </span><span class="s1">| </span><span class="s2">'esm'</span>
+<span class="s0">export </span><span class="s1">type Loader = </span><span class="s2">'base64' </span><span class="s1">| </span><span class="s2">'binary' </span><span class="s1">| </span><span class="s2">'copy' </span><span class="s1">| </span><span class="s2">'css' </span><span class="s1">| </span><span class="s2">'dataurl' </span><span class="s1">| </span><span class="s2">'default' </span><span class="s1">| </span><span class="s2">'empty' </span><span class="s1">| </span><span class="s2">'file' </span><span class="s1">| </span><span class="s2">'js' </span><span class="s1">| </span><span class="s2">'json' </span><span class="s1">| </span><span class="s2">'jsx' </span><span class="s1">| </span><span class="s2">'text' </span><span class="s1">| </span><span class="s2">'ts' </span><span class="s1">| </span><span class="s2">'tsx'</span>
+<span class="s0">export </span><span class="s1">type LogLevel = </span><span class="s2">'verbose' </span><span class="s1">| </span><span class="s2">'debug' </span><span class="s1">| </span><span class="s2">'info' </span><span class="s1">| </span><span class="s2">'warning' </span><span class="s1">| </span><span class="s2">'error' </span><span class="s1">| </span><span class="s2">'silent'</span>
+<span class="s0">export </span><span class="s1">type Charset = </span><span class="s2">'ascii' </span><span class="s1">| </span><span class="s2">'utf8'</span>
+<span class="s0">export </span><span class="s1">type Drop = </span><span class="s2">'console' </span><span class="s1">| </span><span class="s2">'debugger'</span>
+
+<span class="s0">interface </span><span class="s1">CommonOptions {</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#sourcemap */</span>
+  <span class="s1">sourcemap?: boolean | </span><span class="s2">'linked' </span><span class="s1">| </span><span class="s2">'inline' </span><span class="s1">| </span><span class="s2">'external' </span><span class="s1">| </span><span class="s2">'both'</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#legal-comments */</span>
+  <span class="s1">legalComments?: </span><span class="s2">'none' </span><span class="s1">| </span><span class="s2">'inline' </span><span class="s1">| </span><span class="s2">'eof' </span><span class="s1">| </span><span class="s2">'linked' </span><span class="s1">| </span><span class="s2">'external'</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#source-root */</span>
+  <span class="s1">sourceRoot?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#sources-content */</span>
+  <span class="s1">sourcesContent?: boolean</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#format */</span>
+  <span class="s1">format?: Format</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#global-name */</span>
+  <span class="s1">globalName?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#target */</span>
+  <span class="s1">target?: string | string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#supported */</span>
+  <span class="s1">supported?: Record&lt;string</span><span class="s0">, </span><span class="s1">boolean&gt;</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#platform */</span>
+  <span class="s1">platform?: Platform</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#mangle-props */</span>
+  <span class="s1">mangleProps?: RegExp</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#mangle-props */</span>
+  <span class="s1">reserveProps?: RegExp</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#mangle-props */</span>
+  <span class="s1">mangleQuoted?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#mangle-props */</span>
+  <span class="s1">mangleCache?: Record&lt;string</span><span class="s0">, </span><span class="s1">string | </span><span class="s0">false</span><span class="s1">&gt;</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#drop */</span>
+  <span class="s1">drop?: Drop[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#minify */</span>
+  <span class="s1">minify?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#minify */</span>
+  <span class="s1">minifyWhitespace?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#minify */</span>
+  <span class="s1">minifyIdentifiers?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#minify */</span>
+  <span class="s1">minifySyntax?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#charset */</span>
+  <span class="s1">charset?: Charset</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#tree-shaking */</span>
+  <span class="s1">treeShaking?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#ignore-annotations */</span>
+  <span class="s1">ignoreAnnotations?: boolean</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#jsx */</span>
+  <span class="s1">jsx?: </span><span class="s2">'transform' </span><span class="s1">| </span><span class="s2">'preserve' </span><span class="s1">| </span><span class="s2">'automatic'</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#jsx-factory */</span>
+  <span class="s1">jsxFactory?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#jsx-fragment */</span>
+  <span class="s1">jsxFragment?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#jsx-import-source */</span>
+  <span class="s1">jsxImportSource?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#jsx-development */</span>
+  <span class="s1">jsxDev?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#jsx-side-effects */</span>
+  <span class="s1">jsxSideEffects?: boolean</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#define */</span>
+  <span class="s1">define?: { [key: string]: string }</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#pure */</span>
+  <span class="s1">pure?: string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#keep-names */</span>
+  <span class="s1">keepNames?: boolean</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#color */</span>
+  <span class="s1">color?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#log-level */</span>
+  <span class="s1">logLevel?: LogLevel</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#log-limit */</span>
+  <span class="s1">logLimit?: number</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#log-override */</span>
+  <span class="s1">logOverride?: Record&lt;string</span><span class="s0">, </span><span class="s1">LogLevel&gt;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">BuildOptions </span><span class="s0">extends </span><span class="s1">CommonOptions {</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#bundle */</span>
+  <span class="s1">bundle?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#splitting */</span>
+  <span class="s1">splitting?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#preserve-symlinks */</span>
+  <span class="s1">preserveSymlinks?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#outfile */</span>
+  <span class="s1">outfile?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#metafile */</span>
+  <span class="s1">metafile?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#outdir */</span>
+  <span class="s1">outdir?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#outbase */</span>
+  <span class="s1">outbase?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#external */</span>
+  <span class="s1">external?: string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#packages */</span>
+  <span class="s1">packages?: </span><span class="s2">'external'</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#alias */</span>
+  <span class="s1">alias?: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#loader */</span>
+  <span class="s1">loader?: { [ext: string]: Loader }</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#resolve-extensions */</span>
+  <span class="s1">resolveExtensions?: string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#main-fields */</span>
+  <span class="s1">mainFields?: string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#conditions */</span>
+  <span class="s1">conditions?: string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#write */</span>
+  <span class="s1">write?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#allow-overwrite */</span>
+  <span class="s1">allowOverwrite?: boolean</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#tsconfig */</span>
+  <span class="s1">tsconfig?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#out-extension */</span>
+  <span class="s1">outExtension?: { [ext: string]: string }</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#public-path */</span>
+  <span class="s1">publicPath?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#entry-names */</span>
+  <span class="s1">entryNames?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#chunk-names */</span>
+  <span class="s1">chunkNames?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#asset-names */</span>
+  <span class="s1">assetNames?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#inject */</span>
+  <span class="s1">inject?: string[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#banner */</span>
+  <span class="s1">banner?: { [type: string]: string }</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#footer */</span>
+  <span class="s1">footer?: { [type: string]: string }</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#entry-points */</span>
+  <span class="s1">entryPoints?: string[] | Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt; | { </span><span class="s0">in</span><span class="s1">: string</span><span class="s0">, </span><span class="s1">out: string }[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#stdin */</span>
+  <span class="s1">stdin?: StdinOptions</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/ */</span>
+  <span class="s1">plugins?: Plugin[]</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#working-directory */</span>
+  <span class="s1">absWorkingDir?: string</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#node-paths */</span>
+  <span class="s1">nodePaths?: string[]</span><span class="s0">; </span><span class="s4">// The &quot;NODE_PATH&quot; variable from Node.js</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">StdinOptions {</span>
+  <span class="s1">contents: string | Uint8Array</span>
+  <span class="s1">resolveDir?: string</span>
+  <span class="s1">sourcefile?: string</span>
+  <span class="s1">loader?: Loader</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Message {</span>
+  <span class="s1">id: string</span>
+  <span class="s1">pluginName: string</span>
+  <span class="s1">text: string</span>
+  <span class="s1">location: Location | </span><span class="s0">null</span>
+  <span class="s1">notes: Note[]</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Optional user-specified data that is passed through unmodified. You can</span>
+   <span class="s3">* use this to stash the original error, for example.</span>
+   <span class="s3">*/</span>
+  <span class="s1">detail: any</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Note {</span>
+  <span class="s1">text: string</span>
+  <span class="s1">location: Location | </span><span class="s0">null</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Location {</span>
+  <span class="s1">file: string</span>
+  <span class="s1">namespace: string</span>
+  <span class="s3">/** 1-based */</span>
+  <span class="s1">line: number</span>
+  <span class="s3">/** 0-based, in bytes */</span>
+  <span class="s1">column: number</span>
+  <span class="s3">/** in bytes */</span>
+  <span class="s1">length: number</span>
+  <span class="s1">lineText: string</span>
+  <span class="s1">suggestion: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OutputFile {</span>
+  <span class="s1">path: string</span>
+  <span class="s3">/** &quot;text&quot; as bytes */</span>
+  <span class="s1">contents: Uint8Array</span>
+  <span class="s3">/** &quot;contents&quot; as text (changes automatically with &quot;contents&quot;) */</span>
+  <span class="s1">readonly text: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">BuildResult&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">BuildOptions = BuildOptions&gt; {</span>
+  <span class="s1">errors: Message[]</span>
+  <span class="s1">warnings: Message[]</span>
+  <span class="s3">/** Only when &quot;write: false&quot; */</span>
+  <span class="s1">outputFiles: OutputFile[] | (SpecificOptions[</span><span class="s2">'write'</span><span class="s1">] </span><span class="s0">extends false </span><span class="s1">? never : undefined)</span>
+  <span class="s3">/** Only when &quot;metafile: true&quot; */</span>
+  <span class="s1">metafile: Metafile | (SpecificOptions[</span><span class="s2">'metafile'</span><span class="s1">] </span><span class="s0">extends true </span><span class="s1">? never : undefined)</span>
+  <span class="s3">/** Only when &quot;mangleCache&quot; is present */</span>
+  <span class="s1">mangleCache: Record&lt;string</span><span class="s0">, </span><span class="s1">string | </span><span class="s0">false</span><span class="s1">&gt; | (SpecificOptions[</span><span class="s2">'mangleCache'</span><span class="s1">] </span><span class="s0">extends </span><span class="s1">Object ? never : undefined)</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">BuildFailure </span><span class="s0">extends </span><span class="s1">Error {</span>
+  <span class="s1">errors: Message[]</span>
+  <span class="s1">warnings: Message[]</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/api/#serve-arguments */</span>
+<span class="s0">export interface </span><span class="s1">ServeOptions {</span>
+  <span class="s1">port?: number</span>
+  <span class="s1">host?: string</span>
+  <span class="s1">servedir?: string</span>
+  <span class="s1">keyfile?: string</span>
+  <span class="s1">certfile?: string</span>
+  <span class="s1">onRequest?: (args: ServeOnRequestArgs) =&gt; </span><span class="s0">void</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ServeOnRequestArgs {</span>
+  <span class="s1">remoteAddress: string</span>
+  <span class="s1">method: string</span>
+  <span class="s1">path: string</span>
+  <span class="s1">status: number</span>
+  <span class="s3">/** The time to generate the response, not to send it */</span>
+  <span class="s1">timeInMS: number</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/api/#serve-return-values */</span>
+<span class="s0">export interface </span><span class="s1">ServeResult {</span>
+  <span class="s1">port: number</span>
+  <span class="s1">host: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TransformOptions </span><span class="s0">extends </span><span class="s1">CommonOptions {</span>
+  <span class="s1">tsconfigRaw?: string | {</span>
+    <span class="s1">compilerOptions?: {</span>
+      <span class="s1">alwaysStrict?: boolean</span><span class="s0">,</span>
+      <span class="s1">importsNotUsedAsValues?: </span><span class="s2">'remove' </span><span class="s1">| </span><span class="s2">'preserve' </span><span class="s1">| </span><span class="s2">'error'</span><span class="s0">,</span>
+      <span class="s1">jsx?: </span><span class="s2">'react' </span><span class="s1">| </span><span class="s2">'react-jsx' </span><span class="s1">| </span><span class="s2">'react-jsxdev' </span><span class="s1">| </span><span class="s2">'preserve'</span><span class="s0">,</span>
+      <span class="s1">jsxFactory?: string</span><span class="s0">,</span>
+      <span class="s1">jsxFragmentFactory?: string</span><span class="s0">,</span>
+      <span class="s1">jsxImportSource?: string</span><span class="s0">,</span>
+      <span class="s1">preserveValueImports?: boolean</span><span class="s0">,</span>
+      <span class="s1">target?: string</span><span class="s0">,</span>
+      <span class="s1">useDefineForClassFields?: boolean</span><span class="s0">,</span>
+    <span class="s1">}</span><span class="s0">,</span>
+  <span class="s1">}</span>
+
+  <span class="s1">sourcefile?: string</span>
+  <span class="s1">loader?: Loader</span>
+  <span class="s1">banner?: string</span>
+  <span class="s1">footer?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TransformResult&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">TransformOptions = TransformOptions&gt; {</span>
+  <span class="s1">code: string</span>
+  <span class="s1">map: string</span>
+  <span class="s1">warnings: Message[]</span>
+  <span class="s3">/** Only when &quot;mangleCache&quot; is present */</span>
+  <span class="s1">mangleCache: Record&lt;string</span><span class="s0">, </span><span class="s1">string | </span><span class="s0">false</span><span class="s1">&gt; | (SpecificOptions[</span><span class="s2">'mangleCache'</span><span class="s1">] </span><span class="s0">extends </span><span class="s1">Object ? never : undefined)</span>
+  <span class="s3">/** Only when &quot;legalComments&quot; is &quot;external&quot; */</span>
+  <span class="s1">legalComments: string | (SpecificOptions[</span><span class="s2">'legalComments'</span><span class="s1">] </span><span class="s0">extends </span><span class="s2">'external' </span><span class="s1">? never : undefined)</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TransformFailure </span><span class="s0">extends </span><span class="s1">Error {</span>
+  <span class="s1">errors: Message[]</span>
+  <span class="s1">warnings: Message[]</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Plugin {</span>
+  <span class="s1">name: string</span>
+  <span class="s1">setup: (build: PluginBuild) =&gt; (</span><span class="s0">void </span><span class="s1">| Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;)</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PluginBuild {</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#build-options */</span>
+  <span class="s1">initialOptions: BuildOptions</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#resolve */</span>
+  <span class="s1">resolve(path: string</span><span class="s0">, </span><span class="s1">options?: ResolveOptions): Promise&lt;ResolveResult&gt;</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-start */</span>
+  <span class="s1">onStart(callback: () =&gt;</span>
+    <span class="s1">(OnStartResult | </span><span class="s0">null </span><span class="s1">| </span><span class="s0">void </span><span class="s1">| Promise&lt;OnStartResult | </span><span class="s0">null </span><span class="s1">| </span><span class="s0">void</span><span class="s1">&gt;)): </span><span class="s0">void</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-end */</span>
+  <span class="s1">onEnd(callback: (result: BuildResult) =&gt;</span>
+    <span class="s1">(OnEndResult | </span><span class="s0">null </span><span class="s1">| </span><span class="s0">void </span><span class="s1">| Promise&lt;OnEndResult | </span><span class="s0">null </span><span class="s1">| </span><span class="s0">void</span><span class="s1">&gt;)): </span><span class="s0">void</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-resolve */</span>
+  <span class="s1">onResolve(options: OnResolveOptions</span><span class="s0">, </span><span class="s1">callback: (args: OnResolveArgs) =&gt;</span>
+    <span class="s1">(OnResolveResult | </span><span class="s0">null </span><span class="s1">| undefined | Promise&lt;OnResolveResult | </span><span class="s0">null </span><span class="s1">| undefined&gt;)): </span><span class="s0">void</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-load */</span>
+  <span class="s1">onLoad(options: OnLoadOptions</span><span class="s0">, </span><span class="s1">callback: (args: OnLoadArgs) =&gt;</span>
+    <span class="s1">(OnLoadResult | </span><span class="s0">null </span><span class="s1">| undefined | Promise&lt;OnLoadResult | </span><span class="s0">null </span><span class="s1">| undefined&gt;)): </span><span class="s0">void</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-dispose */</span>
+  <span class="s1">onDispose(callback: () =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void</span>
+
+  <span class="s4">// This is a full copy of the esbuild library in case you need it</span>
+  <span class="s1">esbuild: {</span>
+    <span class="s1">context: </span><span class="s0">typeof </span><span class="s1">context</span><span class="s0">,</span>
+    <span class="s1">build: </span><span class="s0">typeof </span><span class="s1">build</span><span class="s0">,</span>
+    <span class="s1">buildSync: </span><span class="s0">typeof </span><span class="s1">buildSync</span><span class="s0">,</span>
+    <span class="s1">transform: </span><span class="s0">typeof </span><span class="s1">transform</span><span class="s0">,</span>
+    <span class="s1">transformSync: </span><span class="s0">typeof </span><span class="s1">transformSync</span><span class="s0">,</span>
+    <span class="s1">formatMessages: </span><span class="s0">typeof </span><span class="s1">formatMessages</span><span class="s0">,</span>
+    <span class="s1">formatMessagesSync: </span><span class="s0">typeof </span><span class="s1">formatMessagesSync</span><span class="s0">,</span>
+    <span class="s1">analyzeMetafile: </span><span class="s0">typeof </span><span class="s1">analyzeMetafile</span><span class="s0">,</span>
+    <span class="s1">analyzeMetafileSync: </span><span class="s0">typeof </span><span class="s1">analyzeMetafileSync</span><span class="s0">,</span>
+    <span class="s1">initialize: </span><span class="s0">typeof </span><span class="s1">initialize</span><span class="s0">,</span>
+    <span class="s1">version: </span><span class="s0">typeof </span><span class="s1">version</span><span class="s0">,</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#resolve-options */</span>
+<span class="s0">export interface </span><span class="s1">ResolveOptions {</span>
+  <span class="s1">pluginName?: string</span>
+  <span class="s1">importer?: string</span>
+  <span class="s1">namespace?: string</span>
+  <span class="s1">resolveDir?: string</span>
+  <span class="s1">kind?: ImportKind</span>
+  <span class="s1">pluginData?: any</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#resolve-results */</span>
+<span class="s0">export interface </span><span class="s1">ResolveResult {</span>
+  <span class="s1">errors: Message[]</span>
+  <span class="s1">warnings: Message[]</span>
+
+  <span class="s1">path: string</span>
+  <span class="s1">external: boolean</span>
+  <span class="s1">sideEffects: boolean</span>
+  <span class="s1">namespace: string</span>
+  <span class="s1">suffix: string</span>
+  <span class="s1">pluginData: any</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OnStartResult {</span>
+  <span class="s1">errors?: PartialMessage[]</span>
+  <span class="s1">warnings?: PartialMessage[]</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OnEndResult {</span>
+  <span class="s1">errors?: PartialMessage[]</span>
+  <span class="s1">warnings?: PartialMessage[]</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-resolve-options */</span>
+<span class="s0">export interface </span><span class="s1">OnResolveOptions {</span>
+  <span class="s1">filter: RegExp</span>
+  <span class="s1">namespace?: string</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-resolve-arguments */</span>
+<span class="s0">export interface </span><span class="s1">OnResolveArgs {</span>
+  <span class="s1">path: string</span>
+  <span class="s1">importer: string</span>
+  <span class="s1">namespace: string</span>
+  <span class="s1">resolveDir: string</span>
+  <span class="s1">kind: ImportKind</span>
+  <span class="s1">pluginData: any</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type ImportKind =</span>
+  <span class="s1">| </span><span class="s2">'entry-point'</span>
+
+  <span class="s4">// JS</span>
+  <span class="s1">| </span><span class="s2">'import-statement'</span>
+  <span class="s1">| </span><span class="s2">'require-call'</span>
+  <span class="s1">| </span><span class="s2">'dynamic-import'</span>
+  <span class="s1">| </span><span class="s2">'require-resolve'</span>
+
+  <span class="s4">// CSS</span>
+  <span class="s1">| </span><span class="s2">'import-rule'</span>
+  <span class="s1">| </span><span class="s2">'url-token'</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-resolve-results */</span>
+<span class="s0">export interface </span><span class="s1">OnResolveResult {</span>
+  <span class="s1">pluginName?: string</span>
+
+  <span class="s1">errors?: PartialMessage[]</span>
+  <span class="s1">warnings?: PartialMessage[]</span>
+
+  <span class="s1">path?: string</span>
+  <span class="s1">external?: boolean</span>
+  <span class="s1">sideEffects?: boolean</span>
+  <span class="s1">namespace?: string</span>
+  <span class="s1">suffix?: string</span>
+  <span class="s1">pluginData?: any</span>
+
+  <span class="s1">watchFiles?: string[]</span>
+  <span class="s1">watchDirs?: string[]</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-load-options */</span>
+<span class="s0">export interface </span><span class="s1">OnLoadOptions {</span>
+  <span class="s1">filter: RegExp</span>
+  <span class="s1">namespace?: string</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-load-arguments */</span>
+<span class="s0">export interface </span><span class="s1">OnLoadArgs {</span>
+  <span class="s1">path: string</span>
+  <span class="s1">namespace: string</span>
+  <span class="s1">suffix: string</span>
+  <span class="s1">pluginData: any</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/plugins/#on-load-results */</span>
+<span class="s0">export interface </span><span class="s1">OnLoadResult {</span>
+  <span class="s1">pluginName?: string</span>
+
+  <span class="s1">errors?: PartialMessage[]</span>
+  <span class="s1">warnings?: PartialMessage[]</span>
+
+  <span class="s1">contents?: string | Uint8Array</span>
+  <span class="s1">resolveDir?: string</span>
+  <span class="s1">loader?: Loader</span>
+  <span class="s1">pluginData?: any</span>
+
+  <span class="s1">watchFiles?: string[]</span>
+  <span class="s1">watchDirs?: string[]</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PartialMessage {</span>
+  <span class="s1">id?: string</span>
+  <span class="s1">pluginName?: string</span>
+  <span class="s1">text?: string</span>
+  <span class="s1">location?: Partial&lt;Location&gt; | </span><span class="s0">null</span>
+  <span class="s1">notes?: PartialNote[]</span>
+  <span class="s1">detail?: any</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PartialNote {</span>
+  <span class="s1">text?: string</span>
+  <span class="s1">location?: Partial&lt;Location&gt; | </span><span class="s0">null</span>
+<span class="s1">}</span>
+
+<span class="s3">/** Documentation: https://esbuild.github.io/api/#metafile */</span>
+<span class="s0">export interface </span><span class="s1">Metafile {</span>
+  <span class="s1">inputs: {</span>
+    <span class="s1">[path: string]: {</span>
+      <span class="s1">bytes: number</span>
+      <span class="s1">imports: {</span>
+        <span class="s1">path: string</span>
+        <span class="s1">kind: ImportKind</span>
+        <span class="s1">external?: boolean</span>
+        <span class="s1">original?: string</span>
+      <span class="s1">}[]</span>
+      <span class="s1">format?: </span><span class="s2">'cjs' </span><span class="s1">| </span><span class="s2">'esm'</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">outputs: {</span>
+    <span class="s1">[path: string]: {</span>
+      <span class="s1">bytes: number</span>
+      <span class="s1">inputs: {</span>
+        <span class="s1">[path: string]: {</span>
+          <span class="s1">bytesInOutput: number</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+      <span class="s1">imports: {</span>
+        <span class="s1">path: string</span>
+        <span class="s1">kind: ImportKind | </span><span class="s2">'file-loader'</span>
+        <span class="s1">external?: boolean</span>
+      <span class="s1">}[]</span>
+      <span class="s1">exports: string[]</span>
+      <span class="s1">entryPoint?: string</span>
+      <span class="s1">cssBundle?: string</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">FormatMessagesOptions {</span>
+  <span class="s1">kind: </span><span class="s2">'error' </span><span class="s1">| </span><span class="s2">'warning'</span>
+  <span class="s1">color?: boolean</span>
+  <span class="s1">terminalWidth?: number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">AnalyzeMetafileOptions {</span>
+  <span class="s1">color?: boolean</span>
+  <span class="s1">verbose?: boolean</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">WatchOptions {</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">BuildContext&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">BuildOptions = BuildOptions&gt; {</span>
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#rebuild */</span>
+  <span class="s1">rebuild(): Promise&lt;BuildResult&lt;SpecificOptions&gt;&gt;</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#watch */</span>
+  <span class="s1">watch(options?: WatchOptions): Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span>
+
+  <span class="s3">/** Documentation: https://esbuild.github.io/api/#serve */</span>
+  <span class="s1">serve(options?: ServeOptions): Promise&lt;ServeResult&gt;</span>
+
+  <span class="s1">cancel(): Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span>
+  <span class="s1">dispose(): Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span>
+<span class="s1">}</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* This function invokes the &quot;esbuild&quot; command-line tool for you. It returns a</span>
+ <span class="s3">* promise that either resolves with a &quot;BuildResult&quot; object or rejects with a</span>
+ <span class="s3">* &quot;BuildFailure&quot; object.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: yes</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#build</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">build&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">BuildOptions&gt;(options: SpecificOptions): Promise&lt;BuildResult&lt;SpecificOptions&gt;&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">build(options: BuildOptions): Promise&lt;BuildResult&gt;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* This is the advanced long-running form of &quot;build&quot; that supports additional</span>
+ <span class="s3">* features such as watch mode and a local development server.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: no</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#build</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">context&lt;T </span><span class="s0">extends </span><span class="s1">BuildOptions&gt;(options: T): Promise&lt;BuildContext&lt;T&gt;&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">context(options: BuildOptions): Promise&lt;BuildContext&gt;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* This function transforms a single JavaScript file. It can be used to minify</span>
+ <span class="s3">* JavaScript, convert TypeScript/JSX to JavaScript, or convert newer JavaScript</span>
+ <span class="s3">* to older JavaScript. It returns a promise that is either resolved with a</span>
+ <span class="s3">* &quot;TransformResult&quot; object or rejected with a &quot;TransformFailure&quot; object.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: yes</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#transform</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">transform&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">TransformOptions&gt;(input: string | Uint8Array</span><span class="s0">, </span><span class="s1">options?: SpecificOptions): Promise&lt;TransformResult&lt;SpecificOptions&gt;&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">transform(input: string | Uint8Array</span><span class="s0">, </span><span class="s1">options?: TransformOptions): Promise&lt;TransformResult&gt;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Converts log messages to formatted message strings suitable for printing in</span>
+ <span class="s3">* the terminal. This allows you to reuse the built-in behavior of esbuild's</span>
+ <span class="s3">* log message formatter. This is a batch-oriented API for efficiency.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: yes</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">formatMessages(messages: PartialMessage[]</span><span class="s0">, </span><span class="s1">options: FormatMessagesOptions): Promise&lt;string[]&gt;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Pretty-prints an analysis of the metafile JSON to a string. This is just for</span>
+ <span class="s3">* convenience to be able to match esbuild's pretty-printing exactly. If you want</span>
+ <span class="s3">* to customize it, you can just inspect the data in the metafile yourself.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: yes</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#analyze</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">analyzeMetafile(metafile: Metafile | string</span><span class="s0">, </span><span class="s1">options?: AnalyzeMetafileOptions): Promise&lt;string&gt;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* A synchronous version of &quot;build&quot;.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: no</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#build</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">buildSync&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">BuildOptions&gt;(options: SpecificOptions): BuildResult&lt;SpecificOptions&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">buildSync(options: BuildOptions): BuildResult</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* A synchronous version of &quot;transform&quot;.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: no</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#transform</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">transformSync&lt;SpecificOptions </span><span class="s0">extends </span><span class="s1">TransformOptions&gt;(input: string</span><span class="s0">, </span><span class="s1">options?: SpecificOptions): TransformResult&lt;SpecificOptions&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">transformSync(input: string | Uint8Array</span><span class="s0">, </span><span class="s1">options?: TransformOptions): TransformResult</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* A synchronous version of &quot;formatMessages&quot;.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: no</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">formatMessagesSync(messages: PartialMessage[]</span><span class="s0">, </span><span class="s1">options: FormatMessagesOptions): string[]</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* A synchronous version of &quot;analyzeMetafile&quot;.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: no</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#analyze</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">analyzeMetafileSync(metafile: Metafile | string</span><span class="s0">, </span><span class="s1">options?: AnalyzeMetafileOptions): string</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* This configures the browser-based version of esbuild. It is necessary to</span>
+ <span class="s3">* call this first and wait for the returned promise to be resolved before</span>
+ <span class="s3">* making other API calls when using esbuild in the browser.</span>
+ <span class="s3">*</span>
+ <span class="s3">* - Works in node: yes</span>
+ <span class="s3">* - Works in browser: yes (&quot;options&quot; is required)</span>
+ <span class="s3">*</span>
+ <span class="s3">* Documentation: https://esbuild.github.io/api/#browser</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">initialize(options: InitializeOptions): Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span>
+
+<span class="s0">export interface </span><span class="s1">InitializeOptions {</span>
+  <span class="s3">/**</span>
+   <span class="s3">* The URL of the &quot;esbuild.wasm&quot; file. This must be provided when running</span>
+   <span class="s3">* esbuild in the browser.</span>
+   <span class="s3">*/</span>
+  <span class="s1">wasmURL?: string | URL</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* The result of calling &quot;new WebAssembly.Module(buffer)&quot; where &quot;buffer&quot;</span>
+   <span class="s3">* is a typed array or ArrayBuffer containing the binary code of the</span>
+   <span class="s3">* &quot;esbuild.wasm&quot; file.</span>
+   <span class="s3">*</span>
+   <span class="s3">* You can use this as an alternative to &quot;wasmURL&quot; for environments where it's</span>
+   <span class="s3">* not possible to download the WebAssembly module.</span>
+   <span class="s3">*/</span>
+  <span class="s1">wasmModule?: WebAssembly.Module</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* By default esbuild runs the WebAssembly-based browser API in a web worker</span>
+   <span class="s3">* to avoid blocking the UI thread. This can be disabled by setting &quot;worker&quot;</span>
+   <span class="s3">* to false.</span>
+   <span class="s3">*/</span>
+  <span class="s1">worker?: boolean</span>
+<span class="s1">}</span>
+
+<span class="s0">export let </span><span class="s1">version: string</span>
+</pre>
+</body>
+</html>

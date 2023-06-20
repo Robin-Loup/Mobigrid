@@ -1,0 +1,627 @@
+<html>
+<head>
+<title>reactivity-transform.cjs.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #cc7832;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+reactivity-transform.cjs.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span><span class="s1">;</span>
+
+<span class="s2">Object.defineProperty(exports</span><span class="s1">, </span><span class="s0">'__esModule'</span><span class="s1">, </span><span class="s2">{ value: </span><span class="s1">true </span><span class="s2">})</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">MagicString = require(</span><span class="s0">'magic-string'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">estreeWalker = require(</span><span class="s0">'estree-walker'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">compilerCore = require(</span><span class="s0">'@vue/compiler-core'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">parser = require(</span><span class="s0">'@babel/parser'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">shared = require(</span><span class="s0">'@vue/shared'</span><span class="s2">)</span><span class="s1">;</span>
+
+<span class="s1">const </span><span class="s2">CONVERT_SYMBOL = </span><span class="s0">'$'</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">ESCAPE_SYMBOL = </span><span class="s0">'$$'</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">IMPORT_SOURCE = </span><span class="s0">'vue/macros'</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">shorthands = [</span><span class="s0">'ref'</span><span class="s1">, </span><span class="s0">'computed'</span><span class="s1">, </span><span class="s0">'shallowRef'</span><span class="s1">, </span><span class="s0">'toRef'</span><span class="s1">, </span><span class="s0">'customRef'</span><span class="s2">]</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">transformCheckRE = </span><span class="s3">/[^\w]\$(?:\$|ref|computed|shallowRef)?\s*(\(|\&lt;)/</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">shouldTransform(src) {</span>
+    <span class="s1">return </span><span class="s2">transformCheckRE.test(src)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">transform(src</span><span class="s1">, </span><span class="s2">{ filename</span><span class="s1">, </span><span class="s2">sourceMap</span><span class="s1">, </span><span class="s2">parserPlugins</span><span class="s1">, </span><span class="s2">importHelpersFrom = </span><span class="s0">'vue' </span><span class="s2">} = {}) {</span>
+    <span class="s1">const </span><span class="s2">plugins = parserPlugins || []</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(filename) {</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s3">/\.tsx?$/</span><span class="s2">.test(filename)) {</span>
+            <span class="s2">plugins.push(</span><span class="s0">'typescript'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(filename.endsWith(</span><span class="s0">'x'</span><span class="s2">)) {</span>
+            <span class="s2">plugins.push(</span><span class="s0">'jsx'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">ast = parser.parse(src</span><span class="s1">, </span><span class="s2">{</span>
+        <span class="s2">sourceType: </span><span class="s0">'module'</span><span class="s1">,</span>
+        <span class="s2">plugins</span>
+    <span class="s2">})</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">s = </span><span class="s1">new </span><span class="s2">MagicString(src)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">res = transformAST(ast.program</span><span class="s1">, </span><span class="s2">s</span><span class="s1">, </span><span class="s3">0</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s4">// inject helper imports</span>
+    <span class="s1">if </span><span class="s2">(res.importedHelpers.length) {</span>
+        <span class="s2">s.prepend(</span><span class="s0">`import { </span><span class="s2">${res.importedHelpers</span>
+            <span class="s2">.map(h =&gt; </span><span class="s0">`</span><span class="s2">${h} </span><span class="s0">as _</span><span class="s2">${h}</span><span class="s0">`</span><span class="s2">)</span>
+            <span class="s2">.join(</span><span class="s0">', '</span><span class="s2">)} </span><span class="s0">} from '</span><span class="s2">${importHelpersFrom}</span><span class="s0">'</span><span class="s1">\n</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">{</span>
+        <span class="s2">...res</span><span class="s1">,</span>
+        <span class="s2">code: s.toString()</span><span class="s1">,</span>
+        <span class="s2">map: sourceMap</span>
+            <span class="s2">? s.generateMap({</span>
+                <span class="s2">source: filename</span><span class="s1">,</span>
+                <span class="s2">hires: </span><span class="s1">true,</span>
+                <span class="s2">includeContent: </span><span class="s1">true</span>
+            <span class="s2">})</span>
+            <span class="s2">: </span><span class="s1">null</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">transformAST(ast</span><span class="s1">, </span><span class="s2">s</span><span class="s1">, </span><span class="s2">offset = </span><span class="s3">0</span><span class="s1">, </span><span class="s2">knownRefs</span><span class="s1">, </span><span class="s2">knownProps) {</span>
+    <span class="s4">// TODO remove when out of experimental</span>
+    <span class="s2">warnExperimental()</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">userImports = Object.create(</span><span class="s1">null</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">node of ast.body) {</span>
+        <span class="s1">if </span><span class="s2">(node.type !== </span><span class="s0">'ImportDeclaration'</span><span class="s2">)</span>
+            <span class="s1">continue;</span>
+        <span class="s2">walkImportDeclaration(node)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s4">// macro import handling</span>
+    <span class="s1">let </span><span class="s2">convertSymbol</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">escapeSymbol</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">{ local</span><span class="s1">, </span><span class="s2">imported</span><span class="s1">, </span><span class="s2">source</span><span class="s1">, </span><span class="s2">specifier } of Object.values(userImports)) {</span>
+        <span class="s1">if </span><span class="s2">(source === IMPORT_SOURCE) {</span>
+            <span class="s1">if </span><span class="s2">(imported === ESCAPE_SYMBOL) {</span>
+                <span class="s2">escapeSymbol = local</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(imported === CONVERT_SYMBOL) {</span>
+                <span class="s2">convertSymbol = local</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(imported !== local) {</span>
+                <span class="s2">error(</span><span class="s0">`macro imports for ref-creating methods do not support aliasing.`</span><span class="s1">, </span><span class="s2">specifier)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s4">// default symbol</span>
+    <span class="s1">if </span><span class="s2">(!convertSymbol &amp;&amp; !userImports[CONVERT_SYMBOL]) {</span>
+        <span class="s2">convertSymbol = CONVERT_SYMBOL</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(!escapeSymbol &amp;&amp; !userImports[ESCAPE_SYMBOL]) {</span>
+        <span class="s2">escapeSymbol = ESCAPE_SYMBOL</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">importedHelpers = </span><span class="s1">new </span><span class="s2">Set()</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">rootScope = {}</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">scopeStack = [rootScope]</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">currentScope = rootScope</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">escapeScope</span><span class="s1">; </span><span class="s4">// inside $$()</span>
+    <span class="s1">const </span><span class="s2">excludedIds = </span><span class="s1">new </span><span class="s2">WeakSet()</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">parentStack = []</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">propsLocalToPublicMap = Object.create(</span><span class="s1">null</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(knownRefs) {</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key of knownRefs) {</span>
+            <span class="s2">rootScope[key] = {}</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(knownProps) {</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key </span><span class="s1">in </span><span class="s2">knownProps) {</span>
+            <span class="s1">const </span><span class="s2">{ local</span><span class="s1">, </span><span class="s2">isConst } = knownProps[key]</span><span class="s1">;</span>
+            <span class="s2">rootScope[local] = {</span>
+                <span class="s2">isProp: </span><span class="s1">true,</span>
+                <span class="s2">isConst: !!isConst</span>
+            <span class="s2">}</span><span class="s1">;</span>
+            <span class="s2">propsLocalToPublicMap[local] = key</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">walkImportDeclaration(node) {</span>
+        <span class="s1">const </span><span class="s2">source = node.source.value</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(source === IMPORT_SOURCE) {</span>
+            <span class="s2">s.remove(node.start + offset</span><span class="s1">, </span><span class="s2">node.end + offset)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">specifier of node.specifiers) {</span>
+            <span class="s1">const </span><span class="s2">local = specifier.local.name</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">imported = (specifier.type === </span><span class="s0">'ImportSpecifier' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">specifier.imported.type === </span><span class="s0">'Identifier' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">specifier.imported.name) ||</span>
+                <span class="s0">'default'</span><span class="s1">;</span>
+            <span class="s2">userImports[local] = {</span>
+                <span class="s2">source</span><span class="s1">,</span>
+                <span class="s2">local</span><span class="s1">,</span>
+                <span class="s2">imported</span><span class="s1">,</span>
+                <span class="s2">specifier</span>
+            <span class="s2">}</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">isRefCreationCall(callee) {</span>
+        <span class="s1">if </span><span class="s2">(!convertSymbol || currentScope[convertSymbol] !== undefined) {</span>
+            <span class="s1">return false;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(callee === convertSymbol) {</span>
+            <span class="s1">return </span><span class="s2">convertSymbol</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(callee[</span><span class="s3">0</span><span class="s2">] === </span><span class="s0">'$' </span><span class="s2">&amp;&amp; shorthands.includes(callee.slice(</span><span class="s3">1</span><span class="s2">))) {</span>
+            <span class="s1">return </span><span class="s2">callee</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">error(msg</span><span class="s1">, </span><span class="s2">node) {</span>
+        <span class="s1">const </span><span class="s2">e = </span><span class="s1">new </span><span class="s2">Error(msg)</span><span class="s1">;</span>
+        <span class="s2">e.node = node</span><span class="s1">;</span>
+        <span class="s1">throw </span><span class="s2">e</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">helper(msg) {</span>
+        <span class="s2">importedHelpers.add(msg)</span><span class="s1">;</span>
+        <span class="s1">return </span><span class="s0">`_</span><span class="s2">${msg}</span><span class="s0">`</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">registerBinding(id</span><span class="s1">, </span><span class="s2">binding) {</span>
+        <span class="s2">excludedIds.add(id)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(currentScope) {</span>
+            <span class="s2">currentScope[id.name] = binding ? binding : </span><span class="s1">false;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">error(</span><span class="s0">'registerBinding called without active scope, something is wrong.'</span><span class="s1">, </span><span class="s2">id)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">registerRefBinding = (id</span><span class="s1">, </span><span class="s2">isConst = </span><span class="s1">false</span><span class="s2">) =&gt; registerBinding(id</span><span class="s1">, </span><span class="s2">{ isConst })</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">tempVarCount = </span><span class="s3">0</span><span class="s1">;</span>
+    <span class="s1">function </span><span class="s2">genTempVar() {</span>
+        <span class="s1">return </span><span class="s0">`__$temp_</span><span class="s2">${++tempVarCount}</span><span class="s0">`</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">snip(node) {</span>
+        <span class="s1">return </span><span class="s2">s.original.slice(node.start + offset</span><span class="s1">, </span><span class="s2">node.end + offset)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">walkScope(node</span><span class="s1">, </span><span class="s2">isRoot = </span><span class="s1">false</span><span class="s2">) {</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">stmt of node.body) {</span>
+            <span class="s1">if </span><span class="s2">(stmt.type === </span><span class="s0">'VariableDeclaration'</span><span class="s2">) {</span>
+                <span class="s2">walkVariableDeclaration(stmt</span><span class="s1">, </span><span class="s2">isRoot)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(stmt.type === </span><span class="s0">'FunctionDeclaration' </span><span class="s2">||</span>
+                <span class="s2">stmt.type === </span><span class="s0">'ClassDeclaration'</span><span class="s2">) {</span>
+                <span class="s1">if </span><span class="s2">(stmt.declare || !stmt.id)</span>
+                    <span class="s1">continue;</span>
+                <span class="s2">registerBinding(stmt.id)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">((stmt.type === </span><span class="s0">'ForOfStatement' </span><span class="s2">|| stmt.type === </span><span class="s0">'ForInStatement'</span><span class="s2">) &amp;&amp;</span>
+                <span class="s2">stmt.left.type === </span><span class="s0">'VariableDeclaration'</span><span class="s2">) {</span>
+                <span class="s2">walkVariableDeclaration(stmt.left)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(stmt.type === </span><span class="s0">'ExportNamedDeclaration' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">stmt.declaration &amp;&amp;</span>
+                <span class="s2">stmt.declaration.type === </span><span class="s0">'VariableDeclaration'</span><span class="s2">) {</span>
+                <span class="s2">walkVariableDeclaration(stmt.declaration</span><span class="s1">, </span><span class="s2">isRoot)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(stmt.type === </span><span class="s0">'LabeledStatement' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">stmt.body.type === </span><span class="s0">'VariableDeclaration'</span><span class="s2">) {</span>
+                <span class="s2">walkVariableDeclaration(stmt.body</span><span class="s1">, </span><span class="s2">isRoot)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">walkVariableDeclaration(stmt</span><span class="s1">, </span><span class="s2">isRoot = </span><span class="s1">false</span><span class="s2">) {</span>
+        <span class="s1">if </span><span class="s2">(stmt.declare) {</span>
+            <span class="s1">return;</span>
+        <span class="s2">}</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">decl of stmt.declarations) {</span>
+            <span class="s1">let </span><span class="s2">refCall</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">isCall = decl.init &amp;&amp;</span>
+                <span class="s2">decl.init.type === </span><span class="s0">'CallExpression' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">decl.init.callee.type === </span><span class="s0">'Identifier'</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(isCall &amp;&amp;</span>
+                <span class="s2">(refCall = isRefCreationCall(decl.init.callee.name))) {</span>
+                <span class="s2">processRefDeclaration(refCall</span><span class="s1">, </span><span class="s2">decl.id</span><span class="s1">, </span><span class="s2">decl.init</span><span class="s1">, </span><span class="s2">stmt.kind === </span><span class="s0">'const'</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s1">const </span><span class="s2">isProps = isRoot &amp;&amp; isCall &amp;&amp; decl.init.callee.name === </span><span class="s0">'defineProps'</span><span class="s1">;</span>
+                <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">id of compilerCore.extractIdentifiers(decl.id)) {</span>
+                    <span class="s1">if </span><span class="s2">(isProps) {</span>
+                        <span class="s4">// for defineProps destructure, only exclude them since they</span>
+                        <span class="s4">// are already passed in as knownProps</span>
+                        <span class="s2">excludedIds.add(id)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                    <span class="s1">else </span><span class="s2">{</span>
+                        <span class="s2">registerBinding(id)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">processRefDeclaration(method</span><span class="s1">, </span><span class="s2">id</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst) {</span>
+        <span class="s2">excludedIds.add(call.callee)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(method === convertSymbol) {</span>
+            <span class="s4">// $</span>
+            <span class="s4">// remove macro</span>
+            <span class="s2">s.remove(call.callee.start + offset</span><span class="s1">, </span><span class="s2">call.callee.end + offset)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(id.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                <span class="s4">// single variable</span>
+                <span class="s2">registerRefBinding(id</span><span class="s1">, </span><span class="s2">isConst)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(id.type === </span><span class="s0">'ObjectPattern'</span><span class="s2">) {</span>
+                <span class="s2">processRefObjectPattern(id</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(id.type === </span><span class="s0">'ArrayPattern'</span><span class="s2">) {</span>
+                <span class="s2">processRefArrayPattern(id</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s4">// shorthands</span>
+            <span class="s1">if </span><span class="s2">(id.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                <span class="s2">registerRefBinding(id</span><span class="s1">, </span><span class="s2">isConst)</span><span class="s1">;</span>
+                <span class="s4">// replace call</span>
+                <span class="s2">s.overwrite(call.start + offset</span><span class="s1">, </span><span class="s2">call.start + method.length + offset</span><span class="s1">, </span><span class="s2">helper(method.slice(</span><span class="s3">1</span><span class="s2">)))</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">error(</span><span class="s0">`</span><span class="s2">${method}</span><span class="s0">() cannot be used with destructure patterns.`</span><span class="s1">, </span><span class="s2">call)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">processRefObjectPattern(pattern</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">path = []) {</span>
+        <span class="s1">if </span><span class="s2">(!tempVar) {</span>
+            <span class="s2">tempVar = genTempVar()</span><span class="s1">;</span>
+            <span class="s4">// const { x } = $(useFoo()) --&gt; const __$temp_1 = useFoo()</span>
+            <span class="s2">s.overwrite(pattern.start + offset</span><span class="s1">, </span><span class="s2">pattern.end + offset</span><span class="s1">, </span><span class="s2">tempVar)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">let </span><span class="s2">nameId</span><span class="s1">;</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">p of pattern.properties) {</span>
+            <span class="s1">let </span><span class="s2">key</span><span class="s1">;</span>
+            <span class="s1">let </span><span class="s2">defaultValue</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(p.type === </span><span class="s0">'ObjectProperty'</span><span class="s2">) {</span>
+                <span class="s1">if </span><span class="s2">(p.key.start === p.value.start) {</span>
+                    <span class="s4">// shorthand { foo }</span>
+                    <span class="s2">nameId = p.key</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">(p.value.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                        <span class="s4">// avoid shorthand value identifier from being processed</span>
+                        <span class="s2">excludedIds.add(p.value)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                    <span class="s1">else if </span><span class="s2">(p.value.type === </span><span class="s0">'AssignmentPattern' </span><span class="s2">&amp;&amp;</span>
+                        <span class="s2">p.value.left.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                        <span class="s4">// { foo = 1 }</span>
+                        <span class="s2">excludedIds.add(p.value.left)</span><span class="s1">;</span>
+                        <span class="s2">defaultValue = p.value.right</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s2">key = p.computed ? p.key : p.key.name</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">(p.value.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                        <span class="s4">// { foo: bar }</span>
+                        <span class="s2">nameId = p.value</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                    <span class="s1">else if </span><span class="s2">(p.value.type === </span><span class="s0">'ObjectPattern'</span><span class="s2">) {</span>
+                        <span class="s2">processRefObjectPattern(p.value</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">[</span>
+                            <span class="s2">...path</span><span class="s1">,</span>
+                            <span class="s2">key</span>
+                        <span class="s2">])</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                    <span class="s1">else if </span><span class="s2">(p.value.type === </span><span class="s0">'ArrayPattern'</span><span class="s2">) {</span>
+                        <span class="s2">processRefArrayPattern(p.value</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">[</span>
+                            <span class="s2">...path</span><span class="s1">,</span>
+                            <span class="s2">key</span>
+                        <span class="s2">])</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                    <span class="s1">else if </span><span class="s2">(p.value.type === </span><span class="s0">'AssignmentPattern'</span><span class="s2">) {</span>
+                        <span class="s1">if </span><span class="s2">(p.value.left.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                            <span class="s4">// { foo: bar = 1 }</span>
+                            <span class="s2">nameId = p.value.left</span><span class="s1">;</span>
+                            <span class="s2">defaultValue = p.value.right</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s1">else if </span><span class="s2">(p.value.left.type === </span><span class="s0">'ObjectPattern'</span><span class="s2">) {</span>
+                            <span class="s2">processRefObjectPattern(p.value.left</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">[</span>
+                                <span class="s2">...path</span><span class="s1">,</span>
+                                <span class="s2">[key</span><span class="s1">, </span><span class="s2">p.value.right]</span>
+                            <span class="s2">])</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s1">else if </span><span class="s2">(p.value.left.type === </span><span class="s0">'ArrayPattern'</span><span class="s2">) {</span>
+                            <span class="s2">processRefArrayPattern(p.value.left</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">[</span>
+                                <span class="s2">...path</span><span class="s1">,</span>
+                                <span class="s2">[key</span><span class="s1">, </span><span class="s2">p.value.right]</span>
+                            <span class="s2">])</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s1">else ;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s4">// rest element { ...foo }</span>
+                <span class="s2">error(</span><span class="s0">`reactivity destructure does not support rest elements.`</span><span class="s1">, </span><span class="s2">p)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(nameId) {</span>
+                <span class="s2">registerRefBinding(nameId</span><span class="s1">, </span><span class="s2">isConst)</span><span class="s1">;</span>
+                <span class="s4">// inject toRef() after original replaced pattern</span>
+                <span class="s1">const </span><span class="s2">source = pathToString(tempVar</span><span class="s1">, </span><span class="s2">path)</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">keyStr = shared.isString(key)</span>
+                    <span class="s2">? </span><span class="s0">`'</span><span class="s2">${key}</span><span class="s0">'`</span>
+                    <span class="s2">: key</span>
+                        <span class="s2">? snip(key)</span>
+                        <span class="s2">: </span><span class="s0">`'</span><span class="s2">${nameId.name}</span><span class="s0">'`</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">defaultStr = defaultValue ? </span><span class="s0">`, </span><span class="s2">${snip(defaultValue)}</span><span class="s0">` </span><span class="s2">: </span><span class="s0">``</span><span class="s1">;</span>
+                <span class="s2">s.appendLeft(call.end + offset</span><span class="s1">, </span><span class="s0">`,</span><span class="s1">\n  </span><span class="s2">${nameId.name} </span><span class="s0">= </span><span class="s2">${helper(</span><span class="s0">'toRef'</span><span class="s2">)}</span><span class="s0">(</span><span class="s2">${source}</span><span class="s0">, </span><span class="s2">${keyStr}${defaultStr}</span><span class="s0">)`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(nameId) {</span>
+            <span class="s2">s.appendLeft(call.end + offset</span><span class="s1">, </span><span class="s0">';'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">processRefArrayPattern(pattern</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">path = []) {</span>
+        <span class="s1">if </span><span class="s2">(!tempVar) {</span>
+            <span class="s4">// const [x] = $(useFoo()) --&gt; const __$temp_1 = useFoo()</span>
+            <span class="s2">tempVar = genTempVar()</span><span class="s1">;</span>
+            <span class="s2">s.overwrite(pattern.start + offset</span><span class="s1">, </span><span class="s2">pattern.end + offset</span><span class="s1">, </span><span class="s2">tempVar)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">let </span><span class="s2">nameId</span><span class="s1">;</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s3">0</span><span class="s1">; </span><span class="s2">i &lt; pattern.elements.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+            <span class="s1">const </span><span class="s2">e = pattern.elements[i]</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(!e)</span>
+                <span class="s1">continue;</span>
+            <span class="s1">let </span><span class="s2">defaultValue</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(e.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                <span class="s4">// [a] --&gt; [__a]</span>
+                <span class="s2">nameId = e</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(e.type === </span><span class="s0">'AssignmentPattern'</span><span class="s2">) {</span>
+                <span class="s4">// [a = 1]</span>
+                <span class="s2">nameId = e.left</span><span class="s1">;</span>
+                <span class="s2">defaultValue = e.right</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(e.type === </span><span class="s0">'RestElement'</span><span class="s2">) {</span>
+                <span class="s4">// [...a]</span>
+                <span class="s2">error(</span><span class="s0">`reactivity destructure does not support rest elements.`</span><span class="s1">, </span><span class="s2">e)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(e.type === </span><span class="s0">'ObjectPattern'</span><span class="s2">) {</span>
+                <span class="s2">processRefObjectPattern(e</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">[...path</span><span class="s1">, </span><span class="s2">i])</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(e.type === </span><span class="s0">'ArrayPattern'</span><span class="s2">) {</span>
+                <span class="s2">processRefArrayPattern(e</span><span class="s1">, </span><span class="s2">call</span><span class="s1">, </span><span class="s2">isConst</span><span class="s1">, </span><span class="s2">tempVar</span><span class="s1">, </span><span class="s2">[...path</span><span class="s1">, </span><span class="s2">i])</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(nameId) {</span>
+                <span class="s2">registerRefBinding(nameId</span><span class="s1">, </span><span class="s2">isConst)</span><span class="s1">;</span>
+                <span class="s4">// inject toRef() after original replaced pattern</span>
+                <span class="s1">const </span><span class="s2">source = pathToString(tempVar</span><span class="s1">, </span><span class="s2">path)</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">defaultStr = defaultValue ? </span><span class="s0">`, </span><span class="s2">${snip(defaultValue)}</span><span class="s0">` </span><span class="s2">: </span><span class="s0">``</span><span class="s1">;</span>
+                <span class="s2">s.appendLeft(call.end + offset</span><span class="s1">, </span><span class="s0">`,</span><span class="s1">\n  </span><span class="s2">${nameId.name} </span><span class="s0">= </span><span class="s2">${helper(</span><span class="s0">'toRef'</span><span class="s2">)}</span><span class="s0">(</span><span class="s2">${source}</span><span class="s0">, </span><span class="s2">${i}${defaultStr}</span><span class="s0">)`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(nameId) {</span>
+            <span class="s2">s.appendLeft(call.end + offset</span><span class="s1">, </span><span class="s0">';'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">pathToString(source</span><span class="s1">, </span><span class="s2">path) {</span>
+        <span class="s1">if </span><span class="s2">(path.length) {</span>
+            <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">seg of path) {</span>
+                <span class="s1">if </span><span class="s2">(shared.isArray(seg)) {</span>
+                    <span class="s2">source = </span><span class="s0">`(</span><span class="s2">${source}${segToString(seg[</span><span class="s3">0</span><span class="s2">])} </span><span class="s0">|| </span><span class="s2">${snip(seg[</span><span class="s3">1</span><span class="s2">])}</span><span class="s0">)`</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s2">source += segToString(seg)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">source</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">segToString(seg) {</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">seg === </span><span class="s0">'number'</span><span class="s2">) {</span>
+            <span class="s1">return </span><span class="s0">`[</span><span class="s2">${seg}</span><span class="s0">]`</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">seg === </span><span class="s0">'string'</span><span class="s2">) {</span>
+            <span class="s1">return </span><span class="s0">`.</span><span class="s2">${seg}</span><span class="s0">`</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s1">return </span><span class="s2">snip(seg)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">function </span><span class="s2">rewriteId(scope</span><span class="s1">, </span><span class="s2">id</span><span class="s1">, </span><span class="s2">parent</span><span class="s1">, </span><span class="s2">parentStack) {</span>
+        <span class="s1">if </span><span class="s2">(shared.hasOwn(scope</span><span class="s1">, </span><span class="s2">id.name)) {</span>
+            <span class="s1">const </span><span class="s2">binding = scope[id.name]</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(binding) {</span>
+                <span class="s1">if </span><span class="s2">(binding.isConst &amp;&amp;</span>
+                    <span class="s2">((parent.type === </span><span class="s0">'AssignmentExpression' </span><span class="s2">&amp;&amp; id === parent.left) ||</span>
+                        <span class="s2">parent.type === </span><span class="s0">'UpdateExpression'</span><span class="s2">)) {</span>
+                    <span class="s2">error(</span><span class="s0">`Assignment to constant variable.`</span><span class="s1">, </span><span class="s2">id)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">const </span><span class="s2">{ isProp } = binding</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(compilerCore.isStaticProperty(parent) &amp;&amp; parent.shorthand) {</span>
+                    <span class="s4">// let binding used in a property shorthand</span>
+                    <span class="s4">// skip for destructure patterns</span>
+                    <span class="s1">if </span><span class="s2">(!parent.inPattern ||</span>
+                        <span class="s2">compilerCore.isInDestructureAssignment(parent</span><span class="s1">, </span><span class="s2">parentStack)) {</span>
+                        <span class="s1">if </span><span class="s2">(isProp) {</span>
+                            <span class="s1">if </span><span class="s2">(escapeScope) {</span>
+                                <span class="s4">// prop binding in $$()</span>
+                                <span class="s4">// { prop } -&gt; { prop: __props_prop }</span>
+                                <span class="s2">registerEscapedPropBinding(id)</span><span class="s1">;</span>
+                                <span class="s2">s.appendLeft(id.end + offset</span><span class="s1">, </span><span class="s0">`: __props_</span><span class="s2">${propsLocalToPublicMap[id.name]}</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+                            <span class="s2">}</span>
+                            <span class="s1">else </span><span class="s2">{</span>
+                                <span class="s4">// { prop } -&gt; { prop: __props.prop }</span>
+                                <span class="s2">s.appendLeft(id.end + offset</span><span class="s1">, </span><span class="s0">`: </span><span class="s2">${shared.genPropsAccessExp(propsLocalToPublicMap[id.name])}</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+                            <span class="s2">}</span>
+                        <span class="s2">}</span>
+                        <span class="s1">else </span><span class="s2">{</span>
+                            <span class="s4">// { foo } -&gt; { foo: foo.value }</span>
+                            <span class="s2">s.appendLeft(id.end + offset</span><span class="s1">, </span><span class="s0">`: </span><span class="s2">${id.name}</span><span class="s0">.value`</span><span class="s2">)</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s1">if </span><span class="s2">(isProp) {</span>
+                        <span class="s1">if </span><span class="s2">(escapeScope) {</span>
+                            <span class="s4">// x --&gt; __props_x</span>
+                            <span class="s2">registerEscapedPropBinding(id)</span><span class="s1">;</span>
+                            <span class="s2">s.overwrite(id.start + offset</span><span class="s1">, </span><span class="s2">id.end + offset</span><span class="s1">, </span><span class="s0">`__props_</span><span class="s2">${propsLocalToPublicMap[id.name]}</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s1">else </span><span class="s2">{</span>
+                            <span class="s4">// x --&gt; __props.x</span>
+                            <span class="s2">s.overwrite(id.start + offset</span><span class="s1">, </span><span class="s2">id.end + offset</span><span class="s1">, </span><span class="s2">shared.genPropsAccessExp(propsLocalToPublicMap[id.name]))</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                    <span class="s1">else </span><span class="s2">{</span>
+                        <span class="s4">// x --&gt; x.value</span>
+                        <span class="s2">s.appendLeft(id.end + offset</span><span class="s1">, </span><span class="s0">'.value'</span><span class="s2">)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">return true;</span>
+        <span class="s2">}</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">propBindingRefs = {}</span><span class="s1">;</span>
+    <span class="s1">function </span><span class="s2">registerEscapedPropBinding(id) {</span>
+        <span class="s1">if </span><span class="s2">(!propBindingRefs.hasOwnProperty(id.name)) {</span>
+            <span class="s2">propBindingRefs[id.name] = </span><span class="s1">true;</span>
+            <span class="s1">const </span><span class="s2">publicKey = propsLocalToPublicMap[id.name]</span><span class="s1">;</span>
+            <span class="s2">s.prependRight(offset</span><span class="s1">, </span><span class="s0">`const __props_</span><span class="s2">${publicKey} </span><span class="s0">= </span><span class="s2">${helper(</span><span class="s0">`toRef`</span><span class="s2">)}</span><span class="s0">(__props, '</span><span class="s2">${publicKey}</span><span class="s0">');</span><span class="s1">\n</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s4">// check root scope first</span>
+    <span class="s2">walkScope(ast</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">estreeWalker.walk(ast</span><span class="s1">, </span><span class="s2">{</span>
+        <span class="s2">enter(node</span><span class="s1">, </span><span class="s2">parent) {</span>
+            <span class="s2">parent &amp;&amp; parentStack.push(parent)</span><span class="s1">;</span>
+            <span class="s4">// function scopes</span>
+            <span class="s1">if </span><span class="s2">(compilerCore.isFunctionType(node)) {</span>
+                <span class="s2">scopeStack.push((currentScope = {}))</span><span class="s1">;</span>
+                <span class="s2">compilerCore.walkFunctionParams(node</span><span class="s1">, </span><span class="s2">registerBinding)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(node.body.type === </span><span class="s0">'BlockStatement'</span><span class="s2">) {</span>
+                    <span class="s2">walkScope(node.body)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s4">// catch param</span>
+            <span class="s1">if </span><span class="s2">(node.type === </span><span class="s0">'CatchClause'</span><span class="s2">) {</span>
+                <span class="s2">scopeStack.push((currentScope = {}))</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(node.param &amp;&amp; node.param.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                    <span class="s2">registerBinding(node.param)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s2">walkScope(node.body)</span><span class="s1">;</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s4">// non-function block scopes</span>
+            <span class="s1">if </span><span class="s2">(node.type === </span><span class="s0">'BlockStatement' </span><span class="s2">&amp;&amp; !compilerCore.isFunctionType(parent)) {</span>
+                <span class="s2">scopeStack.push((currentScope = {}))</span><span class="s1">;</span>
+                <span class="s2">walkScope(node)</span><span class="s1">;</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s4">// skip type nodes</span>
+            <span class="s1">if </span><span class="s2">(parent &amp;&amp;</span>
+                <span class="s2">parent.type.startsWith(</span><span class="s0">'TS'</span><span class="s2">) &amp;&amp;</span>
+                <span class="s2">parent.type !== </span><span class="s0">'TSAsExpression' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">parent.type !== </span><span class="s0">'TSNonNullExpression' </span><span class="s2">&amp;&amp;</span>
+                <span class="s2">parent.type !== </span><span class="s0">'TSTypeAssertion'</span><span class="s2">) {</span>
+                <span class="s1">return this</span><span class="s2">.skip()</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(node.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                <span class="s1">const </span><span class="s2">binding = rootScope[node.name]</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(</span>
+                <span class="s4">// if inside $$(), skip unless this is a destructured prop binding</span>
+                <span class="s2">!(escapeScope &amp;&amp; (!binding || !binding.isProp)) &amp;&amp;</span>
+                    <span class="s2">compilerCore.isReferencedIdentifier(node</span><span class="s1">, </span><span class="s2">parent</span><span class="s1">, </span><span class="s2">parentStack) &amp;&amp;</span>
+                    <span class="s2">!excludedIds.has(node)) {</span>
+                    <span class="s4">// walk up the scope chain to check if id should be appended .value</span>
+                    <span class="s1">let </span><span class="s2">i = scopeStack.length</span><span class="s1">;</span>
+                    <span class="s1">while </span><span class="s2">(i--) {</span>
+                        <span class="s1">if </span><span class="s2">(rewriteId(scopeStack[i]</span><span class="s1">, </span><span class="s2">node</span><span class="s1">, </span><span class="s2">parent</span><span class="s1">, </span><span class="s2">parentStack)) {</span>
+                            <span class="s1">return;</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(node.type === </span><span class="s0">'CallExpression' </span><span class="s2">&amp;&amp; node.callee.type === </span><span class="s0">'Identifier'</span><span class="s2">) {</span>
+                <span class="s1">const </span><span class="s2">callee = node.callee.name</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">refCall = isRefCreationCall(callee)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(refCall &amp;&amp; (!parent || parent.type !== </span><span class="s0">'VariableDeclarator'</span><span class="s2">)) {</span>
+                    <span class="s1">return </span><span class="s2">error(</span><span class="s0">`</span><span class="s2">${refCall} </span><span class="s0">can only be used as the initializer of ` </span><span class="s2">+</span>
+                        <span class="s0">`a variable declaration.`</span><span class="s1">, </span><span class="s2">node)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">if </span><span class="s2">(escapeSymbol &amp;&amp;</span>
+                    <span class="s2">currentScope[escapeSymbol] === undefined &amp;&amp;</span>
+                    <span class="s2">callee === escapeSymbol) {</span>
+                    <span class="s2">escapeScope = node</span><span class="s1">;</span>
+                    <span class="s2">s.remove(node.callee.start + offset</span><span class="s1">, </span><span class="s2">node.callee.end + offset)</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">((parent === </span><span class="s1">null </span><span class="s2">|| parent === </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">? </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">: parent.type) === </span><span class="s0">'ExpressionStatement'</span><span class="s2">) {</span>
+                        <span class="s4">// edge case where the call expression is an expression statement</span>
+                        <span class="s4">// if its own - prepend semicolon to avoid it being parsed as</span>
+                        <span class="s4">// function invocation of previous line</span>
+                        <span class="s1">let </span><span class="s2">i = (node.leadingComments</span>
+                            <span class="s2">? node.leadingComments[</span><span class="s3">0</span><span class="s2">].start</span>
+                            <span class="s2">: node.start) + offset</span><span class="s1">;</span>
+                        <span class="s1">while </span><span class="s2">(i--) {</span>
+                            <span class="s1">const </span><span class="s2">char = s.original.charAt(i)</span><span class="s1">;</span>
+                            <span class="s1">if </span><span class="s2">(char === </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s2">) {</span>
+                                <span class="s4">// only insert semi if it's actually the fisrt thign after</span>
+                                <span class="s4">// newline</span>
+                                <span class="s2">s.prependRight(node.start + offset</span><span class="s1">, </span><span class="s0">';'</span><span class="s2">)</span><span class="s1">;</span>
+                                <span class="s1">break;</span>
+                            <span class="s2">}</span>
+                            <span class="s1">else if </span><span class="s2">(!</span><span class="s3">/\s/</span><span class="s2">.test(char)) {</span>
+                                <span class="s1">break;</span>
+                            <span class="s2">}</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s4">// TODO remove when out of experimental</span>
+                <span class="s1">if </span><span class="s2">(callee === </span><span class="s0">'$raw'</span><span class="s2">) {</span>
+                    <span class="s2">error(</span><span class="s0">`$raw() has been replaced by $$(). ` </span><span class="s2">+</span>
+                        <span class="s0">`See </span><span class="s2">${RFC_LINK} </span><span class="s0">for latest updates.`</span><span class="s1">, </span><span class="s2">node)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">if </span><span class="s2">(callee === </span><span class="s0">'$fromRef'</span><span class="s2">) {</span>
+                    <span class="s2">error(</span><span class="s0">`$fromRef() has been replaced by $(). ` </span><span class="s2">+</span>
+                        <span class="s0">`See </span><span class="s2">${RFC_LINK} </span><span class="s0">for latest updates.`</span><span class="s1">, </span><span class="s2">node)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">leave(node</span><span class="s1">, </span><span class="s2">parent) {</span>
+            <span class="s2">parent &amp;&amp; parentStack.pop()</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">((node.type === </span><span class="s0">'BlockStatement' </span><span class="s2">&amp;&amp; !compilerCore.isFunctionType(parent)) ||</span>
+                <span class="s2">compilerCore.isFunctionType(node)) {</span>
+                <span class="s2">scopeStack.pop()</span><span class="s1">;</span>
+                <span class="s2">currentScope = scopeStack[scopeStack.length - </span><span class="s3">1</span><span class="s2">] || </span><span class="s1">null;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(node === escapeScope) {</span>
+                <span class="s2">escapeScope = undefined</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">})</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">{</span>
+        <span class="s2">rootRefs: Object.keys(rootScope).filter(key =&gt; {</span>
+            <span class="s1">const </span><span class="s2">binding = rootScope[key]</span><span class="s1">;</span>
+            <span class="s1">return </span><span class="s2">binding &amp;&amp; !binding.isProp</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">,</span>
+        <span class="s2">importedHelpers: [...importedHelpers]</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">RFC_LINK = </span><span class="s0">`https://github.com/vuejs/rfcs/discussions/369`</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">hasWarned = {}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">warnExperimental() {</span>
+    <span class="s4">// eslint-disable-next-line</span>
+    <span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">window !== </span><span class="s0">'undefined'</span><span class="s2">) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s2">warnOnce(</span><span class="s0">`Reactivity transform is an experimental feature.</span><span class="s1">\n</span><span class="s0">` </span><span class="s2">+</span>
+        <span class="s0">`Experimental features may change behavior between patch versions.</span><span class="s1">\n</span><span class="s0">` </span><span class="s2">+</span>
+        <span class="s0">`It is recommended to pin your vue dependencies to exact versions to avoid breakage.</span><span class="s1">\n</span><span class="s0">` </span><span class="s2">+</span>
+        <span class="s0">`You can follow the proposal's status at </span><span class="s2">${RFC_LINK}</span><span class="s0">.`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">warnOnce(msg) {</span>
+    <span class="s1">const </span><span class="s2">isNodeProd = </span><span class="s1">typeof </span><span class="s2">process !== </span><span class="s0">'undefined' </span><span class="s2">&amp;&amp; process.env.NODE_ENV === </span><span class="s0">'production'</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!isNodeProd &amp;&amp; !</span><span class="s1">false </span><span class="s2">&amp;&amp; !hasWarned[msg]) {</span>
+        <span class="s2">hasWarned[msg] = </span><span class="s1">true;</span>
+        <span class="s2">warn(msg)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">warn(msg) {</span>
+    <span class="s2">console.warn(</span><span class="s0">`</span><span class="s1">\x1b</span><span class="s0">[1m</span><span class="s1">\x1b</span><span class="s0">[33m[@vue/reactivity-transform]</span><span class="s1">\x1b</span><span class="s0">[0m</span><span class="s1">\x1b</span><span class="s0">[33m </span><span class="s2">${msg}</span><span class="s1">\x1b</span><span class="s0">[0m</span><span class="s1">\n</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s2">exports.shouldTransform = shouldTransform</span><span class="s1">;</span>
+<span class="s2">exports.transform = transform</span><span class="s1">;</span>
+<span class="s2">exports.transformAST = transformAST</span><span class="s1">;</span>
+</pre>
+</body>
+</html>

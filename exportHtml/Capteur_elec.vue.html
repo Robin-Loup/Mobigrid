@@ -1,0 +1,73 @@
+<html>
+<head>
+<title>Capteur_elec.vue</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #a9b7c6;}
+.s1 { color: #e8bf6a;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #bababa;}
+.s5 { color: #a5c261;}
+.s6 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Capteur_elec.vue</font>
+</center></td></tr></table>
+<pre>
+<span class="s1">&lt;script&gt;</span>
+<span class="s2">import </span><span class="s0">WindowPortal from </span><span class="s3">&quot;@/components/WindowPortal.vue&quot;</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s0">Graphs from </span><span class="s3">&quot;@/components/Graphs/Graphs.vue&quot;</span><span class="s2">;</span>
+
+
+<span class="s2">export default </span><span class="s0">{</span>
+    <span class="s0">name: </span><span class="s3">&quot;Capteur_elec&quot;</span><span class="s2">,</span>
+    <span class="s0">components: {Graphs</span><span class="s2">, </span><span class="s0">WindowPortal}</span><span class="s2">,</span>
+    <span class="s0">props: {</span>
+        <span class="s0">name: String</span><span class="s2">,</span>
+        <span class="s0">from: String</span><span class="s2">,</span>
+        <span class="s0">to: String</span>
+    <span class="s0">}</span><span class="s2">,</span>
+    <span class="s0">data() {</span>
+        <span class="s2">return </span><span class="s0">{</span>
+            <span class="s0">open : </span><span class="s2">false</span>
+        <span class="s0">}</span>
+    <span class="s0">}</span><span class="s2">,</span>
+    <span class="s0">methods:{</span>
+        <span class="s0">click(){</span>
+            <span class="s2">if </span><span class="s0">(</span><span class="s2">this</span><span class="s0">.open === </span><span class="s2">false</span><span class="s0">)</span>
+                <span class="s2">this</span><span class="s0">.open = </span><span class="s2">true</span>
+            <span class="s2">else</span>
+                <span class="s2">this</span><span class="s0">.open = </span><span class="s2">false</span>
+        <span class="s0">}</span>
+    <span class="s0">}</span>
+<span class="s0">}</span>
+<span class="s1">&lt;/script&gt;</span>
+
+<span class="s1">&lt;template&gt;</span>
+    <span class="s1">&lt;button </span><span class="s4">class</span><span class="s5">=&quot;btn btn-primary&quot; </span><span class="s4">@click</span><span class="s5">=&quot;</span><span class="s0">click</span><span class="s5">&quot;</span><span class="s1">/&gt;</span>
+    <span class="s1">&lt;WindowPortal </span><span class="s4">:open</span><span class="s5">=&quot;</span><span class="s0">open</span><span class="s5">&quot;</span><span class="s1">&gt;</span>
+        <span class="s1">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;text-center&quot;</span><span class="s1">&gt;</span>
+            <span class="s1">&lt;Graphs </span><span class="s4">:name</span><span class="s5">=&quot;</span><span class="s0">name</span><span class="s5">&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s0">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s0">to</span><span class="s5">&quot;</span><span class="s1">/&gt;</span>
+        <span class="s1">&lt;/div&gt;</span>
+    <span class="s1">&lt;/WindowPortal&gt;</span>
+<span class="s1">&lt;/template&gt;</span>
+
+<span class="s1">&lt;style </span><span class="s4">scoped</span><span class="s1">&gt;</span>
+<span class="s1">button</span><span class="s0">{</span>
+    <span class="s4">width</span><span class="s0">: </span><span class="s6">30</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">height</span><span class="s0">: </span><span class="s6">30</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">background-image</span><span class="s0">: </span><span class="s1">url</span><span class="s0">(</span><span class="s3">&quot;../assets/capteur_elec.png&quot;</span><span class="s0">)</span><span class="s2">;</span>
+    <span class="s4">background-size</span><span class="s0">: </span><span class="s5">contain</span><span class="s2">;</span>
+    <span class="s4">background-repeat</span><span class="s0">: </span><span class="s5">no-repeat</span><span class="s2">;</span>
+<span class="s0">}</span>
+<span class="s1">button</span><span class="s0">:</span><span class="s1">hover</span><span class="s0">{</span>
+    <span class="s4">border-color</span><span class="s0">: </span><span class="s6">#2c3e50</span><span class="s2">;</span>
+<span class="s0">}</span>
+<span class="s1">&lt;/style&gt;</span></pre>
+</body>
+</html>

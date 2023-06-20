@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>parse.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+parse.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span>
+
+<span class="s2">let </span><span class="s1">Container = require(</span><span class="s0">'./container'</span><span class="s1">)</span>
+<span class="s2">let </span><span class="s1">Parser = require(</span><span class="s0">'./parser'</span><span class="s1">)</span>
+<span class="s2">let </span><span class="s1">Input = require(</span><span class="s0">'./input'</span><span class="s1">)</span>
+
+<span class="s2">function </span><span class="s1">parse(css</span><span class="s2">, </span><span class="s1">opts) {</span>
+  <span class="s2">let </span><span class="s1">input = </span><span class="s2">new </span><span class="s1">Input(css</span><span class="s2">, </span><span class="s1">opts)</span>
+  <span class="s2">let </span><span class="s1">parser = </span><span class="s2">new </span><span class="s1">Parser(input)</span>
+  <span class="s2">try </span><span class="s1">{</span>
+    <span class="s1">parser.parse()</span>
+  <span class="s1">} </span><span class="s2">catch </span><span class="s1">(e) {</span>
+    <span class="s2">if </span><span class="s1">(process.env.NODE_ENV !== </span><span class="s0">'production'</span><span class="s1">) {</span>
+      <span class="s2">if </span><span class="s1">(e.name === </span><span class="s0">'CssSyntaxError' </span><span class="s1">&amp;&amp; opts &amp;&amp; opts.from) {</span>
+        <span class="s2">if </span><span class="s1">(</span><span class="s3">/\.scss$/i</span><span class="s1">.test(opts.from)) {</span>
+          <span class="s1">e.message +=</span>
+            <span class="s0">'</span><span class="s2">\n</span><span class="s0">You tried to parse SCSS with ' </span><span class="s1">+</span>
+            <span class="s0">'the standard CSS parser; ' </span><span class="s1">+</span>
+            <span class="s0">'try again with the postcss-scss parser'</span>
+        <span class="s1">} </span><span class="s2">else if </span><span class="s1">(</span><span class="s3">/\.sass/i</span><span class="s1">.test(opts.from)) {</span>
+          <span class="s1">e.message +=</span>
+            <span class="s0">'</span><span class="s2">\n</span><span class="s0">You tried to parse Sass with ' </span><span class="s1">+</span>
+            <span class="s0">'the standard CSS parser; ' </span><span class="s1">+</span>
+            <span class="s0">'try again with the postcss-sass parser'</span>
+        <span class="s1">} </span><span class="s2">else if </span><span class="s1">(</span><span class="s3">/\.less$/i</span><span class="s1">.test(opts.from)) {</span>
+          <span class="s1">e.message +=</span>
+            <span class="s0">'</span><span class="s2">\n</span><span class="s0">You tried to parse Less with ' </span><span class="s1">+</span>
+            <span class="s0">'the standard CSS parser; ' </span><span class="s1">+</span>
+            <span class="s0">'try again with the postcss-less parser'</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">throw </span><span class="s1">e</span>
+  <span class="s1">}</span>
+
+  <span class="s2">return </span><span class="s1">parser.root</span>
+<span class="s1">}</span>
+
+<span class="s1">module.exports = parse</span>
+<span class="s1">parse.default = parse</span>
+
+<span class="s1">Container.registerParse(parse)</span>
+</pre>
+</body>
+</html>

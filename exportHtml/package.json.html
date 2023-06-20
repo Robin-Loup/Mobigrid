@@ -1,0 +1,72 @@
+<html>
+<head>
+<title>package.json</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #a9b7c6;}
+.s1 { color: #6a8759;}
+.s2 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+package.json</font>
+</center></td></tr></table>
+<pre><span class="s0">{</span>
+  <span class="s1">&quot;name&quot;</span><span class="s2">: </span><span class="s1">&quot;sourcemap-codec&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;version&quot;</span><span class="s2">: </span><span class="s1">&quot;1.4.8&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;description&quot;</span><span class="s2">: </span><span class="s1">&quot;Encode/decode sourcemap mappings&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;main&quot;</span><span class="s2">: </span><span class="s1">&quot;dist/sourcemap-codec.umd.js&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;module&quot;</span><span class="s2">: </span><span class="s1">&quot;dist/sourcemap-codec.es.js&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;types&quot;</span><span class="s2">: </span><span class="s1">&quot;dist/types/sourcemap-codec.d.ts&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;scripts&quot;</span><span class="s2">: </span><span class="s0">{</span>
+    <span class="s1">&quot;test&quot;</span><span class="s2">: </span><span class="s1">&quot;mocha&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;build&quot;</span><span class="s2">: </span><span class="s1">&quot;rm -rf dist &amp;&amp; rollup -c &amp;&amp; tsc&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;pretest&quot;</span><span class="s2">: </span><span class="s1">&quot;npm run build&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;prepublish&quot;</span><span class="s2">: </span><span class="s1">&quot;npm test&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;lint&quot;</span><span class="s2">: </span><span class="s1">&quot;eslint src&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;pretest-coverage&quot;</span><span class="s2">: </span><span class="s1">&quot;npm run build&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;test-coverage&quot;</span><span class="s2">: </span><span class="s1">&quot;rm -rf coverage/* &amp;&amp; istanbul cover --report json node_modules/.bin/_mocha -- -u exports -R spec test/test.js&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;posttest-coverage&quot;</span><span class="s2">: </span><span class="s1">&quot;remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.json -b dist &amp;&amp; remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped.lcov -t lcovonly -b dist &amp;&amp; remap-istanbul -i coverage/coverage-final.json -o coverage/coverage-remapped -t html -b dist&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;ci&quot;</span><span class="s2">: </span><span class="s1">&quot;npm run test-coverage &amp;&amp; codecov &lt; coverage/coverage-remapped.lcov&quot;</span>
+  <span class="s0">}</span><span class="s2">,</span>
+  <span class="s1">&quot;repository&quot;</span><span class="s2">: </span><span class="s0">{</span>
+    <span class="s1">&quot;type&quot;</span><span class="s2">: </span><span class="s1">&quot;git&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;url&quot;</span><span class="s2">: </span><span class="s1">&quot;https://github.com/Rich-Harris/sourcemap-codec&quot;</span>
+  <span class="s0">}</span><span class="s2">,</span>
+  <span class="s1">&quot;keywords&quot;</span><span class="s2">: </span><span class="s0">[</span>
+    <span class="s1">&quot;sourcemap&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;vlq&quot;</span>
+  <span class="s0">]</span><span class="s2">,</span>
+  <span class="s1">&quot;author&quot;</span><span class="s2">: </span><span class="s1">&quot;Rich Harris&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;license&quot;</span><span class="s2">: </span><span class="s1">&quot;MIT&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;bugs&quot;</span><span class="s2">: </span><span class="s0">{</span>
+    <span class="s1">&quot;url&quot;</span><span class="s2">: </span><span class="s1">&quot;https://github.com/Rich-Harris/sourcemap-codec/issues&quot;</span>
+  <span class="s0">}</span><span class="s2">,</span>
+  <span class="s1">&quot;homepage&quot;</span><span class="s2">: </span><span class="s1">&quot;https://github.com/Rich-Harris/sourcemap-codec&quot;</span><span class="s2">,</span>
+  <span class="s1">&quot;dependencies&quot;</span><span class="s2">: </span><span class="s0">{}</span><span class="s2">,</span>
+  <span class="s1">&quot;devDependencies&quot;</span><span class="s2">: </span><span class="s0">{</span>
+    <span class="s1">&quot;codecov.io&quot;</span><span class="s2">: </span><span class="s1">&quot;^0.1.6&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;console-group&quot;</span><span class="s2">: </span><span class="s1">&quot;^0.3.3&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;eslint&quot;</span><span class="s2">: </span><span class="s1">&quot;^6.0.1&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;eslint-plugin-import&quot;</span><span class="s2">: </span><span class="s1">&quot;^2.18.0&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;istanbul&quot;</span><span class="s2">: </span><span class="s1">&quot;^0.4.5&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;mocha&quot;</span><span class="s2">: </span><span class="s1">&quot;^6.1.4&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;remap-istanbul&quot;</span><span class="s2">: </span><span class="s1">&quot;^0.13.0&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;rollup&quot;</span><span class="s2">: </span><span class="s1">&quot;^1.16.4&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;rollup-plugin-node-resolve&quot;</span><span class="s2">: </span><span class="s1">&quot;^5.2.0&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;rollup-plugin-typescript&quot;</span><span class="s2">: </span><span class="s1">&quot;^1.0.1&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;typescript&quot;</span><span class="s2">: </span><span class="s1">&quot;^3.5.2&quot;</span>
+  <span class="s0">}</span><span class="s2">,</span>
+  <span class="s1">&quot;files&quot;</span><span class="s2">: </span><span class="s0">[</span>
+    <span class="s1">&quot;dist/*.js&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;dist/*.js.map&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;dist/**/*.d.ts&quot;</span><span class="s2">,</span>
+    <span class="s1">&quot;README.md&quot;</span>
+  <span class="s0">]</span>
+<span class="s0">}</span>
+</pre>
+</body>
+</html>

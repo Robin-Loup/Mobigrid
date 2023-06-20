@@ -1,0 +1,623 @@
+<html>
+<head>
+<title>shared.esm-bundler.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #629755; font-style: italic;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+.s5 { color: #808080;}
+.s6 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+shared.esm-bundler.js</font>
+</center></td></tr></table>
+<pre><span class="s0">/**</span>
+ <span class="s0">* Make a map and return a function for checking if a key</span>
+ <span class="s0">* is in that map.</span>
+ <span class="s0">* IMPORTANT: all calls of this function must be prefixed with</span>
+ <span class="s0">* \/\*#\_\_PURE\_\_\*\/</span>
+ <span class="s0">* So that rollup can tree-shake them if necessary.</span>
+ <span class="s0">*/</span>
+<span class="s2">function </span><span class="s1">makeMap(str</span><span class="s2">, </span><span class="s1">expectsLowerCase) {</span>
+    <span class="s2">const </span><span class="s1">map = Object.create(</span><span class="s2">null</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">list = str.split(</span><span class="s3">','</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; list.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+        <span class="s1">map[list[i]] = </span><span class="s2">true;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">expectsLowerCase ? val =&gt; !!map[val.toLowerCase()] : val =&gt; !!map[val]</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s0">/**</span>
+ <span class="s0">* dev only flag -&gt; name mapping</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">PatchFlagNames = {</span>
+    <span class="s1">[</span><span class="s4">1 </span><span class="s5">/* PatchFlags.TEXT */</span><span class="s1">]: </span><span class="s3">`TEXT`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">2 </span><span class="s5">/* PatchFlags.CLASS */</span><span class="s1">]: </span><span class="s3">`CLASS`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">4 </span><span class="s5">/* PatchFlags.STYLE */</span><span class="s1">]: </span><span class="s3">`STYLE`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">8 </span><span class="s5">/* PatchFlags.PROPS */</span><span class="s1">]: </span><span class="s3">`PROPS`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">16 </span><span class="s5">/* PatchFlags.FULL_PROPS */</span><span class="s1">]: </span><span class="s3">`FULL_PROPS`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">32 </span><span class="s5">/* PatchFlags.HYDRATE_EVENTS */</span><span class="s1">]: </span><span class="s3">`HYDRATE_EVENTS`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">64 </span><span class="s5">/* PatchFlags.STABLE_FRAGMENT */</span><span class="s1">]: </span><span class="s3">`STABLE_FRAGMENT`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">128 </span><span class="s5">/* PatchFlags.KEYED_FRAGMENT */</span><span class="s1">]: </span><span class="s3">`KEYED_FRAGMENT`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">256 </span><span class="s5">/* PatchFlags.UNKEYED_FRAGMENT */</span><span class="s1">]: </span><span class="s3">`UNKEYED_FRAGMENT`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">512 </span><span class="s5">/* PatchFlags.NEED_PATCH */</span><span class="s1">]: </span><span class="s3">`NEED_PATCH`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">1024 </span><span class="s5">/* PatchFlags.DYNAMIC_SLOTS */</span><span class="s1">]: </span><span class="s3">`DYNAMIC_SLOTS`</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">2048 </span><span class="s5">/* PatchFlags.DEV_ROOT_FRAGMENT */</span><span class="s1">]: </span><span class="s3">`DEV_ROOT_FRAGMENT`</span><span class="s2">,</span>
+    <span class="s1">[-</span><span class="s4">1 </span><span class="s5">/* PatchFlags.HOISTED */</span><span class="s1">]: </span><span class="s3">`HOISTED`</span><span class="s2">,</span>
+    <span class="s1">[-</span><span class="s4">2 </span><span class="s5">/* PatchFlags.BAIL */</span><span class="s1">]: </span><span class="s3">`BAIL`</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s0">/**</span>
+ <span class="s0">* Dev only</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">slotFlagsText = {</span>
+    <span class="s1">[</span><span class="s4">1 </span><span class="s5">/* SlotFlags.STABLE */</span><span class="s1">]: </span><span class="s3">'STABLE'</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">2 </span><span class="s5">/* SlotFlags.DYNAMIC */</span><span class="s1">]: </span><span class="s3">'DYNAMIC'</span><span class="s2">,</span>
+    <span class="s1">[</span><span class="s4">3 </span><span class="s5">/* SlotFlags.FORWARDED */</span><span class="s1">]: </span><span class="s3">'FORWARDED'</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s2">const </span><span class="s1">GLOBALS_WHITE_LISTED = </span><span class="s3">'Infinity,undefined,NaN,isFinite,isNaN,parseFloat,parseInt,decodeURI,' </span><span class="s1">+</span>
+    <span class="s3">'decodeURIComponent,encodeURI,encodeURIComponent,Math,Number,Date,Array,' </span><span class="s1">+</span>
+    <span class="s3">'Object,Boolean,String,RegExp,Map,Set,JSON,Intl,BigInt'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isGloballyWhitelisted = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(GLOBALS_WHITE_LISTED)</span><span class="s2">;</span>
+
+<span class="s2">const </span><span class="s1">range = </span><span class="s4">2</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">generateCodeFrame(source</span><span class="s2">, </span><span class="s1">start = </span><span class="s4">0</span><span class="s2">, </span><span class="s1">end = source.length) {</span>
+    <span class="s5">// Split the content into individual lines but capture the newline sequence</span>
+    <span class="s5">// that separated each line. This is important because the actual sequence is</span>
+    <span class="s5">// needed to properly take into account the full line length for offset</span>
+    <span class="s5">// comparison</span>
+    <span class="s2">let </span><span class="s1">lines = source.split(</span><span class="s4">/(\r?\n)/</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s5">// Separate the lines and newline sequences into separate arrays for easier referencing</span>
+    <span class="s2">const </span><span class="s1">newlineSequences = lines.filter((_</span><span class="s2">, </span><span class="s1">idx) =&gt; idx % </span><span class="s4">2 </span><span class="s1">=== </span><span class="s4">1</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">lines = lines.filter((_</span><span class="s2">, </span><span class="s1">idx) =&gt; idx % </span><span class="s4">2 </span><span class="s1">=== </span><span class="s4">0</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">count = </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">res = []</span><span class="s2">;</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; lines.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+        <span class="s1">count +=</span>
+            <span class="s1">lines[i].length +</span>
+                <span class="s1">((newlineSequences[i] &amp;&amp; newlineSequences[i].length) || </span><span class="s4">0</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(count &gt;= start) {</span>
+            <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">j = i - range</span><span class="s2">; </span><span class="s1">j &lt;= i + range || end &gt; count</span><span class="s2">; </span><span class="s1">j++) {</span>
+                <span class="s2">if </span><span class="s1">(j &lt; </span><span class="s4">0 </span><span class="s1">|| j &gt;= lines.length)</span>
+                    <span class="s2">continue;</span>
+                <span class="s2">const </span><span class="s1">line = j + </span><span class="s4">1</span><span class="s2">;</span>
+                <span class="s1">res.push(</span><span class="s3">`</span><span class="s1">${line}${</span><span class="s3">' '</span><span class="s1">.repeat(Math.max(</span><span class="s4">3 </span><span class="s1">- String(line).length</span><span class="s2">, </span><span class="s4">0</span><span class="s1">))}</span><span class="s3">|  </span><span class="s1">${lines[j]}</span><span class="s3">`</span><span class="s1">)</span><span class="s2">;</span>
+                <span class="s2">const </span><span class="s1">lineLength = lines[j].length</span><span class="s2">;</span>
+                <span class="s2">const </span><span class="s1">newLineSeqLength = (newlineSequences[j] &amp;&amp; newlineSequences[j].length) || </span><span class="s4">0</span><span class="s2">;</span>
+                <span class="s2">if </span><span class="s1">(j === i) {</span>
+                    <span class="s5">// push underline</span>
+                    <span class="s2">const </span><span class="s1">pad = start - (count - (lineLength + newLineSeqLength))</span><span class="s2">;</span>
+                    <span class="s2">const </span><span class="s1">length = Math.max(</span><span class="s4">1</span><span class="s2">, </span><span class="s1">end &gt; count ? lineLength - pad : end - start)</span><span class="s2">;</span>
+                    <span class="s1">res.push(</span><span class="s3">`   |  ` </span><span class="s1">+ </span><span class="s3">' '</span><span class="s1">.repeat(pad) + </span><span class="s3">'^'</span><span class="s1">.repeat(length))</span><span class="s2">;</span>
+                <span class="s1">}</span>
+                <span class="s2">else if </span><span class="s1">(j &gt; i) {</span>
+                    <span class="s2">if </span><span class="s1">(end &gt; count) {</span>
+                        <span class="s2">const </span><span class="s1">length = Math.max(Math.min(end - count</span><span class="s2">, </span><span class="s1">lineLength)</span><span class="s2">, </span><span class="s4">1</span><span class="s1">)</span><span class="s2">;</span>
+                        <span class="s1">res.push(</span><span class="s3">`   |  ` </span><span class="s1">+ </span><span class="s3">'^'</span><span class="s1">.repeat(length))</span><span class="s2">;</span>
+                    <span class="s1">}</span>
+                    <span class="s1">count += lineLength + newLineSeqLength</span><span class="s2">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s2">break;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">res.join(</span><span class="s3">'</span><span class="s2">\n</span><span class="s3">'</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">function </span><span class="s1">normalizeStyle(value) {</span>
+    <span class="s2">if </span><span class="s1">(isArray(value)) {</span>
+        <span class="s2">const </span><span class="s1">res = {}</span><span class="s2">;</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; value.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+            <span class="s2">const </span><span class="s1">item = value[i]</span><span class="s2">;</span>
+            <span class="s2">const </span><span class="s1">normalized = isString(item)</span>
+                <span class="s1">? parseStringStyle(item)</span>
+                <span class="s1">: normalizeStyle(item)</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(normalized) {</span>
+                <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">key </span><span class="s2">in </span><span class="s1">normalized) {</span>
+                    <span class="s1">res[key] = normalized[key]</span><span class="s2">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">res</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isString(value)) {</span>
+        <span class="s2">return </span><span class="s1">value</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isObject(value)) {</span>
+        <span class="s2">return </span><span class="s1">value</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">listDelimiterRE = </span><span class="s4">/;(?![^(]*\))/g</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">propertyDelimiterRE = </span><span class="s4">/:([^]+)/</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">styleCommentRE = </span><span class="s4">/\/\*.*?\*\//gs</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">parseStringStyle(cssText) {</span>
+    <span class="s2">const </span><span class="s1">ret = {}</span><span class="s2">;</span>
+    <span class="s1">cssText</span>
+        <span class="s1">.replace(styleCommentRE</span><span class="s2">, </span><span class="s3">''</span><span class="s1">)</span>
+        <span class="s1">.split(listDelimiterRE)</span>
+        <span class="s1">.forEach(item =&gt; {</span>
+        <span class="s2">if </span><span class="s1">(item) {</span>
+            <span class="s2">const </span><span class="s1">tmp = item.split(propertyDelimiterRE)</span><span class="s2">;</span>
+            <span class="s1">tmp.length &gt; </span><span class="s4">1 </span><span class="s1">&amp;&amp; (ret[tmp[</span><span class="s4">0</span><span class="s1">].trim()] = tmp[</span><span class="s4">1</span><span class="s1">].trim())</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">})</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">ret</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">stringifyStyle(styles) {</span>
+    <span class="s2">let </span><span class="s1">ret = </span><span class="s3">''</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!styles || isString(styles)) {</span>
+        <span class="s2">return </span><span class="s1">ret</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">key </span><span class="s2">in </span><span class="s1">styles) {</span>
+        <span class="s2">const </span><span class="s1">value = styles[key]</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">normalizedKey = key.startsWith(</span><span class="s3">`--`</span><span class="s1">) ? key : hyphenate(key)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(isString(value) || </span><span class="s2">typeof </span><span class="s1">value === </span><span class="s3">'number'</span><span class="s1">) {</span>
+            <span class="s5">// only render valid values</span>
+            <span class="s1">ret += </span><span class="s3">`</span><span class="s1">${normalizedKey}</span><span class="s3">:</span><span class="s1">${value}</span><span class="s3">;`</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">ret</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">normalizeClass(value) {</span>
+    <span class="s2">let </span><span class="s1">res = </span><span class="s3">''</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(isString(value)) {</span>
+        <span class="s1">res = value</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isArray(value)) {</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; value.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+            <span class="s2">const </span><span class="s1">normalized = normalizeClass(value[i])</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(normalized) {</span>
+                <span class="s1">res += normalized + </span><span class="s3">' '</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isObject(value)) {</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">name </span><span class="s2">in </span><span class="s1">value) {</span>
+            <span class="s2">if </span><span class="s1">(value[name]) {</span>
+                <span class="s1">res += name + </span><span class="s3">' '</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">res.trim()</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">normalizeProps(props) {</span>
+    <span class="s2">if </span><span class="s1">(!props)</span>
+        <span class="s2">return null;</span>
+    <span class="s2">let </span><span class="s1">{ </span><span class="s2">class</span><span class="s1">: klass</span><span class="s2">, </span><span class="s1">style } = props</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(klass &amp;&amp; !isString(klass)) {</span>
+        <span class="s1">props.class = normalizeClass(klass)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">if </span><span class="s1">(style) {</span>
+        <span class="s1">props.style = normalizeStyle(style)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">props</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s5">// These tag configs are shared between compiler-dom and runtime-dom, so they</span>
+<span class="s5">// https://developer.mozilla.org/en-US/docs/Web/HTML/Element</span>
+<span class="s2">const </span><span class="s1">HTML_TAGS = </span><span class="s3">'html,body,base,head,link,meta,style,title,address,article,aside,footer,' </span><span class="s1">+</span>
+    <span class="s3">'header,hgroup,h1,h2,h3,h4,h5,h6,nav,section,div,dd,dl,dt,figcaption,' </span><span class="s1">+</span>
+    <span class="s3">'figure,picture,hr,img,li,main,ol,p,pre,ul,a,b,abbr,bdi,bdo,br,cite,code,' </span><span class="s1">+</span>
+    <span class="s3">'data,dfn,em,i,kbd,mark,q,rp,rt,ruby,s,samp,small,span,strong,sub,sup,' </span><span class="s1">+</span>
+    <span class="s3">'time,u,var,wbr,area,audio,map,track,video,embed,object,param,source,' </span><span class="s1">+</span>
+    <span class="s3">'canvas,script,noscript,del,ins,caption,col,colgroup,table,thead,tbody,td,' </span><span class="s1">+</span>
+    <span class="s3">'th,tr,button,datalist,fieldset,form,input,label,legend,meter,optgroup,' </span><span class="s1">+</span>
+    <span class="s3">'option,output,progress,select,textarea,details,dialog,menu,' </span><span class="s1">+</span>
+    <span class="s3">'summary,template,blockquote,iframe,tfoot'</span><span class="s2">;</span>
+<span class="s5">// https://developer.mozilla.org/en-US/docs/Web/SVG/Element</span>
+<span class="s2">const </span><span class="s1">SVG_TAGS = </span><span class="s3">'svg,animate,animateMotion,animateTransform,circle,clipPath,color-profile,' </span><span class="s1">+</span>
+    <span class="s3">'defs,desc,discard,ellipse,feBlend,feColorMatrix,feComponentTransfer,' </span><span class="s1">+</span>
+    <span class="s3">'feComposite,feConvolveMatrix,feDiffuseLighting,feDisplacementMap,' </span><span class="s1">+</span>
+    <span class="s3">'feDistantLight,feDropShadow,feFlood,feFuncA,feFuncB,feFuncG,feFuncR,' </span><span class="s1">+</span>
+    <span class="s3">'feGaussianBlur,feImage,feMerge,feMergeNode,feMorphology,feOffset,' </span><span class="s1">+</span>
+    <span class="s3">'fePointLight,feSpecularLighting,feSpotLight,feTile,feTurbulence,filter,' </span><span class="s1">+</span>
+    <span class="s3">'foreignObject,g,hatch,hatchpath,image,line,linearGradient,marker,mask,' </span><span class="s1">+</span>
+    <span class="s3">'mesh,meshgradient,meshpatch,meshrow,metadata,mpath,path,pattern,' </span><span class="s1">+</span>
+    <span class="s3">'polygon,polyline,radialGradient,rect,set,solidcolor,stop,switch,symbol,' </span><span class="s1">+</span>
+    <span class="s3">'text,textPath,title,tspan,unknown,use,view'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">VOID_TAGS = </span><span class="s3">'area,base,br,col,embed,hr,img,input,link,meta,param,source,track,wbr'</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Compiler only.</span>
+ <span class="s0">* Do NOT use in runtime code paths unless behind `(process.env.NODE_ENV !== 'production')` flag.</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">isHTMLTag = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(HTML_TAGS)</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Compiler only.</span>
+ <span class="s0">* Do NOT use in runtime code paths unless behind `(process.env.NODE_ENV !== 'production')` flag.</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">isSVGTag = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(SVG_TAGS)</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Compiler only.</span>
+ <span class="s0">* Do NOT use in runtime code paths unless behind `(process.env.NODE_ENV !== 'production')` flag.</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">isVoidTag = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(VOID_TAGS)</span><span class="s2">;</span>
+
+<span class="s0">/**</span>
+ <span class="s0">* On the client we only need to offer special cases for boolean attributes that</span>
+ <span class="s0">* have different names from their corresponding dom properties:</span>
+ <span class="s0">* - itemscope -&gt; N/A</span>
+ <span class="s0">* - allowfullscreen -&gt; allowFullscreen</span>
+ <span class="s0">* - formnovalidate -&gt; formNoValidate</span>
+ <span class="s0">* - ismap -&gt; isMap</span>
+ <span class="s0">* - nomodule -&gt; noModule</span>
+ <span class="s0">* - novalidate -&gt; noValidate</span>
+ <span class="s0">* - readonly -&gt; readOnly</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">specialBooleanAttrs = </span><span class="s3">`itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isSpecialBooleanAttr = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(specialBooleanAttrs)</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* The full list is needed during SSR to produce the correct initial markup.</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">isBooleanAttr = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(specialBooleanAttrs +</span>
+    <span class="s3">`,async,autofocus,autoplay,controls,default,defer,disabled,hidden,` </span><span class="s1">+</span>
+    <span class="s3">`loop,open,required,reversed,scoped,seamless,` </span><span class="s1">+</span>
+    <span class="s3">`checked,muted,multiple,selected`</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Boolean attributes should be included if the value is truthy or ''.</span>
+ <span class="s0">* e.g. `&lt;select multiple&gt;` compiles to `{ multiple: '' }`</span>
+ <span class="s0">*/</span>
+<span class="s2">function </span><span class="s1">includeBooleanAttr(value) {</span>
+    <span class="s2">return </span><span class="s1">!!value || value === </span><span class="s3">''</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">unsafeAttrCharRE = </span><span class="s4">/[&gt;/=&quot;'\u0009\u000a\u000c\u0020]/</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">attrValidationCache = {}</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">isSSRSafeAttrName(name) {</span>
+    <span class="s2">if </span><span class="s1">(attrValidationCache.hasOwnProperty(name)) {</span>
+        <span class="s2">return </span><span class="s1">attrValidationCache[name]</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">isUnsafe = unsafeAttrCharRE.test(name)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(isUnsafe) {</span>
+        <span class="s1">console.error(</span><span class="s3">`unsafe attribute name: </span><span class="s1">${name}</span><span class="s3">`</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">(attrValidationCache[name] = !isUnsafe)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">propsToAttrMap = {</span>
+    <span class="s1">acceptCharset: </span><span class="s3">'accept-charset'</span><span class="s2">,</span>
+    <span class="s1">className: </span><span class="s3">'class'</span><span class="s2">,</span>
+    <span class="s1">htmlFor: </span><span class="s3">'for'</span><span class="s2">,</span>
+    <span class="s1">httpEquiv: </span><span class="s3">'http-equiv'</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Known attributes, this is used for stringification of runtime static nodes</span>
+ <span class="s0">* so that we don't stringify bindings that cannot be set from HTML.</span>
+ <span class="s0">* Don't also forget to allow `data-*` and `aria-*`!</span>
+ <span class="s0">* Generated from https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">isKnownHtmlAttr = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s3">`accept,accept-charset,accesskey,action,align,allow,alt,async,` </span><span class="s1">+</span>
+    <span class="s3">`autocapitalize,autocomplete,autofocus,autoplay,background,bgcolor,` </span><span class="s1">+</span>
+    <span class="s3">`border,buffered,capture,challenge,charset,checked,cite,class,code,` </span><span class="s1">+</span>
+    <span class="s3">`codebase,color,cols,colspan,content,contenteditable,contextmenu,controls,` </span><span class="s1">+</span>
+    <span class="s3">`coords,crossorigin,csp,data,datetime,decoding,default,defer,dir,dirname,` </span><span class="s1">+</span>
+    <span class="s3">`disabled,download,draggable,dropzone,enctype,enterkeyhint,for,form,` </span><span class="s1">+</span>
+    <span class="s3">`formaction,formenctype,formmethod,formnovalidate,formtarget,headers,` </span><span class="s1">+</span>
+    <span class="s3">`height,hidden,high,href,hreflang,http-equiv,icon,id,importance,integrity,` </span><span class="s1">+</span>
+    <span class="s3">`ismap,itemprop,keytype,kind,label,lang,language,loading,list,loop,low,` </span><span class="s1">+</span>
+    <span class="s3">`manifest,max,maxlength,minlength,media,min,multiple,muted,name,novalidate,` </span><span class="s1">+</span>
+    <span class="s3">`open,optimum,pattern,ping,placeholder,poster,preload,radiogroup,readonly,` </span><span class="s1">+</span>
+    <span class="s3">`referrerpolicy,rel,required,reversed,rows,rowspan,sandbox,scope,scoped,` </span><span class="s1">+</span>
+    <span class="s3">`selected,shape,size,sizes,slot,span,spellcheck,src,srcdoc,srclang,srcset,` </span><span class="s1">+</span>
+    <span class="s3">`start,step,style,summary,tabindex,target,title,translate,type,usemap,` </span><span class="s1">+</span>
+    <span class="s3">`value,width,wrap`</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Generated from https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">isKnownSvgAttr = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s3">`xmlns,accent-height,accumulate,additive,alignment-baseline,alphabetic,amplitude,` </span><span class="s1">+</span>
+    <span class="s3">`arabic-form,ascent,attributeName,attributeType,azimuth,baseFrequency,` </span><span class="s1">+</span>
+    <span class="s3">`baseline-shift,baseProfile,bbox,begin,bias,by,calcMode,cap-height,class,` </span><span class="s1">+</span>
+    <span class="s3">`clip,clipPathUnits,clip-path,clip-rule,color,color-interpolation,` </span><span class="s1">+</span>
+    <span class="s3">`color-interpolation-filters,color-profile,color-rendering,` </span><span class="s1">+</span>
+    <span class="s3">`contentScriptType,contentStyleType,crossorigin,cursor,cx,cy,d,decelerate,` </span><span class="s1">+</span>
+    <span class="s3">`descent,diffuseConstant,direction,display,divisor,dominant-baseline,dur,dx,` </span><span class="s1">+</span>
+    <span class="s3">`dy,edgeMode,elevation,enable-background,end,exponent,fill,fill-opacity,` </span><span class="s1">+</span>
+    <span class="s3">`fill-rule,filter,filterRes,filterUnits,flood-color,flood-opacity,` </span><span class="s1">+</span>
+    <span class="s3">`font-family,font-size,font-size-adjust,font-stretch,font-style,` </span><span class="s1">+</span>
+    <span class="s3">`font-variant,font-weight,format,from,fr,fx,fy,g1,g2,glyph-name,` </span><span class="s1">+</span>
+    <span class="s3">`glyph-orientation-horizontal,glyph-orientation-vertical,glyphRef,` </span><span class="s1">+</span>
+    <span class="s3">`gradientTransform,gradientUnits,hanging,height,href,hreflang,horiz-adv-x,` </span><span class="s1">+</span>
+    <span class="s3">`horiz-origin-x,id,ideographic,image-rendering,in,in2,intercept,k,k1,k2,k3,` </span><span class="s1">+</span>
+    <span class="s3">`k4,kernelMatrix,kernelUnitLength,kerning,keyPoints,keySplines,keyTimes,` </span><span class="s1">+</span>
+    <span class="s3">`lang,lengthAdjust,letter-spacing,lighting-color,limitingConeAngle,local,` </span><span class="s1">+</span>
+    <span class="s3">`marker-end,marker-mid,marker-start,markerHeight,markerUnits,markerWidth,` </span><span class="s1">+</span>
+    <span class="s3">`mask,maskContentUnits,maskUnits,mathematical,max,media,method,min,mode,` </span><span class="s1">+</span>
+    <span class="s3">`name,numOctaves,offset,opacity,operator,order,orient,orientation,origin,` </span><span class="s1">+</span>
+    <span class="s3">`overflow,overline-position,overline-thickness,panose-1,paint-order,path,` </span><span class="s1">+</span>
+    <span class="s3">`pathLength,patternContentUnits,patternTransform,patternUnits,ping,` </span><span class="s1">+</span>
+    <span class="s3">`pointer-events,points,pointsAtX,pointsAtY,pointsAtZ,preserveAlpha,` </span><span class="s1">+</span>
+    <span class="s3">`preserveAspectRatio,primitiveUnits,r,radius,referrerPolicy,refX,refY,rel,` </span><span class="s1">+</span>
+    <span class="s3">`rendering-intent,repeatCount,repeatDur,requiredExtensions,requiredFeatures,` </span><span class="s1">+</span>
+    <span class="s3">`restart,result,rotate,rx,ry,scale,seed,shape-rendering,slope,spacing,` </span><span class="s1">+</span>
+    <span class="s3">`specularConstant,specularExponent,speed,spreadMethod,startOffset,` </span><span class="s1">+</span>
+    <span class="s3">`stdDeviation,stemh,stemv,stitchTiles,stop-color,stop-opacity,` </span><span class="s1">+</span>
+    <span class="s3">`strikethrough-position,strikethrough-thickness,string,stroke,` </span><span class="s1">+</span>
+    <span class="s3">`stroke-dasharray,stroke-dashoffset,stroke-linecap,stroke-linejoin,` </span><span class="s1">+</span>
+    <span class="s3">`stroke-miterlimit,stroke-opacity,stroke-width,style,surfaceScale,` </span><span class="s1">+</span>
+    <span class="s3">`systemLanguage,tabindex,tableValues,target,targetX,targetY,text-anchor,` </span><span class="s1">+</span>
+    <span class="s3">`text-decoration,text-rendering,textLength,to,transform,transform-origin,` </span><span class="s1">+</span>
+    <span class="s3">`type,u1,u2,underline-position,underline-thickness,unicode,unicode-bidi,` </span><span class="s1">+</span>
+    <span class="s3">`unicode-range,units-per-em,v-alphabetic,v-hanging,v-ideographic,` </span><span class="s1">+</span>
+    <span class="s3">`v-mathematical,values,vector-effect,version,vert-adv-y,vert-origin-x,` </span><span class="s1">+</span>
+    <span class="s3">`vert-origin-y,viewBox,viewTarget,visibility,width,widths,word-spacing,` </span><span class="s1">+</span>
+    <span class="s3">`writing-mode,x,x-height,x1,x2,xChannelSelector,xlink:actuate,xlink:arcrole,` </span><span class="s1">+</span>
+    <span class="s3">`xlink:href,xlink:role,xlink:show,xlink:title,xlink:type,xml:base,xml:lang,` </span><span class="s1">+</span>
+    <span class="s3">`xml:space,y,y1,y2,yChannelSelector,z,zoomAndPan`</span><span class="s1">)</span><span class="s2">;</span>
+
+<span class="s2">const </span><span class="s1">escapeRE = </span><span class="s4">/[&quot;'&amp;&lt;&gt;]/</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">escapeHtml(string) {</span>
+    <span class="s2">const </span><span class="s1">str = </span><span class="s3">'' </span><span class="s1">+ string</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">match = escapeRE.exec(str)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!match) {</span>
+        <span class="s2">return </span><span class="s1">str</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">let </span><span class="s1">html = </span><span class="s3">''</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">escaped</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">index</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">lastIndex = </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s2">for </span><span class="s1">(index = match.index</span><span class="s2">; </span><span class="s1">index &lt; str.length</span><span class="s2">; </span><span class="s1">index++) {</span>
+        <span class="s2">switch </span><span class="s1">(str.charCodeAt(index)) {</span>
+            <span class="s2">case </span><span class="s4">34</span><span class="s1">: </span><span class="s5">// &quot;</span>
+                <span class="s1">escaped = </span><span class="s3">'&amp;quot;'</span><span class="s2">;</span>
+                <span class="s2">break;</span>
+            <span class="s2">case </span><span class="s4">38</span><span class="s1">: </span><span class="s5">// &amp;</span>
+                <span class="s1">escaped = </span><span class="s3">'&amp;amp;'</span><span class="s2">;</span>
+                <span class="s2">break;</span>
+            <span class="s2">case </span><span class="s4">39</span><span class="s1">: </span><span class="s5">// '</span>
+                <span class="s1">escaped = </span><span class="s3">'&amp;#39;'</span><span class="s2">;</span>
+                <span class="s2">break;</span>
+            <span class="s2">case </span><span class="s4">60</span><span class="s1">: </span><span class="s5">// &lt;</span>
+                <span class="s1">escaped = </span><span class="s3">'&amp;lt;'</span><span class="s2">;</span>
+                <span class="s2">break;</span>
+            <span class="s2">case </span><span class="s4">62</span><span class="s1">: </span><span class="s5">// &gt;</span>
+                <span class="s1">escaped = </span><span class="s3">'&amp;gt;'</span><span class="s2">;</span>
+                <span class="s2">break;</span>
+            <span class="s2">default</span><span class="s1">:</span>
+                <span class="s2">continue;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(lastIndex !== index) {</span>
+            <span class="s1">html += str.slice(lastIndex</span><span class="s2">, </span><span class="s1">index)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s1">lastIndex = index + </span><span class="s4">1</span><span class="s2">;</span>
+        <span class="s1">html += escaped</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">lastIndex !== index ? html + str.slice(lastIndex</span><span class="s2">, </span><span class="s1">index) : html</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s5">// https://www.w3.org/TR/html52/syntax.html#comments</span>
+<span class="s2">const </span><span class="s1">commentStripRE = </span><span class="s4">/^-?&gt;|&lt;!--|--&gt;|--!&gt;|&lt;!-$/g</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">escapeHtmlComment(src) {</span>
+    <span class="s2">return </span><span class="s1">src.replace(commentStripRE</span><span class="s2">, </span><span class="s3">''</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">function </span><span class="s1">looseCompareArrays(a</span><span class="s2">, </span><span class="s1">b) {</span>
+    <span class="s2">if </span><span class="s1">(a.length !== b.length)</span>
+        <span class="s2">return false;</span>
+    <span class="s2">let </span><span class="s1">equal = </span><span class="s2">true;</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">equal &amp;&amp; i &lt; a.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+        <span class="s1">equal = looseEqual(a[i]</span><span class="s2">, </span><span class="s1">b[i])</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">equal</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">looseEqual(a</span><span class="s2">, </span><span class="s1">b) {</span>
+    <span class="s2">if </span><span class="s1">(a === b)</span>
+        <span class="s2">return true;</span>
+    <span class="s2">let </span><span class="s1">aValidType = isDate(a)</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">bValidType = isDate(b)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(aValidType || bValidType) {</span>
+        <span class="s2">return </span><span class="s1">aValidType &amp;&amp; bValidType ? a.getTime() === b.getTime() : </span><span class="s2">false;</span>
+    <span class="s1">}</span>
+    <span class="s1">aValidType = isSymbol(a)</span><span class="s2">;</span>
+    <span class="s1">bValidType = isSymbol(b)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(aValidType || bValidType) {</span>
+        <span class="s2">return </span><span class="s1">a === b</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">aValidType = isArray(a)</span><span class="s2">;</span>
+    <span class="s1">bValidType = isArray(b)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(aValidType || bValidType) {</span>
+        <span class="s2">return </span><span class="s1">aValidType &amp;&amp; bValidType ? looseCompareArrays(a</span><span class="s2">, </span><span class="s1">b) : </span><span class="s2">false;</span>
+    <span class="s1">}</span>
+    <span class="s1">aValidType = isObject(a)</span><span class="s2">;</span>
+    <span class="s1">bValidType = isObject(b)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(aValidType || bValidType) {</span>
+        <span class="s5">/* istanbul ignore if: this if will probably never be called */</span>
+        <span class="s2">if </span><span class="s1">(!aValidType || !bValidType) {</span>
+            <span class="s2">return false;</span>
+        <span class="s1">}</span>
+        <span class="s2">const </span><span class="s1">aKeysCount = Object.keys(a).length</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">bKeysCount = Object.keys(b).length</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(aKeysCount !== bKeysCount) {</span>
+            <span class="s2">return false;</span>
+        <span class="s1">}</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">key </span><span class="s2">in </span><span class="s1">a) {</span>
+            <span class="s2">const </span><span class="s1">aHasKey = a.hasOwnProperty(key)</span><span class="s2">;</span>
+            <span class="s2">const </span><span class="s1">bHasKey = b.hasOwnProperty(key)</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">((aHasKey &amp;&amp; !bHasKey) ||</span>
+                <span class="s1">(!aHasKey &amp;&amp; bHasKey) ||</span>
+                <span class="s1">!looseEqual(a[key]</span><span class="s2">, </span><span class="s1">b[key])) {</span>
+                <span class="s2">return false;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">String(a) === String(b)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">looseIndexOf(arr</span><span class="s2">, </span><span class="s1">val) {</span>
+    <span class="s2">return </span><span class="s1">arr.findIndex(item =&gt; looseEqual(item</span><span class="s2">, </span><span class="s1">val))</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s0">/**</span>
+ <span class="s0">* For converting {{ interpolation }} values to displayed strings.</span>
+ <span class="s0">* </span><span class="s6">@private</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">toDisplayString = (val) =&gt; {</span>
+    <span class="s2">return </span><span class="s1">isString(val)</span>
+        <span class="s1">? val</span>
+        <span class="s1">: val == </span><span class="s2">null</span>
+            <span class="s1">? </span><span class="s3">''</span>
+            <span class="s1">: isArray(val) ||</span>
+                <span class="s1">(isObject(val) &amp;&amp;</span>
+                    <span class="s1">(val.toString === objectToString || !isFunction(val.toString)))</span>
+                <span class="s1">? JSON.stringify(val</span><span class="s2">, </span><span class="s1">replacer</span><span class="s2">, </span><span class="s4">2</span><span class="s1">)</span>
+                <span class="s1">: String(val)</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">replacer = (_key</span><span class="s2">, </span><span class="s1">val) =&gt; {</span>
+    <span class="s5">// can't use isRef here since @vue/shared has no deps</span>
+    <span class="s2">if </span><span class="s1">(val &amp;&amp; val.__v_isRef) {</span>
+        <span class="s2">return </span><span class="s1">replacer(_key</span><span class="s2">, </span><span class="s1">val.value)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isMap(val)) {</span>
+        <span class="s2">return </span><span class="s1">{</span>
+            <span class="s1">[</span><span class="s3">`Map(</span><span class="s1">${val.size}</span><span class="s3">)`</span><span class="s1">]: [...val.entries()].reduce((entries</span><span class="s2">, </span><span class="s1">[key</span><span class="s2">, </span><span class="s1">val]) =&gt; {</span>
+                <span class="s1">entries[</span><span class="s3">`</span><span class="s1">${key} </span><span class="s3">=&gt;`</span><span class="s1">] = val</span><span class="s2">;</span>
+                <span class="s2">return </span><span class="s1">entries</span><span class="s2">;</span>
+            <span class="s1">}</span><span class="s2">, </span><span class="s1">{})</span>
+        <span class="s1">}</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isSet(val)) {</span>
+        <span class="s2">return </span><span class="s1">{</span>
+            <span class="s1">[</span><span class="s3">`Set(</span><span class="s1">${val.size}</span><span class="s3">)`</span><span class="s1">]: [...val.values()]</span>
+        <span class="s1">}</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(isObject(val) &amp;&amp; !isArray(val) &amp;&amp; !isPlainObject(val)) {</span>
+        <span class="s2">return </span><span class="s1">String(val)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">val</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s2">const </span><span class="s1">EMPTY_OBJ = (process.env.NODE_ENV !== </span><span class="s3">'production'</span><span class="s1">)</span>
+    <span class="s1">? Object.freeze({})</span>
+    <span class="s1">: {}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">EMPTY_ARR = (process.env.NODE_ENV !== </span><span class="s3">'production'</span><span class="s1">) ? Object.freeze([]) : []</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">NOOP = () =&gt; { }</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Always return false.</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">NO = () =&gt; </span><span class="s2">false;</span>
+<span class="s2">const </span><span class="s1">onRE = </span><span class="s4">/^on[^a-z]/</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isOn = (key) =&gt; onRE.test(key)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isModelListener = (key) =&gt; key.startsWith(</span><span class="s3">'onUpdate:'</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">extend = Object.assign</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">remove = (arr</span><span class="s2">, </span><span class="s1">el) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">i = arr.indexOf(el)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(i &gt; -</span><span class="s4">1</span><span class="s1">) {</span>
+        <span class="s1">arr.splice(i</span><span class="s2">, </span><span class="s4">1</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">hasOwnProperty = Object.prototype.hasOwnProperty</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">hasOwn = (val</span><span class="s2">, </span><span class="s1">key) =&gt; hasOwnProperty.call(val</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isArray = Array.isArray</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isMap = (val) =&gt; toTypeString(val) === </span><span class="s3">'[object Map]'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isSet = (val) =&gt; toTypeString(val) === </span><span class="s3">'[object Set]'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isDate = (val) =&gt; toTypeString(val) === </span><span class="s3">'[object Date]'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isRegExp = (val) =&gt; toTypeString(val) === </span><span class="s3">'[object RegExp]'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isFunction = (val) =&gt; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'function'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isString = (val) =&gt; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'string'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isSymbol = (val) =&gt; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'symbol'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isObject = (val) =&gt; val !== </span><span class="s2">null </span><span class="s1">&amp;&amp; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'object'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isPromise = (val) =&gt; {</span>
+    <span class="s2">return </span><span class="s1">isObject(val) &amp;&amp; isFunction(val.then) &amp;&amp; isFunction(val.catch)</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">objectToString = Object.prototype.toString</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">toTypeString = (value) =&gt; objectToString.call(value)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">toRawType = (value) =&gt; {</span>
+    <span class="s5">// extract &quot;RawType&quot; from strings like &quot;[object RawType]&quot;</span>
+    <span class="s2">return </span><span class="s1">toTypeString(value).slice(</span><span class="s4">8</span><span class="s2">, </span><span class="s1">-</span><span class="s4">1</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isPlainObject = (val) =&gt; toTypeString(val) === </span><span class="s3">'[object Object]'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isIntegerKey = (key) =&gt; isString(key) &amp;&amp;</span>
+    <span class="s1">key !== </span><span class="s3">'NaN' </span><span class="s1">&amp;&amp;</span>
+    <span class="s1">key[</span><span class="s4">0</span><span class="s1">] !== </span><span class="s3">'-' </span><span class="s1">&amp;&amp;</span>
+    <span class="s3">'' </span><span class="s1">+ parseInt(key</span><span class="s2">, </span><span class="s4">10</span><span class="s1">) === key</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isReservedProp = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(</span>
+<span class="s5">// the leading comma is intentional so empty string &quot;&quot; is also included</span>
+<span class="s3">',key,ref,ref_for,ref_key,' </span><span class="s1">+</span>
+    <span class="s3">'onVnodeBeforeMount,onVnodeMounted,' </span><span class="s1">+</span>
+    <span class="s3">'onVnodeBeforeUpdate,onVnodeUpdated,' </span><span class="s1">+</span>
+    <span class="s3">'onVnodeBeforeUnmount,onVnodeUnmounted'</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isBuiltInDirective = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s3">'bind,cloak,else-if,else,for,html,if,model,on,once,pre,show,slot,text,memo'</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">cacheStringFunction = (fn) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">cache = Object.create(</span><span class="s2">null</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">((str) =&gt; {</span>
+        <span class="s2">const </span><span class="s1">hit = cache[str]</span><span class="s2">;</span>
+        <span class="s2">return </span><span class="s1">hit || (cache[str] = fn(str))</span><span class="s2">;</span>
+    <span class="s1">})</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">camelizeRE = </span><span class="s4">/-(\w)/g</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* </span><span class="s6">@private</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">camelize = cacheStringFunction((str) =&gt; {</span>
+    <span class="s2">return </span><span class="s1">str.replace(camelizeRE</span><span class="s2">, </span><span class="s1">(_</span><span class="s2">, </span><span class="s1">c) =&gt; (c ? c.toUpperCase() : </span><span class="s3">''</span><span class="s1">))</span><span class="s2">;</span>
+<span class="s1">})</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">hyphenateRE = </span><span class="s4">/\B([A-Z])/g</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* </span><span class="s6">@private</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">hyphenate = cacheStringFunction((str) =&gt; str.replace(hyphenateRE</span><span class="s2">, </span><span class="s3">'-$1'</span><span class="s1">).toLowerCase())</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* </span><span class="s6">@private</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">capitalize = cacheStringFunction((str) =&gt; str.charAt(</span><span class="s4">0</span><span class="s1">).toUpperCase() + str.slice(</span><span class="s4">1</span><span class="s1">))</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* </span><span class="s6">@private</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">toHandlerKey = cacheStringFunction((str) =&gt; str ? </span><span class="s3">`on</span><span class="s1">${capitalize(str)}</span><span class="s3">` </span><span class="s1">: </span><span class="s3">``</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s5">// compare whether a value has changed, accounting for NaN.</span>
+<span class="s2">const </span><span class="s1">hasChanged = (value</span><span class="s2">, </span><span class="s1">oldValue) =&gt; !Object.is(value</span><span class="s2">, </span><span class="s1">oldValue)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">invokeArrayFns = (fns</span><span class="s2">, </span><span class="s1">arg) =&gt; {</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; fns.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+        <span class="s1">fns[i](arg)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">def = (obj</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value) =&gt; {</span>
+    <span class="s1">Object.defineProperty(obj</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">{</span>
+        <span class="s1">configurable: </span><span class="s2">true,</span>
+        <span class="s1">enumerable: </span><span class="s2">false,</span>
+        <span class="s1">value</span>
+    <span class="s1">})</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* &quot;123-foo&quot; will be parsed to 123</span>
+ <span class="s0">* This is used for the .number modifier in v-model</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">looseToNumber = (val) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">n = parseFloat(val)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">isNaN(n) ? val : n</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* Only conerces number-like strings</span>
+ <span class="s0">* &quot;123-foo&quot; will be returned as-is</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">toNumber = (val) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">n = isString(val) ? Number(val) : NaN</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">isNaN(n) ? val : n</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">let </span><span class="s1">_globalThis</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">getGlobalThis = () =&gt; {</span>
+    <span class="s2">return </span><span class="s1">(_globalThis ||</span>
+        <span class="s1">(_globalThis =</span>
+            <span class="s2">typeof </span><span class="s1">globalThis !== </span><span class="s3">'undefined'</span>
+                <span class="s1">? globalThis</span>
+                <span class="s1">: </span><span class="s2">typeof </span><span class="s1">self !== </span><span class="s3">'undefined'</span>
+                    <span class="s1">? self</span>
+                    <span class="s1">: </span><span class="s2">typeof </span><span class="s1">window !== </span><span class="s3">'undefined'</span>
+                        <span class="s1">? window</span>
+                        <span class="s1">: </span><span class="s2">typeof </span><span class="s1">global !== </span><span class="s3">'undefined'</span>
+                            <span class="s1">? global</span>
+                            <span class="s1">: {}))</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">identRE = </span><span class="s4">/^[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*$/</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">genPropsAccessExp(name) {</span>
+    <span class="s2">return </span><span class="s1">identRE.test(name)</span>
+        <span class="s1">? </span><span class="s3">`__props.</span><span class="s1">${name}</span><span class="s3">`</span>
+        <span class="s1">: </span><span class="s3">`__props[</span><span class="s1">${JSON.stringify(name)}</span><span class="s3">]`</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">export </span><span class="s1">{ EMPTY_ARR</span><span class="s2">, </span><span class="s1">EMPTY_OBJ</span><span class="s2">, </span><span class="s1">NO</span><span class="s2">, </span><span class="s1">NOOP</span><span class="s2">, </span><span class="s1">PatchFlagNames</span><span class="s2">, </span><span class="s1">camelize</span><span class="s2">, </span><span class="s1">capitalize</span><span class="s2">, </span><span class="s1">def</span><span class="s2">, </span><span class="s1">escapeHtml</span><span class="s2">, </span><span class="s1">escapeHtmlComment</span><span class="s2">, </span><span class="s1">extend</span><span class="s2">, </span><span class="s1">genPropsAccessExp</span><span class="s2">, </span><span class="s1">generateCodeFrame</span><span class="s2">, </span><span class="s1">getGlobalThis</span><span class="s2">, </span><span class="s1">hasChanged</span><span class="s2">, </span><span class="s1">hasOwn</span><span class="s2">, </span><span class="s1">hyphenate</span><span class="s2">, </span><span class="s1">includeBooleanAttr</span><span class="s2">, </span><span class="s1">invokeArrayFns</span><span class="s2">, </span><span class="s1">isArray</span><span class="s2">, </span><span class="s1">isBooleanAttr</span><span class="s2">, </span><span class="s1">isBuiltInDirective</span><span class="s2">, </span><span class="s1">isDate</span><span class="s2">, </span><span class="s1">isFunction</span><span class="s2">, </span><span class="s1">isGloballyWhitelisted</span><span class="s2">, </span><span class="s1">isHTMLTag</span><span class="s2">, </span><span class="s1">isIntegerKey</span><span class="s2">, </span><span class="s1">isKnownHtmlAttr</span><span class="s2">, </span><span class="s1">isKnownSvgAttr</span><span class="s2">, </span><span class="s1">isMap</span><span class="s2">, </span><span class="s1">isModelListener</span><span class="s2">, </span><span class="s1">isObject</span><span class="s2">, </span><span class="s1">isOn</span><span class="s2">, </span><span class="s1">isPlainObject</span><span class="s2">, </span><span class="s1">isPromise</span><span class="s2">, </span><span class="s1">isRegExp</span><span class="s2">, </span><span class="s1">isReservedProp</span><span class="s2">, </span><span class="s1">isSSRSafeAttrName</span><span class="s2">, </span><span class="s1">isSVGTag</span><span class="s2">, </span><span class="s1">isSet</span><span class="s2">, </span><span class="s1">isSpecialBooleanAttr</span><span class="s2">, </span><span class="s1">isString</span><span class="s2">, </span><span class="s1">isSymbol</span><span class="s2">, </span><span class="s1">isVoidTag</span><span class="s2">, </span><span class="s1">looseEqual</span><span class="s2">, </span><span class="s1">looseIndexOf</span><span class="s2">, </span><span class="s1">looseToNumber</span><span class="s2">, </span><span class="s1">makeMap</span><span class="s2">, </span><span class="s1">normalizeClass</span><span class="s2">, </span><span class="s1">normalizeProps</span><span class="s2">, </span><span class="s1">normalizeStyle</span><span class="s2">, </span><span class="s1">objectToString</span><span class="s2">, </span><span class="s1">parseStringStyle</span><span class="s2">, </span><span class="s1">propsToAttrMap</span><span class="s2">, </span><span class="s1">remove</span><span class="s2">, </span><span class="s1">slotFlagsText</span><span class="s2">, </span><span class="s1">stringifyStyle</span><span class="s2">, </span><span class="s1">toDisplayString</span><span class="s2">, </span><span class="s1">toHandlerKey</span><span class="s2">, </span><span class="s1">toNumber</span><span class="s2">, </span><span class="s1">toRawType</span><span class="s2">, </span><span class="s1">toTypeString }</span><span class="s2">;</span>
+</pre>
+</body>
+</html>

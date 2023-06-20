@@ -1,0 +1,133 @@
+<html>
+<head>
+<title>macros.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #629755; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+macros.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{</span>
+  <span class="s1">Ref</span><span class="s0">,</span>
+  <span class="s1">UnwrapRef</span><span class="s0">,</span>
+  <span class="s1">ComputedRef</span><span class="s0">,</span>
+  <span class="s1">WritableComputedOptions</span><span class="s0">,</span>
+  <span class="s1">DebuggerOptions</span><span class="s0">,</span>
+  <span class="s1">WritableComputedRef</span><span class="s0">,</span>
+  <span class="s1">CustomRefFactory</span>
+<span class="s1">} from </span><span class="s2">'@vue/runtime-dom'</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RefType: unique symbol</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">RefTypes {</span>
+  <span class="s1">Ref = </span><span class="s3">1</span><span class="s0">,</span>
+  <span class="s1">ComputedRef = </span><span class="s3">2</span><span class="s0">,</span>
+  <span class="s1">WritableComputedRef = </span><span class="s3">3</span>
+<span class="s1">}</span>
+
+<span class="s1">type RefValue&lt;T&gt; = T </span><span class="s0">extends null </span><span class="s1">| undefined ? T : ReactiveVariable&lt;T&gt;</span>
+
+<span class="s1">type ReactiveVariable&lt;T&gt; = T &amp; { [RefType]?: RefTypes.Ref }</span>
+
+<span class="s1">type ComputedRefValue&lt;T&gt; = T </span><span class="s0">extends null </span><span class="s1">| undefined ? T : ComputedVariable&lt;T&gt;</span>
+
+<span class="s1">type ComputedVariable&lt;T&gt; = T &amp; { [RefType]?: RefTypes.ComputedRef }</span>
+
+<span class="s1">type WritableComputedRefValue&lt;T&gt; = T </span><span class="s0">extends null </span><span class="s1">| undefined</span>
+  <span class="s1">? T</span>
+  <span class="s1">: WritableComputedVariable&lt;T&gt;</span>
+
+<span class="s1">type WritableComputedVariable&lt;T&gt; = T &amp; {</span>
+  <span class="s1">[RefType]?: RefTypes.WritableComputedRef</span>
+<span class="s1">}</span>
+
+<span class="s1">type NormalObject&lt;T </span><span class="s0">extends </span><span class="s1">object&gt; = T &amp; { [RefType]?: never }</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Vue ref transform macro for binding refs as reactive variables.</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$&lt;T&gt;(arg: ComputedRef&lt;T&gt;): ComputedRefValue&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$&lt;T&gt;(</span>
+  <span class="s1">arg: WritableComputedRef&lt;T&gt;</span>
+<span class="s1">): WritableComputedRefValue&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$&lt;T&gt;(arg: Ref&lt;T&gt;): RefValue&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(arg?: T): DestructureRefs&lt;T&gt;</span>
+
+<span class="s1">type DestructureRefs&lt;T </span><span class="s0">extends </span><span class="s1">object&gt; = {</span>
+  <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof T]: T[K] </span><span class="s0">extends </span><span class="s1">ComputedRef&lt;infer V&gt;</span>
+    <span class="s1">? ComputedRefValue&lt;V&gt;</span>
+    <span class="s1">: T[K] </span><span class="s0">extends </span><span class="s1">WritableComputedRef&lt;infer V&gt;</span>
+    <span class="s1">? WritableComputedRefValue&lt;V&gt;</span>
+    <span class="s1">: T[K] </span><span class="s0">extends </span><span class="s1">Ref&lt;infer V&gt;</span>
+    <span class="s1">? RefValue&lt;V&gt;</span>
+    <span class="s1">: T[K]</span>
+<span class="s1">}</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Vue ref transform macro for accessing underlying refs of reactive variables.</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$$&lt;T </span><span class="s0">extends </span><span class="s1">object&gt;(arg: NormalObject&lt;T&gt;): ToRawRefs&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$$&lt;T&gt;(value: RefValue&lt;T&gt;): Ref&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$$&lt;T&gt;(value: ComputedRefValue&lt;T&gt;): ComputedRef&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$$&lt;T&gt;(</span>
+  <span class="s1">value: WritableComputedRefValue&lt;T&gt;</span>
+<span class="s1">): WritableComputedRef&lt;T&gt;</span>
+
+<span class="s1">type ToRawRefs&lt;T </span><span class="s0">extends </span><span class="s1">object&gt; = {</span>
+  <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof T]: T[K] </span><span class="s0">extends </span><span class="s1">RefValue&lt;infer V&gt;</span>
+    <span class="s1">? Ref&lt;V&gt;</span>
+    <span class="s1">: T[K] </span><span class="s0">extends </span><span class="s1">ComputedRefValue&lt;infer V&gt;</span>
+    <span class="s1">? ComputedRef&lt;V&gt;</span>
+    <span class="s1">: T[K] </span><span class="s0">extends </span><span class="s1">WritableComputedRefValue&lt;infer V&gt;</span>
+    <span class="s1">? WritableComputedRef&lt;V&gt;</span>
+    <span class="s1">: T[K] </span><span class="s0">extends </span><span class="s1">object</span>
+    <span class="s1">? T[K] </span><span class="s0">extends</span>
+        <span class="s1">| Function</span>
+        <span class="s1">| Map&lt;any</span><span class="s0">, </span><span class="s1">any&gt;</span>
+        <span class="s1">| Set&lt;any&gt;</span>
+        <span class="s1">| WeakMap&lt;any</span><span class="s0">, </span><span class="s1">any&gt;</span>
+        <span class="s1">| WeakSet&lt;any&gt;</span>
+      <span class="s1">? T[K]</span>
+      <span class="s1">: ToRawRefs&lt;T[K]&gt;</span>
+    <span class="s1">: T[K]</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$ref&lt;T&gt;(): RefValue&lt;T | undefined&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$ref&lt;T&gt;(arg: T | Ref&lt;T&gt;): RefValue&lt;UnwrapRef&lt;T&gt;&gt;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$shallowRef&lt;T&gt;(): RefValue&lt;T | undefined&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$shallowRef&lt;T&gt;(arg: T): RefValue&lt;T&gt;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$toRef&lt;T </span><span class="s0">extends </span><span class="s1">object</span><span class="s0">, </span><span class="s1">K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(</span>
+  <span class="s1">object: T</span><span class="s0">,</span>
+  <span class="s1">key: K</span>
+<span class="s1">): RefValue&lt;T[K]&gt;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$toRef&lt;T </span><span class="s0">extends </span><span class="s1">object</span><span class="s0">, </span><span class="s1">K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(</span>
+  <span class="s1">object: T</span><span class="s0">,</span>
+  <span class="s1">key: K</span><span class="s0">,</span>
+  <span class="s1">defaultValue: T[K]</span>
+<span class="s1">): RefValue&lt;Exclude&lt;T[K]</span><span class="s0">, </span><span class="s1">undefined&gt;&gt;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$customRef&lt;T&gt;(factory: CustomRefFactory&lt;T&gt;): RefValue&lt;T&gt;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$computed&lt;T&gt;(</span>
+  <span class="s1">getter: () =&gt; T</span><span class="s0">,</span>
+  <span class="s1">debuggerOptions?: DebuggerOptions</span>
+<span class="s1">): ComputedRefValue&lt;T&gt;</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">$computed&lt;T&gt;(</span>
+  <span class="s1">options: WritableComputedOptions&lt;T&gt;</span><span class="s0">,</span>
+  <span class="s1">debuggerOptions?: DebuggerOptions</span>
+<span class="s1">): WritableComputedRefValue&lt;T&gt;</span>
+</pre>
+</body>
+</html>

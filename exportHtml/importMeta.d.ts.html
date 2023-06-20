@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>importMeta.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #629755; font-style: italic;}
+.s5 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+importMeta.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">// This file is an augmentation to the built-in ImportMeta interface</span>
+<span class="s0">// Thus cannot contain any top-level imports</span>
+<span class="s0">// &lt;https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation&gt;</span>
+
+<span class="s0">/* eslint-disable @typescript-eslint/consistent-type-imports */</span>
+
+<span class="s2">interface </span><span class="s1">ImportMetaEnv {</span>
+  <span class="s1">[key: string]: any</span>
+  <span class="s1">BASE_URL: string</span>
+  <span class="s1">MODE: string</span>
+  <span class="s1">DEV: boolean</span>
+  <span class="s1">PROD: boolean</span>
+  <span class="s1">SSR: boolean</span>
+<span class="s1">}</span>
+
+<span class="s2">interface </span><span class="s1">ImportMeta {</span>
+  <span class="s1">url: string</span>
+
+  <span class="s1">readonly hot?: </span><span class="s2">import</span><span class="s1">(</span><span class="s3">'./hot'</span><span class="s1">).ViteHotContext</span>
+
+  <span class="s1">readonly env: ImportMetaEnv</span>
+
+  <span class="s1">glob: </span><span class="s2">import</span><span class="s1">(</span><span class="s3">'./importGlob'</span><span class="s1">).ImportGlobFunction</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import.meta.glob('*', { eager: true })` instead</span>
+   <span class="s4">*/</span>
+  <span class="s1">globEager: </span><span class="s2">import</span><span class="s1">(</span><span class="s3">'./importGlob'</span><span class="s1">).ImportGlobEagerFunction</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

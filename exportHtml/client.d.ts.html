@@ -1,0 +1,299 @@
+<html>
+<head>
+<title>client.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #cc7832;}
+.s4 { color: #629755; font-style: italic;}
+.s5 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+client.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">/// &lt;reference path=&quot;./types/importMeta.d.ts&quot; /&gt;</span>
+
+<span class="s0">// CSS modules</span>
+<span class="s1">type CSSModuleClasses = { readonly [key: string]: string }</span>
+
+<span class="s1">declare module </span><span class="s2">'*.module.css' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.scss' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.sass' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.less' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.styl' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.stylus' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.pcss' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.module.sss' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">classes: CSSModuleClasses</span>
+  <span class="s3">export default </span><span class="s1">classes</span>
+<span class="s1">}</span>
+
+<span class="s0">// CSS</span>
+<span class="s1">declare module </span><span class="s2">'*.css' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.css?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.scss' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.scss?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.sass' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.sass?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.less' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.less?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.styl' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.styl?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.stylus' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.stylus?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.pcss' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.pcss?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.sss' </span><span class="s1">{</span>
+  <span class="s4">/**</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">Use `import style from './style.sss?inline'` instead.</span>
+   <span class="s4">*/</span>
+  <span class="s3">const </span><span class="s1">css: string</span>
+  <span class="s3">export default </span><span class="s1">css</span>
+<span class="s1">}</span>
+
+<span class="s0">// Built-in asset types</span>
+<span class="s0">// see `src/node/constants.ts`</span>
+
+<span class="s0">// images</span>
+<span class="s1">declare module </span><span class="s2">'*.png' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.jpg' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.jpeg' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.jfif' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.pjpeg' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.pjp' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.gif' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.svg' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.ico' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.webp' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.avif' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s0">// media</span>
+<span class="s1">declare module </span><span class="s2">'*.mp4' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.webm' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.ogg' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.mp3' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.wav' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.flac' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.aac' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*.opus' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s0">// fonts</span>
+<span class="s1">declare module </span><span class="s2">'*.woff' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.woff2' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.eot' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.ttf' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.otf' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s0">// other</span>
+<span class="s1">declare module </span><span class="s2">'*.webmanifest' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.pdf' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+<span class="s1">declare module </span><span class="s2">'*.txt' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s0">// wasm?init</span>
+<span class="s1">declare module </span><span class="s2">'*.wasm?init' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">initWasm: (</span>
+    <span class="s1">options: WebAssembly.Imports</span><span class="s3">,</span>
+  <span class="s1">) =&gt; Promise&lt;WebAssembly.Instance&gt;</span>
+  <span class="s3">export default </span><span class="s1">initWasm</span>
+<span class="s1">}</span>
+
+<span class="s0">// web worker</span>
+<span class="s1">declare module </span><span class="s2">'*?worker' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">workerConstructor: {</span>
+    <span class="s3">new </span><span class="s1">(): Worker</span>
+  <span class="s1">}</span>
+  <span class="s3">export default </span><span class="s1">workerConstructor</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?worker&amp;inline' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">workerConstructor: {</span>
+    <span class="s3">new </span><span class="s1">(): Worker</span>
+  <span class="s1">}</span>
+  <span class="s3">export default </span><span class="s1">workerConstructor</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?worker&amp;url' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?sharedworker' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">sharedWorkerConstructor: {</span>
+    <span class="s3">new </span><span class="s1">(): SharedWorker</span>
+  <span class="s1">}</span>
+  <span class="s3">export default </span><span class="s1">sharedWorkerConstructor</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?sharedworker&amp;inline' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">sharedWorkerConstructor: {</span>
+    <span class="s3">new </span><span class="s1">(): SharedWorker</span>
+  <span class="s1">}</span>
+  <span class="s3">export default </span><span class="s1">sharedWorkerConstructor</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?sharedworker&amp;url' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?raw' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?url' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+
+<span class="s1">declare module </span><span class="s2">'*?inline' </span><span class="s1">{</span>
+  <span class="s3">const </span><span class="s1">src: string</span>
+  <span class="s3">export default </span><span class="s1">src</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

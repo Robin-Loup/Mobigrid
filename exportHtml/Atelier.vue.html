@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>Atelier.vue</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #e8bf6a;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #bababa;}
+.s5 { color: #a5c261;}
+.s6 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Atelier.vue</font>
+</center></td></tr></table>
+<pre><span class="s0">&lt;script&gt;</span>
+
+<span class="s2">import </span><span class="s1">Capteur_ambiance from </span><span class="s3">&quot;@/components/Capteur_ambiance.vue&quot;</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">Form_date from </span><span class="s3">&quot;@/components/Form_date.vue&quot;</span>
+<span class="s2">import </span><span class="s1">Capteur_elec from </span><span class="s3">&quot;@/components/Capteur_elec.vue&quot;</span><span class="s2">;</span>
+
+<span class="s2">export default </span><span class="s1">{</span>
+    <span class="s1">name: </span><span class="s3">&quot;Atelier&quot;</span><span class="s2">,</span>
+    <span class="s1">data(){</span>
+        <span class="s2">return</span><span class="s1">{</span>
+            <span class="s1">from:</span><span class="s3">''</span><span class="s2">,</span>
+            <span class="s1">to:</span><span class="s3">''</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span><span class="s2">,</span>
+    <span class="s1">methods:{</span>
+        <span class="s1">sendFrom(value){</span>
+            <span class="s2">this</span><span class="s1">.from = value</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">sendTo(value){</span>
+            <span class="s2">this</span><span class="s1">.to = value</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span><span class="s2">,</span>
+    <span class="s1">components: {Capteur_elec</span><span class="s2">, </span><span class="s1">Form_date</span><span class="s2">, </span><span class="s1">Capteur_ambiance}</span>
+<span class="s1">}</span>
+<span class="s0">&lt;/script&gt;</span>
+
+<span class="s0">&lt;template&gt;</span>
+    <span class="s0">&lt;header&gt;</span>
+        <span class="s0">&lt;h1 </span><span class="s4">class</span><span class="s5">=&quot;text-center mb-5&quot;</span><span class="s0">&gt;</span><span class="s1">Atelier</span><span class="s0">&lt;/h1&gt;</span>
+    <span class="s0">&lt;/header&gt;</span>
+    <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;d-flex justify-content-center&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;Form_date </span><span class="s4">@start</span><span class="s5">=&quot;</span><span class="s1">sendFrom</span><span class="s5">&quot; </span><span class="s4">@end</span><span class="s5">=&quot;</span><span class="s1">sendTo</span><span class="s5">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;row justify-content-center, atelier&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;ambiance9&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;capteur_ambiance </span><span class="s4">name</span><span class="s5">=&quot;ambiance9&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s1">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s1">to</span><span class="s5">&quot; </span><span class="s0">/&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+        <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;ambiance10&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;capteur_ambiance </span><span class="s4">name</span><span class="s5">=&quot;ambiance10&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s1">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s1">to</span><span class="s5">&quot; </span><span class="s0">/&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+        <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;ambiance11&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;capteur_ambiance </span><span class="s4">name</span><span class="s5">=&quot;ambiance11&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s1">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s1">to</span><span class="s5">&quot; </span><span class="s0">/&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+        <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;tyness21&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;capteur_elec </span><span class="s4">name</span><span class="s5">=&quot;tyness21&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s1">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s1">to</span><span class="s5">&quot; </span><span class="s0">/&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+        <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;squid31&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;capteur_elec </span><span class="s4">name</span><span class="s5">=&quot;squid31&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s1">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s1">to</span><span class="s5">&quot; </span><span class="s0">/&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+        <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;squid32&quot;</span><span class="s0">&gt;</span>
+            <span class="s0">&lt;capteur_elec </span><span class="s4">name</span><span class="s5">=&quot;squid32&quot; </span><span class="s4">:from</span><span class="s5">=&quot;</span><span class="s1">from</span><span class="s5">&quot; </span><span class="s4">:to</span><span class="s5">=&quot;</span><span class="s1">to</span><span class="s5">&quot; </span><span class="s0">/&gt;</span>
+        <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;d-flex justify-content-center mb-5&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;a </span><span class="s4">id</span><span class="s5">=&quot;export&quot; </span><span class="s4">class</span><span class="s5">=&quot;btn btn-dark&quot; </span><span class="s4">href</span><span class="s5">=&quot;http://134.214.142.120/grafana/d/rmrY3R74k/squid?orgId=1&amp;refresh=1m&amp;inspect=4&quot;</span><span class="s0">&gt;</span><span class="s1">Export</span><span class="s0">&lt;/a&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+<span class="s0">&lt;/template&gt;</span>
+
+
+<span class="s0">&lt;style&gt;</span>
+<span class="s1">.</span><span class="s0">atelier </span><span class="s1">{</span>
+    <span class="s4">margin</span><span class="s1">:</span><span class="s5">auto</span><span class="s2">;</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">896</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">min-height</span><span class="s1">: </span><span class="s6">690</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">background-attachment</span><span class="s1">: </span><span class="s5">scroll</span><span class="s2">;</span>
+    <span class="s4">background-image</span><span class="s1">: </span><span class="s0">url</span><span class="s1">(</span><span class="s3">&quot;../assets/plan_Atelier.png&quot;</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s4">background-size</span><span class="s1">: </span><span class="s5">contain</span><span class="s2">;</span>
+    <span class="s4">background-repeat</span><span class="s1">: </span><span class="s5">no-repeat</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">ambiance9 </span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">306</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">605</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">ambiance10 </span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">347</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: -</span><span class="s6">25</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">ambiance11 </span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">602</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">174</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">tyness21 </span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">116</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: -</span><span class="s6">222</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">squid31 </span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">147</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: -</span><span class="s6">24</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">squid32 </span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">178</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: -</span><span class="s6">24</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s1">.</span><span class="s0">row</span><span class="s1">&gt;</span><span class="s0">*</span><span class="s1">{</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">0</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s0">&lt;/style&gt;</span></pre>
+</body>
+</html>

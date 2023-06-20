@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #287bde;}
+.s4 { color: #9876aa; font-style: italic;}
+.s5 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+README.md</font>
+</center></td></tr></table>
+<pre><span class="s0"># </span><span class="s2">sourcemap-codec</span>
+
+<span class="s2">Encode/decode the `mappings` property of a </span><span class="s1">[</span><span class="s2">sourcemap</span><span class="s1">](</span><span class="s3">https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit</span><span class="s1">)</span><span class="s2">.</span>
+
+
+<span class="s0">## </span><span class="s2">Why?</span>
+
+<span class="s2">Sourcemaps are difficult to generate and manipulate, because the `mappings` property – the part that actually links the generated code back to the original source – is encoded using an obscure method called </span><span class="s1">[</span><span class="s2">Variable-length quantity</span><span class="s1">](</span><span class="s3">https://en.wikipedia.org/wiki/Variable-length_quantity</span><span class="s1">)</span><span class="s2">. On top of that, each segment in the mapping contains offsets rather than absolute indices, which means that you can't look at a segment in isolation – you have to understand the whole sourcemap.</span>
+
+<span class="s2">This package makes the process slightly easier.</span>
+
+
+<span class="s0">## </span><span class="s2">Installation</span>
+
+<span class="s0">```</span><span class="s4">bash</span>
+<span class="s5">npm install sourcemap-codec</span>
+<span class="s0">```</span>
+
+
+<span class="s0">## </span><span class="s2">Usage</span>
+
+<span class="s0">```</span><span class="s4">js</span>
+<span class="s5">import { encode, decode } from 'sourcemap-codec';</span>
+
+<span class="s5">var decoded = decode( ';EAEEA,EAAE,EAAC,CAAE;ECQY,UACC' );</span>
+
+<span class="s5">assert.deepEqual( decoded, [</span>
+	<span class="s5">// the first line (of the generated code) has no mappings,</span>
+	<span class="s5">// as shown by the starting semi-colon (which separates lines)</span>
+	<span class="s5">[],</span>
+
+	<span class="s5">// the second line contains four (comma-separated) segments</span>
+	<span class="s5">[</span>
+		<span class="s5">// segments are encoded as you'd expect:</span>
+		<span class="s5">// [ generatedCodeColumn, sourceIndex, sourceCodeLine, sourceCodeColumn, nameIndex ]</span>
+
+		<span class="s5">// i.e. the first segment begins at column 2, and maps back to the second column</span>
+		<span class="s5">// of the second line (both zero-based) of the 0th source, and uses the 0th</span>
+		<span class="s5">// name in the `map.names` array</span>
+		<span class="s5">[ 2, 0, 2, 2, 0 ],</span>
+
+		<span class="s5">// the remaining segments are 4-length rather than 5-length,</span>
+		<span class="s5">// because they don't map a name</span>
+		<span class="s5">[ 4, 0, 2, 4 ],</span>
+		<span class="s5">[ 6, 0, 2, 5 ],</span>
+		<span class="s5">[ 7, 0, 2, 7 ]</span>
+	<span class="s5">],</span>
+
+	<span class="s5">// the final line contains two segments</span>
+	<span class="s5">[</span>
+		<span class="s5">[ 2, 1, 10, 19 ],</span>
+		<span class="s5">[ 12, 1, 11, 20 ]</span>
+	<span class="s5">]</span>
+<span class="s5">]);</span>
+
+<span class="s5">var encoded = encode( decoded );</span>
+<span class="s5">assert.equal( encoded, ';EAEEA,EAAE,EAAC,CAAE;ECQY,UACC' );</span>
+<span class="s0">```</span>
+
+
+<span class="s0"># </span><span class="s2">License</span>
+
+<span class="s2">MIT</span>
+</pre>
+</body>
+</html>

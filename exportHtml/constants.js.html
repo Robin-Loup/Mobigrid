@@ -1,0 +1,146 @@
+<html>
+<head>
+<title>constants.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+.s5 { color: #629755; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+constants.js</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">path</span><span class="s0">, </span><span class="s1">{ resolve } from </span><span class="s2">'node:path'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ fileURLToPath } from </span><span class="s2">'node:url'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ readFileSync } from </span><span class="s2">'node:fs'</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">{ version } = JSON.parse(readFileSync(</span><span class="s0">new </span><span class="s1">URL(</span><span class="s2">'../../package.json'</span><span class="s0">, import</span><span class="s1">.meta.url)).toString())</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">VERSION = version</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEFAULT_MAIN_FIELDS = [</span>
+    <span class="s2">'module'</span><span class="s0">,</span>
+    <span class="s2">'jsnext:main'</span><span class="s0">,</span>
+    <span class="s2">'jsnext'</span><span class="s0">,</span>
+<span class="s1">]</span><span class="s0">;</span>
+<span class="s3">// Baseline support browserslist</span>
+<span class="s3">// &quot;defaults and supports es6-module and supports es6-module-dynamic-import&quot;</span>
+<span class="s3">// Higher browser versions may be needed for extra features.</span>
+<span class="s0">const </span><span class="s1">ESBUILD_MODULES_TARGET = [</span>
+    <span class="s2">'es2020'</span><span class="s0">,</span>
+    <span class="s2">'edge88'</span><span class="s0">,</span>
+    <span class="s2">'firefox78'</span><span class="s0">,</span>
+    <span class="s2">'chrome87'</span><span class="s0">,</span>
+    <span class="s2">'safari14'</span><span class="s0">,</span>
+<span class="s1">]</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEFAULT_EXTENSIONS = [</span>
+    <span class="s2">'.mjs'</span><span class="s0">,</span>
+    <span class="s2">'.js'</span><span class="s0">,</span>
+    <span class="s2">'.mts'</span><span class="s0">,</span>
+    <span class="s2">'.ts'</span><span class="s0">,</span>
+    <span class="s2">'.jsx'</span><span class="s0">,</span>
+    <span class="s2">'.tsx'</span><span class="s0">,</span>
+    <span class="s2">'.json'</span><span class="s0">,</span>
+<span class="s1">]</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEFAULT_CONFIG_FILES = [</span>
+    <span class="s2">'vite.config.js'</span><span class="s0">,</span>
+    <span class="s2">'vite.config.mjs'</span><span class="s0">,</span>
+    <span class="s2">'vite.config.ts'</span><span class="s0">,</span>
+    <span class="s2">'vite.config.cjs'</span><span class="s0">,</span>
+    <span class="s2">'vite.config.mts'</span><span class="s0">,</span>
+    <span class="s2">'vite.config.cts'</span><span class="s0">,</span>
+<span class="s1">]</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">JS_TYPES_RE = </span><span class="s4">/\.(?:j|t)sx?$|\.mjs$/</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">CSS_LANGS_RE = </span><span class="s4">/\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)(?:$|\?)/</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">OPTIMIZABLE_ENTRY_RE = </span><span class="s4">/\.[cm]?[jt]s$/</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">SPECIAL_QUERY_RE = </span><span class="s4">/[?&amp;](?:worker|sharedworker|raw|url)\b/</span><span class="s0">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* Prefix for resolved fs paths, since windows paths may not be valid as URLs.</span>
+ <span class="s5">*/</span>
+<span class="s0">const </span><span class="s1">FS_PREFIX = </span><span class="s2">`/@fs/`</span><span class="s0">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* Prefix for resolved Ids that are not valid browser import specifiers</span>
+ <span class="s5">*/</span>
+<span class="s0">const </span><span class="s1">VALID_ID_PREFIX = </span><span class="s2">`/@id/`</span><span class="s0">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* Plugins that use 'virtual modules' (e.g. for helper functions), prefix the</span>
+ <span class="s5">* module ID with `\0`, a convention from the rollup ecosystem.</span>
+ <span class="s5">* This prevents other plugins from trying to process the id (like node resolution),</span>
+ <span class="s5">* and core features like sourcemaps can use this info to differentiate between</span>
+ <span class="s5">* virtual modules and regular files.</span>
+ <span class="s5">* `\0` is not a permitted char in import URLs so we have to replace them during</span>
+ <span class="s5">* import analysis. The id will be decoded back before entering the plugins pipeline.</span>
+ <span class="s5">* These encoded virtual ids are also prefixed by the VALID_ID_PREFIX, so virtual</span>
+ <span class="s5">* modules in the browser end up encoded as `/@id/__x00__{id}`</span>
+ <span class="s5">*/</span>
+<span class="s0">const </span><span class="s1">NULL_BYTE_PLACEHOLDER = </span><span class="s2">`__x00__`</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">CLIENT_PUBLIC_PATH = </span><span class="s2">`/@vite/client`</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">ENV_PUBLIC_PATH = </span><span class="s2">`/@vite/env`</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">VITE_PACKAGE_DIR = resolve(</span>
+<span class="s3">// import.meta.url is `dist/node/constants.js` after bundle</span>
+<span class="s1">fileURLToPath(</span><span class="s0">import</span><span class="s1">.meta.url)</span><span class="s0">, </span><span class="s2">'../../..'</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">CLIENT_ENTRY = resolve(VITE_PACKAGE_DIR</span><span class="s0">, </span><span class="s2">'dist/client/client.mjs'</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">ENV_ENTRY = resolve(VITE_PACKAGE_DIR</span><span class="s0">, </span><span class="s2">'dist/client/env.mjs'</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">CLIENT_DIR = path.dirname(CLIENT_ENTRY)</span><span class="s0">;</span>
+<span class="s3">// ** READ THIS ** before editing `KNOWN_ASSET_TYPES`.</span>
+<span class="s3">//   If you add an asset to `KNOWN_ASSET_TYPES`, make sure to also add it</span>
+<span class="s3">//   to the TypeScript declaration file `packages/vite/client.d.ts` and</span>
+<span class="s3">//   add a mime type to the `registerCustomMime` in</span>
+<span class="s3">//   `packages/vite/src/node/plugin/assets.ts` if mime type cannot be</span>
+<span class="s3">//   looked up by mrmime.</span>
+<span class="s0">const </span><span class="s1">KNOWN_ASSET_TYPES = [</span>
+    <span class="s3">// images</span>
+    <span class="s2">'png'</span><span class="s0">,</span>
+    <span class="s2">'jpe?g'</span><span class="s0">,</span>
+    <span class="s2">'jfif'</span><span class="s0">,</span>
+    <span class="s2">'pjpeg'</span><span class="s0">,</span>
+    <span class="s2">'pjp'</span><span class="s0">,</span>
+    <span class="s2">'gif'</span><span class="s0">,</span>
+    <span class="s2">'svg'</span><span class="s0">,</span>
+    <span class="s2">'ico'</span><span class="s0">,</span>
+    <span class="s2">'webp'</span><span class="s0">,</span>
+    <span class="s2">'avif'</span><span class="s0">,</span>
+    <span class="s3">// media</span>
+    <span class="s2">'mp4'</span><span class="s0">,</span>
+    <span class="s2">'webm'</span><span class="s0">,</span>
+    <span class="s2">'ogg'</span><span class="s0">,</span>
+    <span class="s2">'mp3'</span><span class="s0">,</span>
+    <span class="s2">'wav'</span><span class="s0">,</span>
+    <span class="s2">'flac'</span><span class="s0">,</span>
+    <span class="s2">'aac'</span><span class="s0">,</span>
+    <span class="s2">'opus'</span><span class="s0">,</span>
+    <span class="s3">// fonts</span>
+    <span class="s2">'woff2?'</span><span class="s0">,</span>
+    <span class="s2">'eot'</span><span class="s0">,</span>
+    <span class="s2">'ttf'</span><span class="s0">,</span>
+    <span class="s2">'otf'</span><span class="s0">,</span>
+    <span class="s3">// other</span>
+    <span class="s2">'webmanifest'</span><span class="s0">,</span>
+    <span class="s2">'pdf'</span><span class="s0">,</span>
+    <span class="s2">'txt'</span><span class="s0">,</span>
+<span class="s1">]</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEFAULT_ASSETS_RE = </span><span class="s0">new </span><span class="s1">RegExp(</span><span class="s2">`</span><span class="s0">\\</span><span class="s2">.(` </span><span class="s1">+ KNOWN_ASSET_TYPES.join(</span><span class="s2">'|'</span><span class="s1">) + </span><span class="s2">`)(</span><span class="s0">\\</span><span class="s2">?.*)?$`</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEP_VERSION_RE = </span><span class="s4">/[?&amp;](v=[\w.-]+)\b/</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">loopbackHosts = </span><span class="s0">new </span><span class="s1">Set([</span>
+    <span class="s2">'localhost'</span><span class="s0">,</span>
+    <span class="s2">'127.0.0.1'</span><span class="s0">,</span>
+    <span class="s2">'::1'</span><span class="s0">,</span>
+    <span class="s2">'0000:0000:0000:0000:0000:0000:0000:0001'</span><span class="s0">,</span>
+<span class="s1">])</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">wildcardHosts = </span><span class="s0">new </span><span class="s1">Set([</span>
+    <span class="s2">'0.0.0.0'</span><span class="s0">,</span>
+    <span class="s2">'::'</span><span class="s0">,</span>
+    <span class="s2">'0000:0000:0000:0000:0000:0000:0000:0000'</span><span class="s0">,</span>
+<span class="s1">])</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEFAULT_DEV_PORT = </span><span class="s4">5173</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DEFAULT_PREVIEW_PORT = </span><span class="s4">4173</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ CLIENT_DIR</span><span class="s0">, </span><span class="s1">CLIENT_ENTRY</span><span class="s0">, </span><span class="s1">CLIENT_PUBLIC_PATH</span><span class="s0">, </span><span class="s1">CSS_LANGS_RE</span><span class="s0">, </span><span class="s1">DEFAULT_ASSETS_RE</span><span class="s0">, </span><span class="s1">DEFAULT_CONFIG_FILES</span><span class="s0">, </span><span class="s1">DEFAULT_DEV_PORT</span><span class="s0">, </span><span class="s1">DEFAULT_EXTENSIONS</span><span class="s0">, </span><span class="s1">DEFAULT_MAIN_FIELDS</span><span class="s0">, </span><span class="s1">DEFAULT_PREVIEW_PORT</span><span class="s0">, </span><span class="s1">DEP_VERSION_RE</span><span class="s0">, </span><span class="s1">ENV_ENTRY</span><span class="s0">, </span><span class="s1">ENV_PUBLIC_PATH</span><span class="s0">, </span><span class="s1">ESBUILD_MODULES_TARGET</span><span class="s0">, </span><span class="s1">FS_PREFIX</span><span class="s0">, </span><span class="s1">JS_TYPES_RE</span><span class="s0">, </span><span class="s1">KNOWN_ASSET_TYPES</span><span class="s0">, </span><span class="s1">NULL_BYTE_PLACEHOLDER</span><span class="s0">, </span><span class="s1">OPTIMIZABLE_ENTRY_RE</span><span class="s0">, </span><span class="s1">SPECIAL_QUERY_RE</span><span class="s0">, </span><span class="s1">VALID_ID_PREFIX</span><span class="s0">, </span><span class="s1">VERSION</span><span class="s0">, </span><span class="s1">VITE_PACKAGE_DIR</span><span class="s0">, </span><span class="s1">loopbackHosts</span><span class="s0">, </span><span class="s1">wildcardHosts }</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

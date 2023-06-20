@@ -1,0 +1,936 @@
+<html>
+<head>
+<title>dep-e3f470e2.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+dep-e3f470e2.js</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">require$$0 from </span><span class="s2">'path'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">require$$0__default from </span><span class="s2">'fs'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ l as lib } from </span><span class="s2">'./dep-c423598f.js'</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">{ fileURLToPath as __cjs_fileURLToPath } from </span><span class="s2">'node:url'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ dirname as __cjs_dirname } from </span><span class="s2">'node:path'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ createRequire as __cjs_createRequire } from </span><span class="s2">'node:module'</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">__filename = __cjs_fileURLToPath(</span><span class="s0">import</span><span class="s1">.meta.url)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">__dirname = __cjs_dirname(__filename)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">require = __cjs_createRequire(</span><span class="s0">import</span><span class="s1">.meta.url)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">__require = require</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">_mergeNamespaces(n</span><span class="s0">, </span><span class="s1">m) {</span>
+  <span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">i = </span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; m.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+    <span class="s0">var </span><span class="s1">e = m[i]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">e !== </span><span class="s2">'string' </span><span class="s1">&amp;&amp; !Array.isArray(e)) { </span><span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">k </span><span class="s0">in </span><span class="s1">e) {</span>
+      <span class="s0">if </span><span class="s1">(k !== </span><span class="s2">'default' </span><span class="s1">&amp;&amp; !(k </span><span class="s0">in </span><span class="s1">n)) {</span>
+        <span class="s1">n[k] = e[k]</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">} }</span>
+  <span class="s1">}</span>
+  <span class="s0">return </span><span class="s1">n</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">startsWithKeywordRegexp = </span><span class="s3">/^(all|not|only|print|screen)/i</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">joinMedia$1 = </span><span class="s0">function </span><span class="s1">(parentMedia</span><span class="s0">, </span><span class="s1">childMedia) {</span>
+  <span class="s0">if </span><span class="s1">(!parentMedia.length &amp;&amp; childMedia.length) </span><span class="s0">return </span><span class="s1">childMedia</span>
+  <span class="s0">if </span><span class="s1">(parentMedia.length &amp;&amp; !childMedia.length) </span><span class="s0">return </span><span class="s1">parentMedia</span>
+  <span class="s0">if </span><span class="s1">(!parentMedia.length &amp;&amp; !childMedia.length) </span><span class="s0">return </span><span class="s1">[]</span>
+
+  <span class="s0">const </span><span class="s1">media = []</span><span class="s0">;</span>
+
+  <span class="s1">parentMedia.forEach(parentItem =&gt; {</span>
+    <span class="s0">const </span><span class="s1">parentItemStartsWithKeyword = startsWithKeywordRegexp.test(parentItem)</span><span class="s0">;</span>
+
+    <span class="s1">childMedia.forEach(childItem =&gt; {</span>
+      <span class="s0">const </span><span class="s1">childItemStartsWithKeyword = startsWithKeywordRegexp.test(childItem)</span><span class="s0">;</span>
+      <span class="s0">if </span><span class="s1">(parentItem !== childItem) {</span>
+        <span class="s0">if </span><span class="s1">(childItemStartsWithKeyword &amp;&amp; !parentItemStartsWithKeyword) {</span>
+          <span class="s1">media.push(</span><span class="s2">`</span><span class="s1">${childItem} </span><span class="s2">and </span><span class="s1">${parentItem}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+          <span class="s1">media.push(</span><span class="s2">`</span><span class="s1">${parentItem} </span><span class="s2">and </span><span class="s1">${childItem}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">})</span><span class="s0">;</span>
+  <span class="s1">})</span><span class="s0">;</span>
+
+  <span class="s0">return </span><span class="s1">media</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">joinLayer$1 = </span><span class="s0">function </span><span class="s1">(parentLayer</span><span class="s0">, </span><span class="s1">childLayer) {</span>
+  <span class="s0">if </span><span class="s1">(!parentLayer.length &amp;&amp; childLayer.length) </span><span class="s0">return </span><span class="s1">childLayer</span>
+  <span class="s0">if </span><span class="s1">(parentLayer.length &amp;&amp; !childLayer.length) </span><span class="s0">return </span><span class="s1">parentLayer</span>
+  <span class="s0">if </span><span class="s1">(!parentLayer.length &amp;&amp; !childLayer.length) </span><span class="s0">return </span><span class="s1">[]</span>
+
+  <span class="s0">return </span><span class="s1">parentLayer.concat(childLayer)</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">readCacheExports = {}</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">readCache$1 = {</span>
+  <span class="s1">get exports(){ </span><span class="s0">return </span><span class="s1">readCacheExports</span><span class="s0">; </span><span class="s1">}</span><span class="s0">,</span>
+  <span class="s1">set exports(v){ readCacheExports = v</span><span class="s0">; </span><span class="s1">}</span><span class="s0">,</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">pifyExports = {}</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">pify$2 = {</span>
+  <span class="s1">get exports(){ </span><span class="s0">return </span><span class="s1">pifyExports</span><span class="s0">; </span><span class="s1">}</span><span class="s0">,</span>
+  <span class="s1">set exports(v){ pifyExports = v</span><span class="s0">; </span><span class="s1">}</span><span class="s0">,</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">processFn = </span><span class="s0">function </span><span class="s1">(fn</span><span class="s0">, </span><span class="s1">P</span><span class="s0">, </span><span class="s1">opts) {</span>
+	<span class="s0">return function </span><span class="s1">() {</span>
+		<span class="s0">var </span><span class="s1">that = </span><span class="s0">this;</span>
+		<span class="s0">var </span><span class="s1">args = </span><span class="s0">new </span><span class="s1">Array(arguments.length)</span><span class="s0">;</span>
+
+		<span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">i = </span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; arguments.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+			<span class="s1">args[i] = arguments[i]</span><span class="s0">;</span>
+		<span class="s1">}</span>
+
+		<span class="s0">return new </span><span class="s1">P(</span><span class="s0">function </span><span class="s1">(resolve</span><span class="s0">, </span><span class="s1">reject) {</span>
+			<span class="s1">args.push(</span><span class="s0">function </span><span class="s1">(err</span><span class="s0">, </span><span class="s1">result) {</span>
+				<span class="s0">if </span><span class="s1">(err) {</span>
+					<span class="s1">reject(err)</span><span class="s0">;</span>
+				<span class="s1">} </span><span class="s0">else if </span><span class="s1">(opts.multiArgs) {</span>
+					<span class="s0">var </span><span class="s1">results = </span><span class="s0">new </span><span class="s1">Array(arguments.length - </span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+
+					<span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">i = </span><span class="s3">1</span><span class="s0">; </span><span class="s1">i &lt; arguments.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+						<span class="s1">results[i - </span><span class="s3">1</span><span class="s1">] = arguments[i]</span><span class="s0">;</span>
+					<span class="s1">}</span>
+
+					<span class="s1">resolve(results)</span><span class="s0">;</span>
+				<span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+					<span class="s1">resolve(result)</span><span class="s0">;</span>
+				<span class="s1">}</span>
+			<span class="s1">})</span><span class="s0">;</span>
+
+			<span class="s1">fn.apply(that</span><span class="s0">, </span><span class="s1">args)</span><span class="s0">;</span>
+		<span class="s1">})</span><span class="s0">;</span>
+	<span class="s1">}</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">pify$1 = pify$2.exports = </span><span class="s0">function </span><span class="s1">(obj</span><span class="s0">, </span><span class="s1">P</span><span class="s0">, </span><span class="s1">opts) {</span>
+	<span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">P !== </span><span class="s2">'function'</span><span class="s1">) {</span>
+		<span class="s1">opts = P</span><span class="s0">;</span>
+		<span class="s1">P = Promise</span><span class="s0">;</span>
+	<span class="s1">}</span>
+
+	<span class="s1">opts = opts || {}</span><span class="s0">;</span>
+	<span class="s1">opts.exclude = opts.exclude || [</span><span class="s3">/.+Sync$/</span><span class="s1">]</span><span class="s0">;</span>
+
+	<span class="s0">var </span><span class="s1">filter = </span><span class="s0">function </span><span class="s1">(key) {</span>
+		<span class="s0">var </span><span class="s1">match = </span><span class="s0">function </span><span class="s1">(pattern) {</span>
+			<span class="s0">return typeof </span><span class="s1">pattern === </span><span class="s2">'string' </span><span class="s1">? key === pattern : pattern.test(key)</span><span class="s0">;</span>
+		<span class="s1">}</span><span class="s0">;</span>
+
+		<span class="s0">return </span><span class="s1">opts.include ? opts.include.some(match) : !opts.exclude.some(match)</span><span class="s0">;</span>
+	<span class="s1">}</span><span class="s0">;</span>
+
+	<span class="s0">var </span><span class="s1">ret = </span><span class="s0">typeof </span><span class="s1">obj === </span><span class="s2">'function' </span><span class="s1">? </span><span class="s0">function </span><span class="s1">() {</span>
+		<span class="s0">if </span><span class="s1">(opts.excludeMain) {</span>
+			<span class="s0">return </span><span class="s1">obj.apply(</span><span class="s0">this, </span><span class="s1">arguments)</span><span class="s0">;</span>
+		<span class="s1">}</span>
+
+		<span class="s0">return </span><span class="s1">processFn(obj</span><span class="s0">, </span><span class="s1">P</span><span class="s0">, </span><span class="s1">opts).apply(</span><span class="s0">this, </span><span class="s1">arguments)</span><span class="s0">;</span>
+	<span class="s1">} : {}</span><span class="s0">;</span>
+
+	<span class="s0">return </span><span class="s1">Object.keys(obj).reduce(</span><span class="s0">function </span><span class="s1">(ret</span><span class="s0">, </span><span class="s1">key) {</span>
+		<span class="s0">var </span><span class="s1">x = obj[key]</span><span class="s0">;</span>
+
+		<span class="s1">ret[key] = </span><span class="s0">typeof </span><span class="s1">x === </span><span class="s2">'function' </span><span class="s1">&amp;&amp; filter(key) ? processFn(x</span><span class="s0">, </span><span class="s1">P</span><span class="s0">, </span><span class="s1">opts) : x</span><span class="s0">;</span>
+
+		<span class="s0">return </span><span class="s1">ret</span><span class="s0">;</span>
+	<span class="s1">}</span><span class="s0">, </span><span class="s1">ret)</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">pify$1.all = pify$1</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">fs = require$$0__default</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">path$2 = require$$0</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">pify = pifyExports</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">stat = pify(fs.stat)</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">readFile = pify(fs.readFile)</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">resolve = path$2.resolve</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">cache = Object.create(</span><span class="s0">null</span><span class="s1">)</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">convert(content</span><span class="s0">, </span><span class="s1">encoding) {</span>
+	<span class="s0">if </span><span class="s1">(Buffer.isEncoding(encoding)) {</span>
+		<span class="s0">return </span><span class="s1">content.toString(encoding)</span><span class="s0">;</span>
+	<span class="s1">}</span>
+	<span class="s0">return </span><span class="s1">content</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">readCache$1.exports = </span><span class="s0">function </span><span class="s1">(path</span><span class="s0">, </span><span class="s1">encoding) {</span>
+	<span class="s1">path = resolve(path)</span><span class="s0">;</span>
+
+	<span class="s0">return </span><span class="s1">stat(path).then(</span><span class="s0">function </span><span class="s1">(stats) {</span>
+		<span class="s0">var </span><span class="s1">item = cache[path]</span><span class="s0">;</span>
+
+		<span class="s0">if </span><span class="s1">(item &amp;&amp; item.mtime.getTime() === stats.mtime.getTime()) {</span>
+			<span class="s0">return </span><span class="s1">convert(item.content</span><span class="s0">, </span><span class="s1">encoding)</span><span class="s0">;</span>
+		<span class="s1">}</span>
+
+		<span class="s0">return </span><span class="s1">readFile(path).then(</span><span class="s0">function </span><span class="s1">(data) {</span>
+			<span class="s1">cache[path] = {</span>
+				<span class="s1">mtime: stats.mtime</span><span class="s0">,</span>
+				<span class="s1">content: data</span>
+			<span class="s1">}</span><span class="s0">;</span>
+
+			<span class="s0">return </span><span class="s1">convert(data</span><span class="s0">, </span><span class="s1">encoding)</span><span class="s0">;</span>
+		<span class="s1">})</span><span class="s0">;</span>
+	<span class="s1">}).catch(</span><span class="s0">function </span><span class="s1">(err) {</span>
+		<span class="s1">cache[path] = </span><span class="s0">null;</span>
+		<span class="s0">return </span><span class="s1">Promise.reject(err)</span><span class="s0">;</span>
+	<span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">readCacheExports.sync = </span><span class="s0">function </span><span class="s1">(path</span><span class="s0">, </span><span class="s1">encoding) {</span>
+	<span class="s1">path = resolve(path)</span><span class="s0">;</span>
+
+	<span class="s0">try </span><span class="s1">{</span>
+		<span class="s0">var </span><span class="s1">stats = fs.statSync(path)</span><span class="s0">;</span>
+		<span class="s0">var </span><span class="s1">item = cache[path]</span><span class="s0">;</span>
+
+		<span class="s0">if </span><span class="s1">(item &amp;&amp; item.mtime.getTime() === stats.mtime.getTime()) {</span>
+			<span class="s0">return </span><span class="s1">convert(item.content</span><span class="s0">, </span><span class="s1">encoding)</span><span class="s0">;</span>
+		<span class="s1">}</span>
+
+		<span class="s0">var </span><span class="s1">data = fs.readFileSync(path)</span><span class="s0">;</span>
+
+		<span class="s1">cache[path] = {</span>
+			<span class="s1">mtime: stats.mtime</span><span class="s0">,</span>
+			<span class="s1">content: data</span>
+		<span class="s1">}</span><span class="s0">;</span>
+
+		<span class="s0">return </span><span class="s1">convert(data</span><span class="s0">, </span><span class="s1">encoding)</span><span class="s0">;</span>
+	<span class="s1">} </span><span class="s0">catch </span><span class="s1">(err) {</span>
+		<span class="s1">cache[path] = </span><span class="s0">null;</span>
+		<span class="s0">throw </span><span class="s1">err</span><span class="s0">;</span>
+	<span class="s1">}</span>
+
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">readCacheExports.get = </span><span class="s0">function </span><span class="s1">(path</span><span class="s0">, </span><span class="s1">encoding) {</span>
+	<span class="s1">path = resolve(path)</span><span class="s0">;</span>
+	<span class="s0">if </span><span class="s1">(cache[path]) {</span>
+		<span class="s0">return </span><span class="s1">convert(cache[path].content</span><span class="s0">, </span><span class="s1">encoding)</span><span class="s0">;</span>
+	<span class="s1">}</span>
+	<span class="s0">return null;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">readCacheExports.clear = </span><span class="s0">function </span><span class="s1">() {</span>
+	<span class="s1">cache = Object.create(</span><span class="s0">null</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">dataURLRegexp = </span><span class="s3">/^data:text\/css;base64,/i</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">isValid(url) {</span>
+  <span class="s0">return </span><span class="s1">dataURLRegexp.test(url)</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">contents(url) {</span>
+  <span class="s4">// &quot;data:text/css;base64,&quot;.length === 21</span>
+  <span class="s0">return </span><span class="s1">Buffer.from(url.slice(</span><span class="s3">21</span><span class="s1">)</span><span class="s0">, </span><span class="s2">&quot;base64&quot;</span><span class="s1">).toString()</span>
+<span class="s1">}</span>
+
+<span class="s0">var </span><span class="s1">dataUrl = {</span>
+  <span class="s1">isValid</span><span class="s0">,</span>
+  <span class="s1">contents</span><span class="s0">,</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">readCache = readCacheExports</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">dataURL$1 = dataUrl</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">loadContent$1 = filename =&gt; {</span>
+  <span class="s0">if </span><span class="s1">(dataURL$1.isValid(filename)) {</span>
+    <span class="s0">return </span><span class="s1">dataURL$1.contents(filename)</span>
+  <span class="s1">}</span>
+
+  <span class="s0">return </span><span class="s1">readCache(filename</span><span class="s0">, </span><span class="s2">&quot;utf-8&quot;</span><span class="s1">)</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s4">// builtin tooling</span>
+<span class="s0">const </span><span class="s1">path$1 = require$$0</span><span class="s0">;</span>
+
+<span class="s4">// placeholder tooling</span>
+<span class="s0">let </span><span class="s1">sugarss</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">processContent$1 = </span><span class="s0">function </span><span class="s1">processContent(</span>
+  <span class="s1">result</span><span class="s0">,</span>
+  <span class="s1">content</span><span class="s0">,</span>
+  <span class="s1">filename</span><span class="s0">,</span>
+  <span class="s1">options</span><span class="s0">,</span>
+  <span class="s1">postcss</span>
+<span class="s1">) {</span>
+  <span class="s0">const </span><span class="s1">{ plugins } = options</span><span class="s0">;</span>
+  <span class="s0">const </span><span class="s1">ext = path$1.extname(filename)</span><span class="s0">;</span>
+
+  <span class="s0">const </span><span class="s1">parserList = []</span><span class="s0">;</span>
+
+  <span class="s4">// SugarSS support:</span>
+  <span class="s0">if </span><span class="s1">(ext === </span><span class="s2">&quot;.sss&quot;</span><span class="s1">) {</span>
+    <span class="s0">if </span><span class="s1">(!sugarss) {</span>
+      <span class="s0">try </span><span class="s1">{</span>
+        <span class="s1">sugarss = __require(</span><span class="s2">'sugarss'</span><span class="s1">)</span><span class="s0">;</span>
+      <span class="s1">} </span><span class="s0">catch </span><span class="s1">{} </span><span class="s4">// Ignore</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(sugarss)</span>
+      <span class="s0">return </span><span class="s1">runPostcss(postcss</span><span class="s0">, </span><span class="s1">content</span><span class="s0">, </span><span class="s1">filename</span><span class="s0">, </span><span class="s1">plugins</span><span class="s0">, </span><span class="s1">[sugarss])</span>
+  <span class="s1">}</span>
+
+  <span class="s4">// Syntax support:</span>
+  <span class="s0">if </span><span class="s1">(result.opts.syntax?.parse) {</span>
+    <span class="s1">parserList.push(result.opts.syntax.parse)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+
+  <span class="s4">// Parser support:</span>
+  <span class="s0">if </span><span class="s1">(result.opts.parser) parserList.push(result.opts.parser)</span><span class="s0">;</span>
+  <span class="s4">// Try the default as a last resort:</span>
+  <span class="s1">parserList.push(</span><span class="s0">null</span><span class="s1">)</span><span class="s0">;</span>
+
+  <span class="s0">return </span><span class="s1">runPostcss(postcss</span><span class="s0">, </span><span class="s1">content</span><span class="s0">, </span><span class="s1">filename</span><span class="s0">, </span><span class="s1">plugins</span><span class="s0">, </span><span class="s1">parserList)</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">runPostcss(postcss</span><span class="s0">, </span><span class="s1">content</span><span class="s0">, </span><span class="s1">filename</span><span class="s0">, </span><span class="s1">plugins</span><span class="s0">, </span><span class="s1">parsers</span><span class="s0">, </span><span class="s1">index) {</span>
+  <span class="s0">if </span><span class="s1">(!index) index = </span><span class="s3">0</span><span class="s0">;</span>
+  <span class="s0">return </span><span class="s1">postcss(plugins)</span>
+    <span class="s1">.process(content</span><span class="s0">, </span><span class="s1">{</span>
+      <span class="s1">from: filename</span><span class="s0">,</span>
+      <span class="s1">parser: parsers[index]</span><span class="s0">,</span>
+    <span class="s1">})</span>
+    <span class="s1">.catch(err =&gt; {</span>
+      <span class="s4">// If there's an error, try the next parser</span>
+      <span class="s1">index++</span><span class="s0">;</span>
+      <span class="s4">// If there are no parsers left, throw it</span>
+      <span class="s0">if </span><span class="s1">(index === parsers.length) </span><span class="s0">throw </span><span class="s1">err</span>
+      <span class="s0">return </span><span class="s1">runPostcss(postcss</span><span class="s0">, </span><span class="s1">content</span><span class="s0">, </span><span class="s1">filename</span><span class="s0">, </span><span class="s1">plugins</span><span class="s0">, </span><span class="s1">parsers</span><span class="s0">, </span><span class="s1">index)</span>
+    <span class="s1">})</span>
+<span class="s1">}</span>
+
+<span class="s4">// external tooling</span>
+<span class="s0">const </span><span class="s1">valueParser = lib</span><span class="s0">;</span>
+
+<span class="s4">// extended tooling</span>
+<span class="s0">const </span><span class="s1">{ stringify } = valueParser</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">split(params</span><span class="s0">, </span><span class="s1">start) {</span>
+  <span class="s0">const </span><span class="s1">list = []</span><span class="s0">;</span>
+  <span class="s0">const </span><span class="s1">last = params.reduce((item</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">index) =&gt; {</span>
+    <span class="s0">if </span><span class="s1">(index &lt; start) </span><span class="s0">return </span><span class="s2">&quot;&quot;</span>
+    <span class="s0">if </span><span class="s1">(node.type === </span><span class="s2">&quot;div&quot; </span><span class="s1">&amp;&amp; node.value === </span><span class="s2">&quot;,&quot;</span><span class="s1">) {</span>
+      <span class="s1">list.push(item)</span><span class="s0">;</span>
+      <span class="s0">return </span><span class="s2">&quot;&quot;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">item + stringify(node)</span>
+  <span class="s1">}</span><span class="s0">, </span><span class="s2">&quot;&quot;</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s1">list.push(last)</span><span class="s0">;</span>
+  <span class="s0">return </span><span class="s1">list</span>
+<span class="s1">}</span>
+
+<span class="s0">var </span><span class="s1">parseStatements$1 = </span><span class="s0">function </span><span class="s1">(result</span><span class="s0">, </span><span class="s1">styles) {</span>
+  <span class="s0">const </span><span class="s1">statements = []</span><span class="s0">;</span>
+  <span class="s0">let </span><span class="s1">nodes = []</span><span class="s0">;</span>
+
+  <span class="s1">styles.each(node =&gt; {</span>
+    <span class="s0">let </span><span class="s1">stmt</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(node.type === </span><span class="s2">&quot;atrule&quot;</span><span class="s1">) {</span>
+      <span class="s0">if </span><span class="s1">(node.name === </span><span class="s2">&quot;import&quot;</span><span class="s1">) stmt = parseImport(result</span><span class="s0">, </span><span class="s1">node)</span><span class="s0">;</span>
+      <span class="s0">else if </span><span class="s1">(node.name === </span><span class="s2">&quot;media&quot;</span><span class="s1">) stmt = parseMedia(result</span><span class="s0">, </span><span class="s1">node)</span><span class="s0">;</span>
+      <span class="s0">else if </span><span class="s1">(node.name === </span><span class="s2">&quot;charset&quot;</span><span class="s1">) stmt = parseCharset(result</span><span class="s0">, </span><span class="s1">node)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">if </span><span class="s1">(stmt) {</span>
+      <span class="s0">if </span><span class="s1">(nodes.length) {</span>
+        <span class="s1">statements.push({</span>
+          <span class="s1">type: </span><span class="s2">&quot;nodes&quot;</span><span class="s0">,</span>
+          <span class="s1">nodes</span><span class="s0">,</span>
+          <span class="s1">media: []</span><span class="s0">,</span>
+          <span class="s1">layer: []</span><span class="s0">,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+        <span class="s1">nodes = []</span><span class="s0">;</span>
+      <span class="s1">}</span>
+      <span class="s1">statements.push(stmt)</span><span class="s0">;</span>
+    <span class="s1">} </span><span class="s0">else </span><span class="s1">nodes.push(node)</span><span class="s0">;</span>
+  <span class="s1">})</span><span class="s0">;</span>
+
+  <span class="s0">if </span><span class="s1">(nodes.length) {</span>
+    <span class="s1">statements.push({</span>
+      <span class="s1">type: </span><span class="s2">&quot;nodes&quot;</span><span class="s0">,</span>
+      <span class="s1">nodes</span><span class="s0">,</span>
+      <span class="s1">media: []</span><span class="s0">,</span>
+      <span class="s1">layer: []</span><span class="s0">,</span>
+    <span class="s1">})</span><span class="s0">;</span>
+  <span class="s1">}</span>
+
+  <span class="s0">return </span><span class="s1">statements</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">parseMedia(result</span><span class="s0">, </span><span class="s1">atRule) {</span>
+  <span class="s0">const </span><span class="s1">params = valueParser(atRule.params).nodes</span><span class="s0">;</span>
+  <span class="s0">return </span><span class="s1">{</span>
+    <span class="s1">type: </span><span class="s2">&quot;media&quot;</span><span class="s0">,</span>
+    <span class="s1">node: atRule</span><span class="s0">,</span>
+    <span class="s1">media: split(params</span><span class="s0">, </span><span class="s3">0</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">layer: []</span><span class="s0">,</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">parseCharset(result</span><span class="s0">, </span><span class="s1">atRule) {</span>
+  <span class="s0">if </span><span class="s1">(atRule.prev()) {</span>
+    <span class="s0">return </span><span class="s1">result.warn(</span><span class="s2">&quot;@charset must precede all other statements&quot;</span><span class="s0">, </span><span class="s1">{</span>
+      <span class="s1">node: atRule</span><span class="s0">,</span>
+    <span class="s1">})</span>
+  <span class="s1">}</span>
+  <span class="s0">return </span><span class="s1">{</span>
+    <span class="s1">type: </span><span class="s2">&quot;charset&quot;</span><span class="s0">,</span>
+    <span class="s1">node: atRule</span><span class="s0">,</span>
+    <span class="s1">media: []</span><span class="s0">,</span>
+    <span class="s1">layer: []</span><span class="s0">,</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">parseImport(result</span><span class="s0">, </span><span class="s1">atRule) {</span>
+  <span class="s0">let </span><span class="s1">prev = atRule.prev()</span><span class="s0">;</span>
+  <span class="s0">if </span><span class="s1">(prev) {</span>
+    <span class="s0">do </span><span class="s1">{</span>
+      <span class="s0">if </span><span class="s1">(</span>
+        <span class="s1">prev.type !== </span><span class="s2">&quot;comment&quot; </span><span class="s1">&amp;&amp;</span>
+        <span class="s1">(prev.type !== </span><span class="s2">&quot;atrule&quot; </span><span class="s1">||</span>
+          <span class="s1">(prev.name !== </span><span class="s2">&quot;import&quot; </span><span class="s1">&amp;&amp;</span>
+            <span class="s1">prev.name !== </span><span class="s2">&quot;charset&quot; </span><span class="s1">&amp;&amp;</span>
+            <span class="s1">!(prev.name === </span><span class="s2">&quot;layer&quot; </span><span class="s1">&amp;&amp; !prev.nodes)))</span>
+      <span class="s1">) {</span>
+        <span class="s0">return </span><span class="s1">result.warn(</span>
+          <span class="s2">&quot;@import must precede all other statements (besides @charset or empty @layer)&quot;</span><span class="s0">,</span>
+          <span class="s1">{ node: atRule }</span>
+        <span class="s1">)</span>
+      <span class="s1">}</span>
+      <span class="s1">prev = prev.prev()</span><span class="s0">;</span>
+    <span class="s1">} </span><span class="s0">while </span><span class="s1">(prev)</span>
+  <span class="s1">}</span>
+
+  <span class="s0">if </span><span class="s1">(atRule.nodes) {</span>
+    <span class="s0">return </span><span class="s1">result.warn(</span>
+      <span class="s2">&quot;It looks like you didn't end your @import statement correctly. &quot; </span><span class="s1">+</span>
+        <span class="s2">&quot;Child nodes are attached to it.&quot;</span><span class="s0">,</span>
+      <span class="s1">{ node: atRule }</span>
+    <span class="s1">)</span>
+  <span class="s1">}</span>
+
+  <span class="s0">const </span><span class="s1">params = valueParser(atRule.params).nodes</span><span class="s0">;</span>
+  <span class="s0">const </span><span class="s1">stmt = {</span>
+    <span class="s1">type: </span><span class="s2">&quot;import&quot;</span><span class="s0">,</span>
+    <span class="s1">node: atRule</span><span class="s0">,</span>
+    <span class="s1">media: []</span><span class="s0">,</span>
+    <span class="s1">layer: []</span><span class="s0">,</span>
+  <span class="s1">}</span><span class="s0">;</span>
+
+  <span class="s4">// prettier-ignore</span>
+  <span class="s0">if </span><span class="s1">(</span>
+    <span class="s1">!params.length ||</span>
+    <span class="s1">(</span>
+      <span class="s1">params[</span><span class="s3">0</span><span class="s1">].type !== </span><span class="s2">&quot;string&quot; </span><span class="s1">||</span>
+      <span class="s1">!params[</span><span class="s3">0</span><span class="s1">].value</span>
+    <span class="s1">) &amp;&amp;</span>
+    <span class="s1">(</span>
+      <span class="s1">params[</span><span class="s3">0</span><span class="s1">].type !== </span><span class="s2">&quot;function&quot; </span><span class="s1">||</span>
+      <span class="s1">params[</span><span class="s3">0</span><span class="s1">].value !== </span><span class="s2">&quot;url&quot; </span><span class="s1">||</span>
+      <span class="s1">!params[</span><span class="s3">0</span><span class="s1">].nodes.length ||</span>
+      <span class="s1">!params[</span><span class="s3">0</span><span class="s1">].nodes[</span><span class="s3">0</span><span class="s1">].value</span>
+    <span class="s1">)</span>
+  <span class="s1">) {</span>
+    <span class="s0">return </span><span class="s1">result.warn(</span><span class="s2">`Unable to find uri in '</span><span class="s1">${  atRule.toString()  }</span><span class="s2">'`</span><span class="s0">, </span><span class="s1">{</span>
+      <span class="s1">node: atRule</span><span class="s0">,</span>
+    <span class="s1">})</span>
+  <span class="s1">}</span>
+
+  <span class="s0">if </span><span class="s1">(params[</span><span class="s3">0</span><span class="s1">].type === </span><span class="s2">&quot;string&quot;</span><span class="s1">) stmt.uri = params[</span><span class="s3">0</span><span class="s1">].value</span><span class="s0">;</span>
+  <span class="s0">else </span><span class="s1">stmt.uri = params[</span><span class="s3">0</span><span class="s1">].nodes[</span><span class="s3">0</span><span class="s1">].value</span><span class="s0">;</span>
+  <span class="s1">stmt.fullUri = stringify(params[</span><span class="s3">0</span><span class="s1">])</span><span class="s0">;</span>
+
+  <span class="s0">let </span><span class="s1">remainder = params</span><span class="s0">;</span>
+  <span class="s0">if </span><span class="s1">(remainder.length &gt; </span><span class="s3">2</span><span class="s1">) {</span>
+    <span class="s0">if </span><span class="s1">(</span>
+      <span class="s1">(remainder[</span><span class="s3">2</span><span class="s1">].type === </span><span class="s2">&quot;word&quot; </span><span class="s1">|| remainder[</span><span class="s3">2</span><span class="s1">].type === </span><span class="s2">&quot;function&quot;</span><span class="s1">) &amp;&amp;</span>
+      <span class="s1">remainder[</span><span class="s3">2</span><span class="s1">].value === </span><span class="s2">&quot;layer&quot;</span>
+    <span class="s1">) {</span>
+      <span class="s0">if </span><span class="s1">(remainder[</span><span class="s3">1</span><span class="s1">].type !== </span><span class="s2">&quot;space&quot;</span><span class="s1">) {</span>
+        <span class="s0">return </span><span class="s1">result.warn(</span><span class="s2">&quot;Invalid import layer statement&quot;</span><span class="s0">, </span><span class="s1">{ node: atRule })</span>
+      <span class="s1">}</span>
+
+      <span class="s0">if </span><span class="s1">(remainder[</span><span class="s3">2</span><span class="s1">].nodes) {</span>
+        <span class="s1">stmt.layer = [stringify(remainder[</span><span class="s3">2</span><span class="s1">].nodes)]</span><span class="s0">;</span>
+      <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">stmt.layer = [</span><span class="s2">&quot;&quot;</span><span class="s1">]</span><span class="s0">;</span>
+      <span class="s1">}</span>
+      <span class="s1">remainder = remainder.slice(</span><span class="s3">2</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+  <span class="s0">if </span><span class="s1">(remainder.length &gt; </span><span class="s3">2</span><span class="s1">) {</span>
+    <span class="s0">if </span><span class="s1">(remainder[</span><span class="s3">1</span><span class="s1">].type !== </span><span class="s2">&quot;space&quot;</span><span class="s1">) {</span>
+      <span class="s0">return </span><span class="s1">result.warn(</span><span class="s2">&quot;Invalid import media statement&quot;</span><span class="s0">, </span><span class="s1">{ node: atRule })</span>
+    <span class="s1">}</span>
+
+    <span class="s1">stmt.media = split(remainder</span><span class="s0">, </span><span class="s3">2</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+
+  <span class="s0">return </span><span class="s1">stmt</span>
+<span class="s1">}</span>
+
+<span class="s0">var </span><span class="s1">assignLayerNames$1 = </span><span class="s0">function </span><span class="s1">(layer</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">state</span><span class="s0">, </span><span class="s1">options) {</span>
+  <span class="s1">layer.forEach((layerPart</span><span class="s0">, </span><span class="s1">i) =&gt; {</span>
+    <span class="s0">if </span><span class="s1">(layerPart.trim() === </span><span class="s2">&quot;&quot;</span><span class="s1">) {</span>
+      <span class="s0">if </span><span class="s1">(options.nameLayer) {</span>
+        <span class="s1">layer[i] = options</span>
+          <span class="s1">.nameLayer(state.anonymousLayerCounter++</span><span class="s0">, </span><span class="s1">state.rootFilename)</span>
+          <span class="s1">.toString()</span><span class="s0">;</span>
+      <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+        <span class="s0">throw </span><span class="s1">node.error(</span>
+          <span class="s2">`When using anonymous layers in @import you must also set the &quot;nameLayer&quot; plugin option`</span>
+        <span class="s1">)</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s4">// builtin tooling</span>
+<span class="s0">const </span><span class="s1">path = require$$0</span><span class="s0">;</span>
+
+<span class="s4">// internal tooling</span>
+<span class="s0">const </span><span class="s1">joinMedia = joinMedia$1</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">joinLayer = joinLayer$1</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">resolveId = (id) =&gt; id</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">loadContent = loadContent$1</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">processContent = processContent$1</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">parseStatements = parseStatements$1</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">assignLayerNames = assignLayerNames$1</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">dataURL = dataUrl</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">AtImport(options) {</span>
+  <span class="s1">options = {</span>
+    <span class="s1">root: process.cwd()</span><span class="s0">,</span>
+    <span class="s1">path: []</span><span class="s0">,</span>
+    <span class="s1">skipDuplicates: </span><span class="s0">true,</span>
+    <span class="s1">resolve: resolveId</span><span class="s0">,</span>
+    <span class="s1">load: loadContent</span><span class="s0">,</span>
+    <span class="s1">plugins: []</span><span class="s0">,</span>
+    <span class="s1">addModulesDirectories: []</span><span class="s0">,</span>
+    <span class="s1">nameLayer: </span><span class="s0">null,</span>
+    <span class="s1">...options</span><span class="s0">,</span>
+  <span class="s1">}</span><span class="s0">;</span>
+
+  <span class="s1">options.root = path.resolve(options.root)</span><span class="s0">;</span>
+
+  <span class="s4">// convert string to an array of a single element</span>
+  <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">options.path === </span><span class="s2">&quot;string&quot;</span><span class="s1">) options.path = [options.path]</span><span class="s0">;</span>
+
+  <span class="s0">if </span><span class="s1">(!Array.isArray(options.path)) options.path = []</span><span class="s0">;</span>
+
+  <span class="s1">options.path = options.path.map(p =&gt; path.resolve(options.root</span><span class="s0">, </span><span class="s1">p))</span><span class="s0">;</span>
+
+  <span class="s0">return </span><span class="s1">{</span>
+    <span class="s1">postcssPlugin: </span><span class="s2">&quot;postcss-import&quot;</span><span class="s0">,</span>
+    <span class="s1">Once(styles</span><span class="s0">, </span><span class="s1">{ result</span><span class="s0">, </span><span class="s1">atRule</span><span class="s0">, </span><span class="s1">postcss }) {</span>
+      <span class="s0">const </span><span class="s1">state = {</span>
+        <span class="s1">importedFiles: {}</span><span class="s0">,</span>
+        <span class="s1">hashFiles: {}</span><span class="s0">,</span>
+        <span class="s1">rootFilename: </span><span class="s0">null,</span>
+        <span class="s1">anonymousLayerCounter: </span><span class="s3">0</span><span class="s0">,</span>
+      <span class="s1">}</span><span class="s0">;</span>
+
+      <span class="s0">if </span><span class="s1">(styles.source?.input?.file) {</span>
+        <span class="s1">state.rootFilename = styles.source.input.file</span><span class="s0">;</span>
+        <span class="s1">state.importedFiles[styles.source.input.file] = {}</span><span class="s0">;</span>
+      <span class="s1">}</span>
+
+      <span class="s0">if </span><span class="s1">(options.plugins &amp;&amp; !Array.isArray(options.plugins)) {</span>
+        <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">&quot;plugins option must be an array&quot;</span><span class="s1">)</span>
+      <span class="s1">}</span>
+
+      <span class="s0">if </span><span class="s1">(options.nameLayer &amp;&amp; </span><span class="s0">typeof </span><span class="s1">options.nameLayer !== </span><span class="s2">&quot;function&quot;</span><span class="s1">) {</span>
+        <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">&quot;nameLayer option must be a function&quot;</span><span class="s1">)</span>
+      <span class="s1">}</span>
+
+      <span class="s0">return </span><span class="s1">parseStyles(result</span><span class="s0">, </span><span class="s1">styles</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state</span><span class="s0">, </span><span class="s1">[]</span><span class="s0">, </span><span class="s1">[]).then(</span>
+        <span class="s1">bundle =&gt; {</span>
+          <span class="s1">applyRaws(bundle)</span><span class="s0">;</span>
+          <span class="s1">applyMedia(bundle)</span><span class="s0">;</span>
+          <span class="s1">applyStyles(bundle</span><span class="s0">, </span><span class="s1">styles)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">)</span>
+
+      <span class="s0">function </span><span class="s1">applyRaws(bundle) {</span>
+        <span class="s1">bundle.forEach((stmt</span><span class="s0">, </span><span class="s1">index) =&gt; {</span>
+          <span class="s0">if </span><span class="s1">(index === </span><span class="s3">0</span><span class="s1">) </span><span class="s0">return</span>
+
+          <span class="s0">if </span><span class="s1">(stmt.parent) {</span>
+            <span class="s0">const </span><span class="s1">{ before } = stmt.parent.node.raws</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;nodes&quot;</span><span class="s1">) stmt.nodes[</span><span class="s3">0</span><span class="s1">].raws.before = before</span><span class="s0">;</span>
+            <span class="s0">else </span><span class="s1">stmt.node.raws.before = before</span><span class="s0">;</span>
+          <span class="s1">} </span><span class="s0">else if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;nodes&quot;</span><span class="s1">) {</span>
+            <span class="s1">stmt.nodes[</span><span class="s3">0</span><span class="s1">].raws.before = stmt.nodes[</span><span class="s3">0</span><span class="s1">].raws.before || </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s0">;</span>
+          <span class="s1">}</span>
+        <span class="s1">})</span><span class="s0">;</span>
+      <span class="s1">}</span>
+
+      <span class="s0">function </span><span class="s1">applyMedia(bundle) {</span>
+        <span class="s1">bundle.forEach(stmt =&gt; {</span>
+          <span class="s0">if </span><span class="s1">(</span>
+            <span class="s1">(!stmt.media.length &amp;&amp; !stmt.layer.length) ||</span>
+            <span class="s1">stmt.type === </span><span class="s2">&quot;charset&quot;</span>
+          <span class="s1">) {</span>
+            <span class="s0">return</span>
+          <span class="s1">}</span>
+
+          <span class="s0">if </span><span class="s1">(stmt.layer.length &gt; </span><span class="s3">1</span><span class="s1">) {</span>
+            <span class="s1">assignLayerNames(stmt.layer</span><span class="s0">, </span><span class="s1">stmt.node</span><span class="s0">, </span><span class="s1">state</span><span class="s0">, </span><span class="s1">options)</span><span class="s0">;</span>
+          <span class="s1">}</span>
+
+          <span class="s0">if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;import&quot;</span><span class="s1">) {</span>
+            <span class="s0">const </span><span class="s1">parts = [stmt.fullUri]</span><span class="s0">;</span>
+
+            <span class="s0">const </span><span class="s1">media = stmt.media.join(</span><span class="s2">&quot;, &quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+            <span class="s0">if </span><span class="s1">(stmt.layer.length) {</span>
+              <span class="s0">const </span><span class="s1">layerName = stmt.layer.join(</span><span class="s2">&quot;.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+              <span class="s0">let </span><span class="s1">layerParams = </span><span class="s2">&quot;layer&quot;</span><span class="s0">;</span>
+              <span class="s0">if </span><span class="s1">(layerName) {</span>
+                <span class="s1">layerParams = </span><span class="s2">`layer(</span><span class="s1">${layerName}</span><span class="s2">)`</span><span class="s0">;</span>
+              <span class="s1">}</span>
+
+              <span class="s1">parts.push(layerParams)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+
+            <span class="s0">if </span><span class="s1">(media) {</span>
+              <span class="s1">parts.push(media)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+
+            <span class="s1">stmt.node.params = parts.join(</span><span class="s2">&quot; &quot;</span><span class="s1">)</span><span class="s0">;</span>
+          <span class="s1">} </span><span class="s0">else if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;media&quot;</span><span class="s1">) {</span>
+            <span class="s0">if </span><span class="s1">(stmt.layer.length) {</span>
+              <span class="s0">const </span><span class="s1">layerNode = atRule({</span>
+                <span class="s1">name: </span><span class="s2">&quot;layer&quot;</span><span class="s0">,</span>
+                <span class="s1">params: stmt.layer.join(</span><span class="s2">&quot;.&quot;</span><span class="s1">)</span><span class="s0">,</span>
+                <span class="s1">source: stmt.node.source</span><span class="s0">,</span>
+              <span class="s1">})</span><span class="s0">;</span>
+
+              <span class="s0">if </span><span class="s1">(stmt.parentMedia?.length) {</span>
+                <span class="s0">const </span><span class="s1">mediaNode = atRule({</span>
+                  <span class="s1">name: </span><span class="s2">&quot;media&quot;</span><span class="s0">,</span>
+                  <span class="s1">params: stmt.parentMedia.join(</span><span class="s2">&quot;, &quot;</span><span class="s1">)</span><span class="s0">,</span>
+                  <span class="s1">source: stmt.node.source</span><span class="s0">,</span>
+                <span class="s1">})</span><span class="s0">;</span>
+
+                <span class="s1">mediaNode.append(layerNode)</span><span class="s0">;</span>
+                <span class="s1">layerNode.append(stmt.node)</span><span class="s0">;</span>
+                <span class="s1">stmt.node = mediaNode</span><span class="s0">;</span>
+              <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">layerNode.append(stmt.node)</span><span class="s0">;</span>
+                <span class="s1">stmt.node = layerNode</span><span class="s0">;</span>
+              <span class="s1">}</span>
+            <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+              <span class="s1">stmt.node.params = stmt.media.join(</span><span class="s2">&quot;, &quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+          <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+            <span class="s0">const </span><span class="s1">{ nodes } = stmt</span><span class="s0">;</span>
+            <span class="s0">const </span><span class="s1">{ parent } = nodes[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">;</span>
+
+            <span class="s0">let </span><span class="s1">outerAtRule</span><span class="s0">;</span>
+            <span class="s0">let </span><span class="s1">innerAtRule</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(stmt.media.length &amp;&amp; stmt.layer.length) {</span>
+              <span class="s0">const </span><span class="s1">mediaNode = atRule({</span>
+                <span class="s1">name: </span><span class="s2">&quot;media&quot;</span><span class="s0">,</span>
+                <span class="s1">params: stmt.media.join(</span><span class="s2">&quot;, &quot;</span><span class="s1">)</span><span class="s0">,</span>
+                <span class="s1">source: parent.source</span><span class="s0">,</span>
+              <span class="s1">})</span><span class="s0">;</span>
+
+              <span class="s0">const </span><span class="s1">layerNode = atRule({</span>
+                <span class="s1">name: </span><span class="s2">&quot;layer&quot;</span><span class="s0">,</span>
+                <span class="s1">params: stmt.layer.join(</span><span class="s2">&quot;.&quot;</span><span class="s1">)</span><span class="s0">,</span>
+                <span class="s1">source: parent.source</span><span class="s0">,</span>
+              <span class="s1">})</span><span class="s0">;</span>
+
+              <span class="s1">mediaNode.append(layerNode)</span><span class="s0">;</span>
+              <span class="s1">innerAtRule = layerNode</span><span class="s0">;</span>
+              <span class="s1">outerAtRule = mediaNode</span><span class="s0">;</span>
+            <span class="s1">} </span><span class="s0">else if </span><span class="s1">(stmt.media.length) {</span>
+              <span class="s0">const </span><span class="s1">mediaNode = atRule({</span>
+                <span class="s1">name: </span><span class="s2">&quot;media&quot;</span><span class="s0">,</span>
+                <span class="s1">params: stmt.media.join(</span><span class="s2">&quot;, &quot;</span><span class="s1">)</span><span class="s0">,</span>
+                <span class="s1">source: parent.source</span><span class="s0">,</span>
+              <span class="s1">})</span><span class="s0">;</span>
+
+              <span class="s1">innerAtRule = mediaNode</span><span class="s0">;</span>
+              <span class="s1">outerAtRule = mediaNode</span><span class="s0">;</span>
+            <span class="s1">} </span><span class="s0">else if </span><span class="s1">(stmt.layer.length) {</span>
+              <span class="s0">const </span><span class="s1">layerNode = atRule({</span>
+                <span class="s1">name: </span><span class="s2">&quot;layer&quot;</span><span class="s0">,</span>
+                <span class="s1">params: stmt.layer.join(</span><span class="s2">&quot;.&quot;</span><span class="s1">)</span><span class="s0">,</span>
+                <span class="s1">source: parent.source</span><span class="s0">,</span>
+              <span class="s1">})</span><span class="s0">;</span>
+
+              <span class="s1">innerAtRule = layerNode</span><span class="s0">;</span>
+              <span class="s1">outerAtRule = layerNode</span><span class="s0">;</span>
+            <span class="s1">}</span>
+
+            <span class="s1">parent.insertBefore(nodes[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">, </span><span class="s1">outerAtRule)</span><span class="s0">;</span>
+
+            <span class="s4">// remove nodes</span>
+            <span class="s1">nodes.forEach(node =&gt; {</span>
+              <span class="s1">node.parent = undefined</span><span class="s0">;</span>
+            <span class="s1">})</span><span class="s0">;</span>
+
+            <span class="s4">// better output</span>
+            <span class="s1">nodes[</span><span class="s3">0</span><span class="s1">].raws.before = nodes[</span><span class="s3">0</span><span class="s1">].raws.before || </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s0">;</span>
+
+            <span class="s4">// wrap new rules with media query and/or layer at rule</span>
+            <span class="s1">innerAtRule.append(nodes)</span><span class="s0">;</span>
+
+            <span class="s1">stmt.type = </span><span class="s2">&quot;media&quot;</span><span class="s0">;</span>
+            <span class="s1">stmt.node = outerAtRule</span><span class="s0">;</span>
+            <span class="s0">delete </span><span class="s1">stmt.nodes</span><span class="s0">;</span>
+          <span class="s1">}</span>
+        <span class="s1">})</span><span class="s0">;</span>
+      <span class="s1">}</span>
+
+      <span class="s0">function </span><span class="s1">applyStyles(bundle</span><span class="s0">, </span><span class="s1">styles) {</span>
+        <span class="s1">styles.nodes = []</span><span class="s0">;</span>
+
+        <span class="s4">// Strip additional statements.</span>
+        <span class="s1">bundle.forEach(stmt =&gt; {</span>
+          <span class="s0">if </span><span class="s1">([</span><span class="s2">&quot;charset&quot;</span><span class="s0">, </span><span class="s2">&quot;import&quot;</span><span class="s0">, </span><span class="s2">&quot;media&quot;</span><span class="s1">].includes(stmt.type)) {</span>
+            <span class="s1">stmt.node.parent = undefined</span><span class="s0">;</span>
+            <span class="s1">styles.append(stmt.node)</span><span class="s0">;</span>
+          <span class="s1">} </span><span class="s0">else if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;nodes&quot;</span><span class="s1">) {</span>
+            <span class="s1">stmt.nodes.forEach(node =&gt; {</span>
+              <span class="s1">node.parent = undefined</span><span class="s0">;</span>
+              <span class="s1">styles.append(node)</span><span class="s0">;</span>
+            <span class="s1">})</span><span class="s0">;</span>
+          <span class="s1">}</span>
+        <span class="s1">})</span><span class="s0">;</span>
+      <span class="s1">}</span>
+
+      <span class="s0">function </span><span class="s1">parseStyles(result</span><span class="s0">, </span><span class="s1">styles</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state</span><span class="s0">, </span><span class="s1">media</span><span class="s0">, </span><span class="s1">layer) {</span>
+        <span class="s0">const </span><span class="s1">statements = parseStatements(result</span><span class="s0">, </span><span class="s1">styles)</span><span class="s0">;</span>
+
+        <span class="s0">return </span><span class="s1">Promise.resolve(statements)</span>
+          <span class="s1">.then(stmts =&gt; {</span>
+            <span class="s4">// process each statement in series</span>
+            <span class="s0">return </span><span class="s1">stmts.reduce((promise</span><span class="s0">, </span><span class="s1">stmt) =&gt; {</span>
+              <span class="s0">return </span><span class="s1">promise.then(() =&gt; {</span>
+                <span class="s1">stmt.media = joinMedia(media</span><span class="s0">, </span><span class="s1">stmt.media || [])</span><span class="s0">;</span>
+                <span class="s1">stmt.parentMedia = media</span><span class="s0">;</span>
+                <span class="s1">stmt.layer = joinLayer(layer</span><span class="s0">, </span><span class="s1">stmt.layer || [])</span><span class="s0">;</span>
+
+                <span class="s4">// skip protocol base uri (protocol://url) or protocol-relative</span>
+                <span class="s0">if </span><span class="s1">(</span>
+                  <span class="s1">stmt.type !== </span><span class="s2">&quot;import&quot; </span><span class="s1">||</span>
+                  <span class="s3">/^(?:[a-z]+:)?\/\//i</span><span class="s1">.test(stmt.uri)</span>
+                <span class="s1">) {</span>
+                  <span class="s0">return</span>
+                <span class="s1">}</span>
+
+                <span class="s0">if </span><span class="s1">(options.filter &amp;&amp; !options.filter(stmt.uri)) {</span>
+                  <span class="s4">// rejected by filter</span>
+                  <span class="s0">return</span>
+                <span class="s1">}</span>
+
+                <span class="s0">return </span><span class="s1">resolveImportId(result</span><span class="s0">, </span><span class="s1">stmt</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state)</span>
+              <span class="s1">})</span>
+            <span class="s1">}</span><span class="s0">, </span><span class="s1">Promise.resolve())</span>
+          <span class="s1">})</span>
+          <span class="s1">.then(() =&gt; {</span>
+            <span class="s0">let </span><span class="s1">charset</span><span class="s0">;</span>
+            <span class="s0">const </span><span class="s1">imports = []</span><span class="s0">;</span>
+            <span class="s0">const </span><span class="s1">bundle = []</span><span class="s0">;</span>
+
+            <span class="s0">function </span><span class="s1">handleCharset(stmt) {</span>
+              <span class="s0">if </span><span class="s1">(!charset) charset = stmt</span><span class="s0">;</span>
+              <span class="s4">// charsets aren't case-sensitive, so convert to lower case to compare</span>
+              <span class="s0">else if </span><span class="s1">(</span>
+                <span class="s1">stmt.node.params.toLowerCase() !==</span>
+                <span class="s1">charset.node.params.toLowerCase()</span>
+              <span class="s1">) {</span>
+                <span class="s0">throw new </span><span class="s1">Error(</span>
+                  <span class="s2">`Incompatable @charset statements: 
+  </span><span class="s1">${stmt.node.params} </span><span class="s2">specified in </span><span class="s1">${stmt.node.source.input.file}</span>
+  <span class="s1">${charset.node.params} </span><span class="s2">specified in </span><span class="s1">${charset.node.source.input.file}</span><span class="s2">`</span>
+                <span class="s1">)</span>
+              <span class="s1">}</span>
+            <span class="s1">}</span>
+
+            <span class="s4">// squash statements and their children</span>
+            <span class="s1">statements.forEach(stmt =&gt; {</span>
+              <span class="s0">if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;charset&quot;</span><span class="s1">) handleCharset(stmt)</span><span class="s0">;</span>
+              <span class="s0">else if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;import&quot;</span><span class="s1">) {</span>
+                <span class="s0">if </span><span class="s1">(stmt.children) {</span>
+                  <span class="s1">stmt.children.forEach((child</span><span class="s0">, </span><span class="s1">index) =&gt; {</span>
+                    <span class="s0">if </span><span class="s1">(child.type === </span><span class="s2">&quot;import&quot;</span><span class="s1">) imports.push(child)</span><span class="s0">;</span>
+                    <span class="s0">else if </span><span class="s1">(child.type === </span><span class="s2">&quot;charset&quot;</span><span class="s1">) handleCharset(child)</span><span class="s0">;</span>
+                    <span class="s0">else </span><span class="s1">bundle.push(child)</span><span class="s0">;</span>
+                    <span class="s4">// For better output</span>
+                    <span class="s0">if </span><span class="s1">(index === </span><span class="s3">0</span><span class="s1">) child.parent = stmt</span><span class="s0">;</span>
+                  <span class="s1">})</span><span class="s0">;</span>
+                <span class="s1">} </span><span class="s0">else </span><span class="s1">imports.push(stmt)</span><span class="s0">;</span>
+              <span class="s1">} </span><span class="s0">else if </span><span class="s1">(stmt.type === </span><span class="s2">&quot;media&quot; </span><span class="s1">|| stmt.type === </span><span class="s2">&quot;nodes&quot;</span><span class="s1">) {</span>
+                <span class="s1">bundle.push(stmt)</span><span class="s0">;</span>
+              <span class="s1">}</span>
+            <span class="s1">})</span><span class="s0">;</span>
+
+            <span class="s0">return </span><span class="s1">charset</span>
+              <span class="s1">? [charset</span><span class="s0">, </span><span class="s1">...imports.concat(bundle)]</span>
+              <span class="s1">: imports.concat(bundle)</span>
+          <span class="s1">})</span>
+      <span class="s1">}</span>
+
+      <span class="s0">function </span><span class="s1">resolveImportId(result</span><span class="s0">, </span><span class="s1">stmt</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state) {</span>
+        <span class="s0">if </span><span class="s1">(dataURL.isValid(stmt.uri)) {</span>
+          <span class="s0">return </span><span class="s1">loadImportContent(result</span><span class="s0">, </span><span class="s1">stmt</span><span class="s0">, </span><span class="s1">stmt.uri</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state).then(</span>
+            <span class="s1">result =&gt; {</span>
+              <span class="s1">stmt.children = result</span><span class="s0">;</span>
+            <span class="s1">}</span>
+          <span class="s1">)</span>
+        <span class="s1">}</span>
+
+        <span class="s0">const </span><span class="s1">atRule = stmt.node</span><span class="s0">;</span>
+        <span class="s0">let </span><span class="s1">sourceFile</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(atRule.source?.input?.file) {</span>
+          <span class="s1">sourceFile = atRule.source.input.file</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">const </span><span class="s1">base = sourceFile</span>
+          <span class="s1">? path.dirname(atRule.source.input.file)</span>
+          <span class="s1">: options.root</span><span class="s0">;</span>
+
+        <span class="s0">return </span><span class="s1">Promise.resolve(options.resolve(stmt.uri</span><span class="s0">, </span><span class="s1">base</span><span class="s0">, </span><span class="s1">options))</span>
+          <span class="s1">.then(paths =&gt; {</span>
+            <span class="s0">if </span><span class="s1">(!Array.isArray(paths)) paths = [paths]</span><span class="s0">;</span>
+            <span class="s4">// Ensure that each path is absolute:</span>
+            <span class="s0">return </span><span class="s1">Promise.all(</span>
+              <span class="s1">paths.map(file =&gt; {</span>
+                <span class="s0">return </span><span class="s1">!path.isAbsolute(file)</span>
+                  <span class="s1">? resolveId(file)</span>
+                  <span class="s1">: file</span>
+              <span class="s1">})</span>
+            <span class="s1">)</span>
+          <span class="s1">})</span>
+          <span class="s1">.then(resolved =&gt; {</span>
+            <span class="s4">// Add dependency messages:</span>
+            <span class="s1">resolved.forEach(file =&gt; {</span>
+              <span class="s1">result.messages.push({</span>
+                <span class="s1">type: </span><span class="s2">&quot;dependency&quot;</span><span class="s0">,</span>
+                <span class="s1">plugin: </span><span class="s2">&quot;postcss-import&quot;</span><span class="s0">,</span>
+                <span class="s1">file</span><span class="s0">,</span>
+                <span class="s1">parent: sourceFile</span><span class="s0">,</span>
+              <span class="s1">})</span><span class="s0">;</span>
+            <span class="s1">})</span><span class="s0">;</span>
+
+            <span class="s0">return </span><span class="s1">Promise.all(</span>
+              <span class="s1">resolved.map(file =&gt; {</span>
+                <span class="s0">return </span><span class="s1">loadImportContent(result</span><span class="s0">, </span><span class="s1">stmt</span><span class="s0">, </span><span class="s1">file</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state)</span>
+              <span class="s1">})</span>
+            <span class="s1">)</span>
+          <span class="s1">})</span>
+          <span class="s1">.then(result =&gt; {</span>
+            <span class="s4">// Merge loaded statements</span>
+            <span class="s1">stmt.children = result.reduce((result</span><span class="s0">, </span><span class="s1">statements) =&gt; {</span>
+              <span class="s0">return </span><span class="s1">statements ? result.concat(statements) : result</span>
+            <span class="s1">}</span><span class="s0">, </span><span class="s1">[])</span><span class="s0">;</span>
+          <span class="s1">})</span>
+      <span class="s1">}</span>
+
+      <span class="s0">function </span><span class="s1">loadImportContent(result</span><span class="s0">, </span><span class="s1">stmt</span><span class="s0">, </span><span class="s1">filename</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state) {</span>
+        <span class="s0">const </span><span class="s1">atRule = stmt.node</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">{ media</span><span class="s0">, </span><span class="s1">layer } = stmt</span><span class="s0">;</span>
+
+        <span class="s1">assignLayerNames(layer</span><span class="s0">, </span><span class="s1">atRule</span><span class="s0">, </span><span class="s1">state</span><span class="s0">, </span><span class="s1">options)</span><span class="s0">;</span>
+
+        <span class="s0">if </span><span class="s1">(options.skipDuplicates) {</span>
+          <span class="s4">// skip files already imported at the same scope</span>
+          <span class="s0">if </span><span class="s1">(state.importedFiles[filename]?.[media]?.[layer]) {</span>
+            <span class="s0">return</span>
+          <span class="s1">}</span>
+
+          <span class="s4">// save imported files to skip them next time</span>
+          <span class="s0">if </span><span class="s1">(!state.importedFiles[filename]) {</span>
+            <span class="s1">state.importedFiles[filename] = {}</span><span class="s0">;</span>
+          <span class="s1">}</span>
+          <span class="s0">if </span><span class="s1">(!state.importedFiles[filename][media]) {</span>
+            <span class="s1">state.importedFiles[filename][media] = {}</span><span class="s0">;</span>
+          <span class="s1">}</span>
+          <span class="s1">state.importedFiles[filename][media][layer] = </span><span class="s0">true;</span>
+        <span class="s1">}</span>
+
+        <span class="s0">return </span><span class="s1">Promise.resolve(options.load(filename</span><span class="s0">, </span><span class="s1">options)).then(</span>
+          <span class="s1">content =&gt; {</span>
+            <span class="s0">if </span><span class="s1">(content.trim() === </span><span class="s2">&quot;&quot;</span><span class="s1">) {</span>
+              <span class="s1">result.warn(</span><span class="s2">`</span><span class="s1">${filename} </span><span class="s2">is empty`</span><span class="s0">, </span><span class="s1">{ node: atRule })</span><span class="s0">;</span>
+              <span class="s0">return</span>
+            <span class="s1">}</span>
+
+            <span class="s4">// skip previous imported files not containing @import rules</span>
+            <span class="s0">if </span><span class="s1">(state.hashFiles[content]?.[media]?.[layer]) {</span>
+              <span class="s0">return</span>
+            <span class="s1">}</span>
+
+            <span class="s0">return </span><span class="s1">processContent(</span>
+              <span class="s1">result</span><span class="s0">,</span>
+              <span class="s1">content</span><span class="s0">,</span>
+              <span class="s1">filename</span><span class="s0">,</span>
+              <span class="s1">options</span><span class="s0">,</span>
+              <span class="s1">postcss</span>
+            <span class="s1">).then(importedResult =&gt; {</span>
+              <span class="s0">const </span><span class="s1">styles = importedResult.root</span><span class="s0">;</span>
+              <span class="s1">result.messages = result.messages.concat(importedResult.messages)</span><span class="s0">;</span>
+
+              <span class="s0">if </span><span class="s1">(options.skipDuplicates) {</span>
+                <span class="s0">const </span><span class="s1">hasImport = styles.some(child =&gt; {</span>
+                  <span class="s0">return </span><span class="s1">child.type === </span><span class="s2">&quot;atrule&quot; </span><span class="s1">&amp;&amp; child.name === </span><span class="s2">&quot;import&quot;</span>
+                <span class="s1">})</span><span class="s0">;</span>
+                <span class="s0">if </span><span class="s1">(!hasImport) {</span>
+                  <span class="s4">// save hash files to skip them next time</span>
+                  <span class="s0">if </span><span class="s1">(!state.hashFiles[content]) {</span>
+                    <span class="s1">state.hashFiles[content] = {}</span><span class="s0">;</span>
+                  <span class="s1">}</span>
+                  <span class="s0">if </span><span class="s1">(!state.hashFiles[content][media]) {</span>
+                    <span class="s1">state.hashFiles[content][media] = {}</span><span class="s0">;</span>
+                  <span class="s1">}</span>
+                  <span class="s1">state.hashFiles[content][media][layer] = </span><span class="s0">true;</span>
+                <span class="s1">}</span>
+              <span class="s1">}</span>
+
+              <span class="s4">// recursion: import @import from imported file</span>
+              <span class="s0">return </span><span class="s1">parseStyles(result</span><span class="s0">, </span><span class="s1">styles</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">state</span><span class="s0">, </span><span class="s1">media</span><span class="s0">, </span><span class="s1">layer)</span>
+            <span class="s1">})</span>
+          <span class="s1">}</span>
+        <span class="s1">)</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span><span class="s0">,</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">AtImport.postcss = </span><span class="s0">true;</span>
+
+<span class="s0">var </span><span class="s1">postcssImport = AtImport</span><span class="s0">;</span>
+
+<span class="s0">var </span><span class="s1">index = </span><span class="s4">/*#__PURE__*/</span><span class="s1">_mergeNamespaces({</span>
+  <span class="s1">__proto__: </span><span class="s0">null,</span>
+  <span class="s0">default</span><span class="s1">: postcssImport</span>
+<span class="s1">}</span><span class="s0">, </span><span class="s1">[postcssImport])</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ index as i }</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

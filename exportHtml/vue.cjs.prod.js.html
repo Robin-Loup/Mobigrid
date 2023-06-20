@@ -1,0 +1,89 @@
+<html>
+<head>
+<title>vue.cjs.prod.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #cc7832;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+vue.cjs.prod.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span><span class="s1">;</span>
+
+<span class="s2">Object.defineProperty(exports</span><span class="s1">, </span><span class="s0">'__esModule'</span><span class="s1">, </span><span class="s2">{ value: </span><span class="s1">true </span><span class="s2">})</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">compilerDom = require(</span><span class="s0">'@vue/compiler-dom'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">runtimeDom = require(</span><span class="s0">'@vue/runtime-dom'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">shared = require(</span><span class="s0">'@vue/shared'</span><span class="s2">)</span><span class="s1">;</span>
+
+<span class="s1">function </span><span class="s2">_interopNamespaceDefault(e) {</span>
+  <span class="s1">var </span><span class="s2">n = Object.create(</span><span class="s1">null</span><span class="s2">)</span><span class="s1">;</span>
+  <span class="s1">if </span><span class="s2">(e) {</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">var </span><span class="s2">k </span><span class="s1">in </span><span class="s2">e) {</span>
+      <span class="s2">n[k] = e[k]</span><span class="s1">;</span>
+    <span class="s2">}</span>
+  <span class="s2">}</span>
+  <span class="s2">n.default = e</span><span class="s1">;</span>
+  <span class="s1">return </span><span class="s2">Object.freeze(n)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">var </span><span class="s2">runtimeDom__namespace = </span><span class="s3">/*#__PURE__*/</span><span class="s2">_interopNamespaceDefault(runtimeDom)</span><span class="s1">;</span>
+
+<span class="s3">// This entry is the &quot;full-build&quot; that includes both the runtime</span>
+<span class="s1">const </span><span class="s2">compileCache = Object.create(</span><span class="s1">null</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">compileToFunction(template</span><span class="s1">, </span><span class="s2">options) {</span>
+    <span class="s1">if </span><span class="s2">(!shared.isString(template)) {</span>
+        <span class="s1">if </span><span class="s2">(template.nodeType) {</span>
+            <span class="s2">template = template.innerHTML</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s1">return </span><span class="s2">shared.NOOP</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">key = template</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">cached = compileCache[key]</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(cached) {</span>
+        <span class="s1">return </span><span class="s2">cached</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(template[</span><span class="s4">0</span><span class="s2">] === </span><span class="s0">'#'</span><span class="s2">) {</span>
+        <span class="s1">const </span><span class="s2">el = document.querySelector(template)</span><span class="s1">;</span>
+        <span class="s3">// __UNSAFE__</span>
+        <span class="s3">// Reason: potential execution of JS expressions in in-DOM template.</span>
+        <span class="s3">// The user must make sure the in-DOM template is trusted. If it's rendered</span>
+        <span class="s3">// by the server, the template should not contain any user data.</span>
+        <span class="s2">template = el ? el.innerHTML : </span><span class="s0">``</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">opts = shared.extend({</span>
+        <span class="s2">hoistStatic: </span><span class="s1">true,</span>
+        <span class="s2">onError: undefined</span><span class="s1">,</span>
+        <span class="s2">onWarn: shared.NOOP</span>
+    <span class="s2">}</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!opts.isCustomElement &amp;&amp; </span><span class="s1">typeof </span><span class="s2">customElements !== </span><span class="s0">'undefined'</span><span class="s2">) {</span>
+        <span class="s2">opts.isCustomElement = tag =&gt; !!customElements.get(tag)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ code } = compilerDom.compile(template</span><span class="s1">, </span><span class="s2">opts)</span><span class="s1">;</span>
+    <span class="s3">// The wildcard import results in a huge object with every export</span>
+    <span class="s3">// with keys that cannot be mangled, and can be quite heavy size-wise.</span>
+    <span class="s3">// In the global build we know `Vue` is available globally so we can avoid</span>
+    <span class="s3">// the wildcard object.</span>
+    <span class="s1">const </span><span class="s2">render = (</span><span class="s1">new </span><span class="s2">Function(</span><span class="s0">'Vue'</span><span class="s1">, </span><span class="s2">code)(runtimeDom__namespace))</span><span class="s1">;</span>
+    <span class="s2">render._rc = </span><span class="s1">true;</span>
+    <span class="s1">return </span><span class="s2">(compileCache[key] = render)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s2">runtimeDom.registerRuntimeCompiler(compileToFunction)</span><span class="s1">;</span>
+
+<span class="s2">exports.compile = compileToFunction</span><span class="s1">;</span>
+<span class="s2">Object.keys(runtimeDom).forEach(</span><span class="s1">function</span><span class="s2">(k) {</span>
+  <span class="s1">if </span><span class="s2">(k !== </span><span class="s0">'default'</span><span class="s2">) exports[k] = runtimeDom[k]</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+</pre>
+</body>
+</html>

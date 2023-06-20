@@ -1,0 +1,123 @@
+<html>
+<head>
+<title>server-renderer.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #629755; font-style: italic;}
+.s5 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+server-renderer.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">/// &lt;reference types=&quot;node&quot; /&gt;</span>
+
+<span class="s2">import </span><span class="s1">{ App } from </span><span class="s3">'vue'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ Component } from </span><span class="s3">'vue'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ ComponentInternalInstance } from </span><span class="s3">'vue'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ ComponentPublicInstance } from </span><span class="s3">'@vue/runtime-core'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ Directive } from </span><span class="s3">'@vue/runtime-core'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ Readable } from </span><span class="s3">'stream'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ Slots } from </span><span class="s3">'vue'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ includeBooleanAttr as ssrIncludeBooleanAttr } from </span><span class="s3">'@vue/shared'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ VNode } from </span><span class="s3">'vue'</span><span class="s2">;</span>
+<span class="s2">import </span><span class="s1">{ Writable } from </span><span class="s3">'stream'</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">pipeToNodeWritable(input: App | VNode</span><span class="s2">, </span><span class="s1">context: SSRContext | undefined</span><span class="s2">, </span><span class="s1">writable: Writable): </span><span class="s2">void;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">pipeToWebWritable(input: App | VNode</span><span class="s2">, </span><span class="s1">context: SSRContext | undefined</span><span class="s2">, </span><span class="s1">writable: WritableStream): </span><span class="s2">void;</span>
+
+<span class="s1">declare type Props = Record&lt;string</span><span class="s2">, </span><span class="s1">unknown&gt;</span><span class="s2">;</span>
+
+<span class="s1">declare type PushFn = (item: SSRBufferItem) =&gt; </span><span class="s2">void;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">renderToNodeStream(input: App | VNode</span><span class="s2">, </span><span class="s1">context?: SSRContext): Readable</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">renderToSimpleStream&lt;T </span><span class="s2">extends </span><span class="s1">SimpleReadable&gt;(input: App | VNode</span><span class="s2">, </span><span class="s1">context: SSRContext</span><span class="s2">, </span><span class="s1">stream: T): T</span><span class="s2">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* </span><span class="s5">@deprecated</span>
+ <span class="s4">*/</span>
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">renderToStream(input: App | VNode</span><span class="s2">, </span><span class="s1">context?: SSRContext): Readable</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">renderToString(input: App | VNode</span><span class="s2">, </span><span class="s1">context?: SSRContext): Promise&lt;string&gt;</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">renderToWebStream(input: App | VNode</span><span class="s2">, </span><span class="s1">context?: SSRContext): ReadableStream</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">interface </span><span class="s1">SimpleReadable {</span>
+    <span class="s1">push(chunk: string | </span><span class="s2">null</span><span class="s1">): </span><span class="s2">void;</span>
+    <span class="s1">destroy(err: any): </span><span class="s2">void;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare type SSRBuffer = SSRBufferItem[] &amp; {</span>
+    <span class="s1">hasAsync?: boolean</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s1">declare type SSRBufferItem = string | SSRBuffer | Promise&lt;SSRBuffer&gt;</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare type SSRContext = {</span>
+    <span class="s1">[key: string]: any</span><span class="s2">;</span>
+    <span class="s1">teleports?: Record&lt;string</span><span class="s2">, </span><span class="s1">string&gt;</span><span class="s2">;</span>
+    <span class="s0">/* Excluded from this release type: __teleportBuffers */</span>
+    <span class="s0">/* Excluded from this release type: __watcherHandles */</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrGetDirectiveProps(instance: ComponentPublicInstance</span><span class="s2">, </span><span class="s1">dir: Directive</span><span class="s2">, </span><span class="s1">value?: any</span><span class="s2">, </span><span class="s1">arg?: string</span><span class="s2">, </span><span class="s1">modifiers?: Record&lt;string</span><span class="s2">, </span><span class="s1">boolean&gt;): Record&lt;string</span><span class="s2">, </span><span class="s1">any&gt;</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrGetDynamicModelProps(existingProps: any</span><span class="s2">, </span><span class="s1">model: unknown): {</span>
+    <span class="s1">checked: boolean</span><span class="s2">;</span>
+    <span class="s1">value?: undefined</span><span class="s2">;</span>
+<span class="s1">} | {</span>
+    <span class="s1">value: unknown</span><span class="s2">;</span>
+    <span class="s1">checked?: undefined</span><span class="s2">;</span>
+<span class="s1">} | </span><span class="s2">null;</span>
+
+<span class="s2">export </span><span class="s1">{ ssrIncludeBooleanAttr }</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrInterpolate(value: unknown): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrLooseContain(arr: unknown[]</span><span class="s2">, </span><span class="s1">value: unknown): boolean</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">const </span><span class="s1">ssrLooseEqual: (a: unknown</span><span class="s2">, </span><span class="s1">b: unknown) =&gt; boolean</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderAttr(key: string</span><span class="s2">, </span><span class="s1">value: unknown): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderAttrs(props: Record&lt;string</span><span class="s2">, </span><span class="s1">unknown&gt;</span><span class="s2">, </span><span class="s1">tag?: string): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderClass(raw: unknown): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderComponent(comp: Component</span><span class="s2">, </span><span class="s1">props?: Props | </span><span class="s2">null, </span><span class="s1">children?: Slots | SSRSlots | </span><span class="s2">null, </span><span class="s1">parentComponent?: ComponentInternalInstance | </span><span class="s2">null, </span><span class="s1">slotScopeId?: string): SSRBuffer | Promise&lt;SSRBuffer&gt;</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderDynamicAttr(key: string</span><span class="s2">, </span><span class="s1">value: unknown</span><span class="s2">, </span><span class="s1">tag?: string): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderDynamicModel(type: unknown</span><span class="s2">, </span><span class="s1">model: unknown</span><span class="s2">, </span><span class="s1">value: unknown): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderList(source: unknown</span><span class="s2">, </span><span class="s1">renderItem: (value: unknown</span><span class="s2">, </span><span class="s1">key: string | number</span><span class="s2">, </span><span class="s1">index?: number) =&gt; </span><span class="s2">void</span><span class="s1">): </span><span class="s2">void;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderSlot(slots: Slots | SSRSlots</span><span class="s2">, </span><span class="s1">slotName: string</span><span class="s2">, </span><span class="s1">slotProps: Props</span><span class="s2">, </span><span class="s1">fallbackRenderFn: (() =&gt; </span><span class="s2">void</span><span class="s1">) | </span><span class="s2">null, </span><span class="s1">push: PushFn</span><span class="s2">, </span><span class="s1">parentComponent: ComponentInternalInstance</span><span class="s2">, </span><span class="s1">slotScopeId?: string): </span><span class="s2">void;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderSlotInner(slots: Slots | SSRSlots</span><span class="s2">, </span><span class="s1">slotName: string</span><span class="s2">, </span><span class="s1">slotProps: Props</span><span class="s2">, </span><span class="s1">fallbackRenderFn: (() =&gt; </span><span class="s2">void</span><span class="s1">) | </span><span class="s2">null, </span><span class="s1">push: PushFn</span><span class="s2">, </span><span class="s1">parentComponent: ComponentInternalInstance</span><span class="s2">, </span><span class="s1">slotScopeId?: string</span><span class="s2">, </span><span class="s1">transition?: boolean): </span><span class="s2">void;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderStyle(raw: unknown): string</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderSuspense(push: PushFn</span><span class="s2">, </span><span class="s1">{ </span><span class="s2">default</span><span class="s1">: renderContent }: Record&lt;string</span><span class="s2">, </span><span class="s1">(() =&gt; </span><span class="s2">void</span><span class="s1">) | undefined&gt;): Promise&lt;</span><span class="s2">void</span><span class="s1">&gt;</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderTeleport(parentPush: PushFn</span><span class="s2">, </span><span class="s1">contentRenderFn: (push: PushFn) =&gt; </span><span class="s2">void, </span><span class="s1">target: string</span><span class="s2">, </span><span class="s1">disabled: boolean</span><span class="s2">, </span><span class="s1">parentComponent: ComponentInternalInstance): </span><span class="s2">void;</span>
+
+<span class="s2">export </span><span class="s1">declare </span><span class="s2">function </span><span class="s1">ssrRenderVNode(push: PushFn</span><span class="s2">, </span><span class="s1">vnode: VNode</span><span class="s2">, </span><span class="s1">parentComponent: ComponentInternalInstance</span><span class="s2">, </span><span class="s1">slotScopeId?: string): </span><span class="s2">void;</span>
+
+<span class="s1">declare type SSRSlot = (props: Props</span><span class="s2">, </span><span class="s1">push: PushFn</span><span class="s2">, </span><span class="s1">parentComponent: ComponentInternalInstance | </span><span class="s2">null, </span><span class="s1">scopeId: string | </span><span class="s2">null</span><span class="s1">) =&gt; </span><span class="s2">void;</span>
+
+<span class="s1">declare type SSRSlots = Record&lt;string</span><span class="s2">, </span><span class="s1">SSRSlot&gt;</span><span class="s2">;</span>
+
+<span class="s2">export </span><span class="s1">{ }</span>
+</pre>
+</body>
+</html>

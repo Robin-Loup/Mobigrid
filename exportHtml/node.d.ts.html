@@ -1,0 +1,511 @@
+<html>
+<head>
+<title>node.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #808080;}
+.s5 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+node.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">Declaration</span><span class="s0">, </span><span class="s1">{ DeclarationProps } from </span><span class="s2">'./declaration.js'</span>
+<span class="s0">import </span><span class="s1">Comment</span><span class="s0">, </span><span class="s1">{ CommentProps } from </span><span class="s2">'./comment.js'</span>
+<span class="s0">import </span><span class="s1">{ Stringifier</span><span class="s0">, </span><span class="s1">Syntax } from </span><span class="s2">'./postcss.js'</span>
+<span class="s0">import </span><span class="s1">AtRule = require(</span><span class="s2">'./at-rule.js'</span><span class="s1">)</span>
+<span class="s0">import </span><span class="s1">{ AtRuleProps } from </span><span class="s2">'./at-rule.js'</span>
+<span class="s0">import </span><span class="s1">Rule</span><span class="s0">, </span><span class="s1">{ RuleProps } from </span><span class="s2">'./rule.js'</span>
+<span class="s0">import </span><span class="s1">Warning</span><span class="s0">, </span><span class="s1">{ WarningOptions } from </span><span class="s2">'./warning.js'</span>
+<span class="s0">import </span><span class="s1">CssSyntaxError from </span><span class="s2">'./css-syntax-error.js'</span>
+<span class="s0">import </span><span class="s1">Result from </span><span class="s2">'./result.js'</span>
+<span class="s0">import </span><span class="s1">Input from </span><span class="s2">'./input.js'</span>
+<span class="s0">import </span><span class="s1">Root from </span><span class="s2">'./root.js'</span>
+<span class="s0">import </span><span class="s1">Document from </span><span class="s2">'./document.js'</span>
+<span class="s0">import </span><span class="s1">Container from </span><span class="s2">'./container.js'</span>
+
+<span class="s1">declare namespace Node {</span>
+  <span class="s0">export </span><span class="s1">type ChildNode = AtRule.default | Rule | Declaration | Comment</span>
+
+  <span class="s0">export </span><span class="s1">type AnyNode = AtRule.default | Rule | Declaration | Comment | Root | Document</span>
+
+  <span class="s0">export </span><span class="s1">type ChildProps =</span>
+    <span class="s1">| AtRuleProps</span>
+    <span class="s1">| RuleProps</span>
+    <span class="s1">| DeclarationProps</span>
+    <span class="s1">| CommentProps</span>
+
+  <span class="s0">export interface </span><span class="s1">Position {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Source offset in file. It starts from 0.</span>
+     <span class="s3">*/</span>
+    <span class="s1">offset: number</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Source line in file. In contrast to `offset` it starts from 1.</span>
+     <span class="s3">*/</span>
+    <span class="s1">column: number</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Source column in file.</span>
+     <span class="s3">*/</span>
+    <span class="s1">line: number</span>
+  <span class="s1">}</span>
+
+  <span class="s0">export interface </span><span class="s1">Range {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Start position, inclusive.</span>
+     <span class="s3">*/</span>
+    <span class="s1">start: Position</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* End position, exclusive.</span>
+     <span class="s3">*/</span>
+    <span class="s1">end: Position</span>
+  <span class="s1">}</span>
+
+  <span class="s0">export interface </span><span class="s1">Source {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The file source of the node.</span>
+     <span class="s3">*/</span>
+    <span class="s1">input: Input</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The inclusive starting position of the node’s source.</span>
+     <span class="s3">*/</span>
+    <span class="s1">start?: Position</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The inclusive ending position of the node's source.</span>
+     <span class="s3">*/</span>
+    <span class="s1">end?: Position</span>
+  <span class="s1">}</span>
+
+  <span class="s0">export interface </span><span class="s1">NodeProps {</span>
+    <span class="s1">source?: Source</span>
+  <span class="s1">}</span>
+
+  <span class="s0">export interface </span><span class="s1">NodeErrorOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Plugin name that created this error. PostCSS will set it automatically.</span>
+     <span class="s3">*/</span>
+    <span class="s1">plugin?: string</span>
+    <span class="s3">/**</span>
+     <span class="s3">* A word inside a node's string, that should be highlighted as source</span>
+     <span class="s3">* of error.</span>
+     <span class="s3">*/</span>
+    <span class="s1">word?: string</span>
+    <span class="s3">/**</span>
+     <span class="s3">* An index inside a node's string that should be highlighted as source</span>
+     <span class="s3">* of error.</span>
+     <span class="s3">*/</span>
+    <span class="s1">index?: number</span>
+    <span class="s3">/**</span>
+     <span class="s3">* An ending index inside a node's string that should be highlighted as</span>
+     <span class="s3">* source of error.</span>
+     <span class="s3">*/</span>
+    <span class="s1">endIndex?: number</span>
+  <span class="s1">}</span>
+
+  <span class="s4">// eslint-disable-next-line @typescript-eslint/no-shadow</span>
+  <span class="s0">class </span><span class="s1">Node </span><span class="s0">extends </span><span class="s1">Node_ {}</span>
+  <span class="s0">export </span><span class="s1">{ Node as </span><span class="s0">default </span><span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* All node classes inherit the following common methods.</span>
+ <span class="s3">*</span>
+ <span class="s3">* You should not extend this classes to create AST for selector or value</span>
+ <span class="s3">* parser.</span>
+ <span class="s3">*/</span>
+<span class="s1">declare abstract </span><span class="s0">class </span><span class="s1">Node_ {</span>
+  <span class="s3">/**</span>
+   <span class="s3">* tring representing the node’s type. Possible values are `root`, `atrule`,</span>
+   <span class="s3">* `rule`, `decl`, or `comment`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* new Declaration({ prop: 'color', value: 'black' }).type //=&gt; 'decl'</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*/</span>
+  <span class="s1">type: string</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* The node’s parent node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* root.nodes[0].parent === root</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*/</span>
+  <span class="s1">parent: Document | Container | undefined</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* The input source of the node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* The property is used in source map generation.</span>
+   <span class="s3">*</span>
+   <span class="s3">* If you create a node manually (e.g., with `postcss.decl()`),</span>
+   <span class="s3">* that node will not have a `source` property and will be absent</span>
+   <span class="s3">* from the source map. For this reason, the plugin developer should</span>
+   <span class="s3">* consider cloning nodes to create new ones (in which case the new node’s</span>
+   <span class="s3">* source will reference the original, cloned node) or setting</span>
+   <span class="s3">* the `source` property manually.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* decl.source.input.from //=&gt; '/home/ai/a.sass'</span>
+   <span class="s3">* decl.source.start      //=&gt; { line: 10, column: 2 }</span>
+   <span class="s3">* decl.source.end        //=&gt; { line: 10, column: 12 }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* // Bad</span>
+   <span class="s3">* const prefixed = postcss.decl({</span>
+   <span class="s3">*   prop: '-moz-' + decl.prop,</span>
+   <span class="s3">*   value: decl.value</span>
+   <span class="s3">* })</span>
+   <span class="s3">*</span>
+   <span class="s3">* // Good</span>
+   <span class="s3">* const prefixed = decl.clone({ prop: '-moz-' + decl.prop })</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* if (atrule.name === 'add-link') {</span>
+   <span class="s3">*   const rule = postcss.rule({ selector: 'a', source: atrule.source })</span>
+   <span class="s3">*   atrule.parent.insertBefore(atrule, rule)</span>
+   <span class="s3">* }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*/</span>
+  <span class="s1">source?: Node.Source</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Information to generate byte-to-byte equal node string as it was</span>
+   <span class="s3">* in the origin input.</span>
+   <span class="s3">*</span>
+   <span class="s3">* Every parser saves its own properties,</span>
+   <span class="s3">* but the default CSS parser uses:</span>
+   <span class="s3">*</span>
+   <span class="s3">* * `before`: the space symbols before the node. It also stores `*`</span>
+   <span class="s3">*   and `_` symbols before the declaration (IE hack).</span>
+   <span class="s3">* * `after`: the space symbols after the last child of the node</span>
+   <span class="s3">*   to the end of the node.</span>
+   <span class="s3">* * `between`: the symbols between the property and value</span>
+   <span class="s3">*   for declarations, selector and `{` for rules, or last parameter</span>
+   <span class="s3">*   and `{` for at-rules.</span>
+   <span class="s3">* * `semicolon`: contains true if the last child has</span>
+   <span class="s3">*   an (optional) semicolon.</span>
+   <span class="s3">* * `afterName`: the space between the at-rule name and its parameters.</span>
+   <span class="s3">* * `left`: the space symbols between `/*` and the comment’s text.</span>
+   <span class="s3">* * `right`: the space symbols between the comment’s text</span>
+   <span class="s3">*   and &lt;code&gt;*&amp;#47;&lt;/code&gt;.</span>
+   <span class="s3">* * `important`: the content of the important statement,</span>
+   <span class="s3">*   if it is not just `!important`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* PostCSS cleans selectors, declaration values and at-rule parameters</span>
+   <span class="s3">* from comments and extra spaces, but it stores origin content in raws</span>
+   <span class="s3">* properties. As such, if you don’t change a declaration’s value,</span>
+   <span class="s3">* PostCSS will use the raw value with comments.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* const root = postcss.parse('a {\n  color:black\n}')</span>
+   <span class="s3">* root.first.first.raws //=&gt; { before: '\n  ', between: ':' }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*/</span>
+  <span class="s1">raws: any</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">defaults Value for node properties.</span>
+   <span class="s3">*/</span>
+  <span class="s1">constructor(defaults?: object)</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Returns a `CssSyntaxError` instance containing the original position</span>
+   <span class="s3">* of the node in the source, showing line and column numbers and also</span>
+   <span class="s3">* a small excerpt to facilitate debugging.</span>
+   <span class="s3">*</span>
+   <span class="s3">* If present, an input source map will be used to get the original position</span>
+   <span class="s3">* of the source, even from a previous compilation step</span>
+   <span class="s3">* (e.g., from Sass compilation).</span>
+   <span class="s3">*</span>
+   <span class="s3">* This method produces very useful error messages.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* if (!variables[name]) {</span>
+   <span class="s3">*   throw decl.error(`Unknown variable ${name}`, { word: name })</span>
+   <span class="s3">*   // CssSyntaxError: postcss-vars:a.sass:4:3: Unknown variable $black</span>
+   <span class="s3">*   //   color: $black</span>
+   <span class="s3">*   // a</span>
+   <span class="s3">*   //          ^</span>
+   <span class="s3">*   //   background: white</span>
+   <span class="s3">* }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">message Error description.</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">opts    Options.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Error object to throw it.</span>
+   <span class="s3">*/</span>
+  <span class="s1">error(message: string</span><span class="s0">, </span><span class="s1">options?: Node.NodeErrorOptions): CssSyntaxError</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* This method is provided as a convenience wrapper for `Result#warn`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">*   Declaration: {</span>
+   <span class="s3">*     bad: (decl, { result }) =&gt; {</span>
+   <span class="s3">*       decl.warn(result, 'Deprecated property bad')</span>
+   <span class="s3">*     }</span>
+   <span class="s3">*   }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">result The `Result` instance that will receive the warning.</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">text   Warning message.</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">opts   Warning Options.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Created warning object.</span>
+   <span class="s3">*/</span>
+  <span class="s1">warn(result: Result</span><span class="s0">, </span><span class="s1">text: string</span><span class="s0">, </span><span class="s1">opts?: WarningOptions): Warning</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Removes the node from its parent and cleans the parent properties</span>
+   <span class="s3">* from the node and its children.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* if (decl.prop.match(/^-webkit-/)) {</span>
+   <span class="s3">*   decl.remove()</span>
+   <span class="s3">* }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Node to make calls chain.</span>
+   <span class="s3">*/</span>
+  <span class="s1">remove(): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Returns a CSS string representing the node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* new Rule({ selector: 'a' }).toString() //=&gt; &quot;a {}&quot;</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">stringifier A syntax to use in string generation.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">CSS string of this node.</span>
+   <span class="s3">*/</span>
+  <span class="s1">toString(stringifier?: Stringifier | Syntax): string</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Assigns properties to the current node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* decl.assign({ prop: 'word-wrap', value: 'break-word' })</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">overrides New properties to override the node.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Current node to methods chain.</span>
+   <span class="s3">*/</span>
+  <span class="s1">assign(overrides: object): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Returns an exact clone of the node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* The resulting cloned node and its (cloned) children will retain</span>
+   <span class="s3">* code style properties.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* decl.raws.before    //=&gt; &quot;\n  &quot;</span>
+   <span class="s3">* const cloned = decl.clone({ prop: '-moz-' + decl.prop })</span>
+   <span class="s3">* cloned.raws.before  //=&gt; &quot;\n  &quot;</span>
+   <span class="s3">* cloned.toString()   //=&gt; -moz-transform: scale(0)</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">overrides New properties to override in the clone.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Clone of the node.</span>
+   <span class="s3">*/</span>
+  <span class="s1">clone(overrides?: object): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Shortcut to clone the node and insert the resulting cloned node</span>
+   <span class="s3">* before the current node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* decl.cloneBefore({ prop: '-moz-' + decl.prop })</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">overrides Mew properties to override in the clone.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">New node</span>
+   <span class="s3">*/</span>
+  <span class="s1">cloneBefore(overrides?: object): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Shortcut to clone the node and insert the resulting cloned node</span>
+   <span class="s3">* after the current node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">overrides New properties to override in the clone.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">New node.</span>
+   <span class="s3">*/</span>
+  <span class="s1">cloneAfter(overrides?: object): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Inserts node(s) before the current node and removes the current node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* AtRule: {</span>
+   <span class="s3">*   mixin: atrule =&gt; {</span>
+   <span class="s3">*     atrule.replaceWith(mixinRules[atrule.params])</span>
+   <span class="s3">*   }</span>
+   <span class="s3">* }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">nodes Mode(s) to replace current one.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Current node to methods chain.</span>
+   <span class="s3">*/</span>
+  <span class="s1">replaceWith(</span>
+    <span class="s1">...nodes: (Node.ChildNode | Node.ChildProps | Node.ChildNode[] | Node.ChildProps[])[]</span>
+  <span class="s1">): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Returns the next child of the node’s parent.</span>
+   <span class="s3">* Returns `undefined` if the current node is the last child.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* if (comment.text === 'delete next') {</span>
+   <span class="s3">*   const next = comment.next()</span>
+   <span class="s3">*   if (next) {</span>
+   <span class="s3">*     next.remove()</span>
+   <span class="s3">*   }</span>
+   <span class="s3">* }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Next node.</span>
+   <span class="s3">*/</span>
+  <span class="s1">next(): Node.ChildNode | undefined</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Returns the previous child of the node’s parent.</span>
+   <span class="s3">* Returns `undefined` if the current node is the first child.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* const annotation = decl.prev()</span>
+   <span class="s3">* if (annotation.type === 'comment') {</span>
+   <span class="s3">*   readAnnotation(annotation.text)</span>
+   <span class="s3">* }</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Previous node.</span>
+   <span class="s3">*/</span>
+  <span class="s1">prev(): Node.ChildNode | undefined</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Insert new node before current node to current node’s parent.</span>
+   <span class="s3">*</span>
+   <span class="s3">* Just alias for `node.parent.insertBefore(node, add)`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* decl.before('content: &quot;&quot;')</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">newNode New node.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">This node for methods chain.</span>
+   <span class="s3">*/</span>
+  <span class="s1">before(newNode: Node | Node.ChildProps | string | Node[]): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Insert new node after current node to current node’s parent.</span>
+   <span class="s3">*</span>
+   <span class="s3">* Just alias for `node.parent.insertAfter(node, add)`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* decl.after('color: black')</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">newNode New node.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">This node for methods chain.</span>
+   <span class="s3">*/</span>
+  <span class="s1">after(newNode: Node | Node.ChildProps | string | Node[]): </span><span class="s0">this</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Finds the Root instance of the node’s tree.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* root.nodes[0].nodes[0].root() === root</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Root parent.</span>
+   <span class="s3">*/</span>
+  <span class="s1">root(): Root</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Returns a `Node#raws` value. If the node is missing</span>
+   <span class="s3">* the code style property (because the node was manually built or cloned),</span>
+   <span class="s3">* PostCSS will try to autodetect the code style property by looking</span>
+   <span class="s3">* at other nodes in the tree.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* const root = postcss.parse('a { background: white }')</span>
+   <span class="s3">* root.nodes[0].append({ prop: 'color', value: 'black' })</span>
+   <span class="s3">* root.nodes[0].nodes[1].raws.before   //=&gt; undefined</span>
+   <span class="s3">* root.nodes[0].nodes[1].raw('before') //=&gt; ' '</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">prop        Name of code style property.</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">defaultType Name of default value, it can be missed</span>
+   <span class="s3">*                    if the value is the same as prop.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">{string} Code style value.</span>
+   <span class="s3">*/</span>
+  <span class="s1">raw(prop: string</span><span class="s0">, </span><span class="s1">defaultType?: string): string</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Clear the code style properties for the node and its children.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* node.raws.before  //=&gt; ' '</span>
+   <span class="s3">* node.cleanRaws()</span>
+   <span class="s3">* node.raws.before  //=&gt; undefined</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">keepBetween Keep the `raws.between` symbols.</span>
+   <span class="s3">*/</span>
+  <span class="s1">cleanRaws(keepBetween?: boolean): </span><span class="s0">void</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Fix circular links on `JSON.stringify()`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Cleaned object.</span>
+   <span class="s3">*/</span>
+  <span class="s1">toJSON(): object</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Convert string index to line/column.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">index The symbol number in the node’s string.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Symbol position in file.</span>
+   <span class="s3">*/</span>
+  <span class="s1">positionInside(index: number): Node.Position</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Get the position for a word or an index inside the node.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">opts Options.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Position.</span>
+   <span class="s3">*/</span>
+  <span class="s1">positionBy(opts?: Pick&lt;WarningOptions</span><span class="s0">, </span><span class="s2">'word' </span><span class="s1">| </span><span class="s2">'index'</span><span class="s1">&gt;): Node.Position</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Get the range for a word or start and end index inside the node.</span>
+   <span class="s3">* The start index is inclusive; the end index is exclusive.</span>
+   <span class="s3">*</span>
+   <span class="s3">* </span><span class="s5">@param </span><span class="s3">opts Options.</span>
+   <span class="s3">* </span><span class="s5">@return </span><span class="s3">Range.</span>
+   <span class="s3">*/</span>
+  <span class="s1">rangeBy(opts?: Pick&lt;WarningOptions</span><span class="s0">, </span><span class="s2">'word' </span><span class="s1">| </span><span class="s2">'index' </span><span class="s1">| </span><span class="s2">'endIndex'</span><span class="s1">&gt;): Node.Range</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">Node </span><span class="s0">extends </span><span class="s1">Node_ {}</span>
+
+<span class="s0">export </span><span class="s1">= Node</span>
+</pre>
+</body>
+</html>

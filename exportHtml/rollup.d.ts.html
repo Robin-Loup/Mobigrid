@@ -1,0 +1,979 @@
+<html>
+<head>
+<title>rollup.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+.s4 { color: #629755; font-style: italic;}
+.s5 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+rollup.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">export const </span><span class="s1">VERSION: string</span><span class="s0">;</span>
+
+<span class="s2">// utils</span>
+<span class="s1">type NullValue = </span><span class="s0">null </span><span class="s1">| undefined | </span><span class="s0">void;</span>
+<span class="s1">type MaybeArray&lt;T&gt; = T | T[]</span><span class="s0">;</span>
+<span class="s1">type MaybePromise&lt;T&gt; = T | Promise&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s1">type PartialNull&lt;T&gt; = {</span>
+	<span class="s1">[P </span><span class="s0">in </span><span class="s1">keyof T]: T[P] | </span><span class="s0">null;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">RollupError </span><span class="s0">extends </span><span class="s1">RollupLog {</span>
+	<span class="s1">name?: string</span><span class="s0">;</span>
+	<span class="s1">stack?: string</span><span class="s0">;</span>
+	<span class="s1">watchFiles?: string[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type RollupWarning = RollupLog</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">RollupLog {</span>
+	<span class="s1">binding?: string</span><span class="s0">;</span>
+	<span class="s1">cause?: unknown</span><span class="s0">;</span>
+	<span class="s1">code?: string</span><span class="s0">;</span>
+	<span class="s1">exporter?: string</span><span class="s0">;</span>
+	<span class="s1">frame?: string</span><span class="s0">;</span>
+	<span class="s1">hook?: string</span><span class="s0">;</span>
+	<span class="s1">id?: string</span><span class="s0">;</span>
+	<span class="s1">ids?: string[]</span><span class="s0">;</span>
+	<span class="s1">loc?: {</span>
+		<span class="s1">column: number</span><span class="s0">;</span>
+		<span class="s1">file?: string</span><span class="s0">;</span>
+		<span class="s1">line: number</span><span class="s0">;</span>
+	<span class="s1">}</span><span class="s0">;</span>
+	<span class="s1">message: string</span><span class="s0">;</span>
+	<span class="s1">names?: string[]</span><span class="s0">;</span>
+	<span class="s1">plugin?: string</span><span class="s0">;</span>
+	<span class="s1">pluginCode?: string</span><span class="s0">;</span>
+	<span class="s1">pos?: number</span><span class="s0">;</span>
+	<span class="s1">reexporter?: string</span><span class="s0">;</span>
+	<span class="s1">stack?: string</span><span class="s0">;</span>
+	<span class="s1">url?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type SourceMapSegment =</span>
+	<span class="s1">| [number]</span>
+	<span class="s1">| [number</span><span class="s0">, </span><span class="s1">number</span><span class="s0">, </span><span class="s1">number</span><span class="s0">, </span><span class="s1">number]</span>
+	<span class="s1">| [number</span><span class="s0">, </span><span class="s1">number</span><span class="s0">, </span><span class="s1">number</span><span class="s0">, </span><span class="s1">number</span><span class="s0">, </span><span class="s1">number]</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">ExistingDecodedSourceMap {</span>
+	<span class="s1">file?: string</span><span class="s0">;</span>
+	<span class="s1">mappings: SourceMapSegment[][]</span><span class="s0">;</span>
+	<span class="s1">names: string[]</span><span class="s0">;</span>
+	<span class="s1">sourceRoot?: string</span><span class="s0">;</span>
+	<span class="s1">sources: string[]</span><span class="s0">;</span>
+	<span class="s1">sourcesContent?: (string | </span><span class="s0">null</span><span class="s1">)[]</span><span class="s0">;</span>
+	<span class="s1">version: number</span><span class="s0">;</span>
+	<span class="s1">x_google_ignoreList?: number[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ExistingRawSourceMap {</span>
+	<span class="s1">file?: string</span><span class="s0">;</span>
+	<span class="s1">mappings: string</span><span class="s0">;</span>
+	<span class="s1">names: string[]</span><span class="s0">;</span>
+	<span class="s1">sourceRoot?: string</span><span class="s0">;</span>
+	<span class="s1">sources: string[]</span><span class="s0">;</span>
+	<span class="s1">sourcesContent?: (string | </span><span class="s0">null</span><span class="s1">)[]</span><span class="s0">;</span>
+	<span class="s1">version: number</span><span class="s0">;</span>
+	<span class="s1">x_google_ignoreList?: number[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type DecodedSourceMapOrMissing =</span>
+	<span class="s1">| {</span>
+			<span class="s1">mappings?: never</span><span class="s0">;</span>
+			<span class="s1">missing: </span><span class="s0">true;</span>
+			<span class="s1">plugin: string</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+	<span class="s1">| ExistingDecodedSourceMap</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">SourceMap {</span>
+	<span class="s1">file: string</span><span class="s0">;</span>
+	<span class="s1">mappings: string</span><span class="s0">;</span>
+	<span class="s1">names: string[]</span><span class="s0">;</span>
+	<span class="s1">sources: string[]</span><span class="s0">;</span>
+	<span class="s1">sourcesContent: (string | </span><span class="s0">null</span><span class="s1">)[]</span><span class="s0">;</span>
+	<span class="s1">version: number</span><span class="s0">;</span>
+	<span class="s1">toString(): string</span><span class="s0">;</span>
+	<span class="s1">toUrl(): string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type SourceMapInput = ExistingRawSourceMap | string | </span><span class="s0">null </span><span class="s1">| { mappings: </span><span class="s3">'' </span><span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">interface </span><span class="s1">ModuleOptions {</span>
+	<span class="s1">assertions: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">;</span>
+	<span class="s1">meta: CustomPluginOptions</span><span class="s0">;</span>
+	<span class="s1">moduleSideEffects: boolean | </span><span class="s3">'no-treeshake'</span><span class="s0">;</span>
+	<span class="s1">syntheticNamedExports: boolean | string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">SourceDescription </span><span class="s0">extends </span><span class="s1">Partial&lt;PartialNull&lt;ModuleOptions&gt;&gt; {</span>
+	<span class="s1">ast?: AcornNode</span><span class="s0">;</span>
+	<span class="s1">code: string</span><span class="s0">;</span>
+	<span class="s1">map?: SourceMapInput</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TransformModuleJSON {</span>
+	<span class="s1">ast?: AcornNode</span><span class="s0">;</span>
+	<span class="s1">code: string</span><span class="s0">;</span>
+	<span class="s2">// note if plugins use new this.cache to opt-out auto transform cache</span>
+	<span class="s1">customTransformCache: boolean</span><span class="s0">;</span>
+	<span class="s1">originalCode: string</span><span class="s0">;</span>
+	<span class="s1">originalSourcemap: ExistingDecodedSourceMap | </span><span class="s0">null;</span>
+	<span class="s1">sourcemapChain: DecodedSourceMapOrMissing[]</span><span class="s0">;</span>
+	<span class="s1">transformDependencies: string[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ModuleJSON </span><span class="s0">extends </span><span class="s1">TransformModuleJSON</span><span class="s0">, </span><span class="s1">ModuleOptions {</span>
+	<span class="s1">ast: AcornNode</span><span class="s0">;</span>
+	<span class="s1">dependencies: string[]</span><span class="s0">;</span>
+	<span class="s1">id: string</span><span class="s0">;</span>
+	<span class="s1">resolvedIds: ResolvedIdMap</span><span class="s0">;</span>
+	<span class="s1">transformFiles: EmittedFile[] | undefined</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PluginCache {</span>
+	<span class="s0">delete</span><span class="s1">(id: string): boolean</span><span class="s0">;</span>
+	<span class="s1">get&lt;T = any&gt;(id: string): T</span><span class="s0">;</span>
+	<span class="s1">has(id: string): boolean</span><span class="s0">;</span>
+	<span class="s1">set&lt;T = any&gt;(id: string</span><span class="s0">, </span><span class="s1">value: T): </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MinimalPluginContext {</span>
+	<span class="s1">meta: PluginContextMeta</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">EmittedAsset {</span>
+	<span class="s1">fileName?: string</span><span class="s0">;</span>
+	<span class="s1">name?: string</span><span class="s0">;</span>
+	<span class="s1">needsCodeReference?: boolean</span><span class="s0">;</span>
+	<span class="s1">source?: string | Uint8Array</span><span class="s0">;</span>
+	<span class="s1">type: </span><span class="s3">'asset'</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">EmittedChunk {</span>
+	<span class="s1">fileName?: string</span><span class="s0">;</span>
+	<span class="s1">id: string</span><span class="s0">;</span>
+	<span class="s1">implicitlyLoadedAfterOneOf?: string[]</span><span class="s0">;</span>
+	<span class="s1">importer?: string</span><span class="s0">;</span>
+	<span class="s1">name?: string</span><span class="s0">;</span>
+	<span class="s1">preserveSignature?: PreserveEntrySignaturesOption</span><span class="s0">;</span>
+	<span class="s1">type: </span><span class="s3">'chunk'</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type EmittedFile = EmittedAsset | EmittedChunk</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type EmitFile = (emittedFile: EmittedFile) =&gt; string</span><span class="s0">;</span>
+
+<span class="s0">interface </span><span class="s1">ModuleInfo </span><span class="s0">extends </span><span class="s1">ModuleOptions {</span>
+	<span class="s1">ast: AcornNode | </span><span class="s0">null;</span>
+	<span class="s1">code: string | </span><span class="s0">null;</span>
+	<span class="s1">dynamicImporters: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">dynamicallyImportedIdResolutions: readonly ResolvedId[]</span><span class="s0">;</span>
+	<span class="s1">dynamicallyImportedIds: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">exportedBindings: Record&lt;string</span><span class="s0">, </span><span class="s1">string[]&gt; | </span><span class="s0">null;</span>
+	<span class="s1">exports: string[] | </span><span class="s0">null;</span>
+	<span class="s1">hasDefaultExport: boolean | </span><span class="s0">null;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use `moduleSideEffects` instead */</span>
+	<span class="s1">hasModuleSideEffects: boolean | </span><span class="s3">'no-treeshake'</span><span class="s0">;</span>
+	<span class="s1">id: string</span><span class="s0">;</span>
+	<span class="s1">implicitlyLoadedAfterOneOf: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">implicitlyLoadedBefore: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">importedIdResolutions: readonly ResolvedId[]</span><span class="s0">;</span>
+	<span class="s1">importedIds: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">importers: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">isEntry: boolean</span><span class="s0">;</span>
+	<span class="s1">isExternal: boolean</span><span class="s0">;</span>
+	<span class="s1">isIncluded: boolean | </span><span class="s0">null;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type GetModuleInfo = (moduleId: string) =&gt; ModuleInfo | </span><span class="s0">null;</span>
+
+<span class="s0">export interface </span><span class="s1">CustomPluginOptions {</span>
+	<span class="s1">[plugin: string]: any</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PluginContext </span><span class="s0">extends </span><span class="s1">MinimalPluginContext {</span>
+	<span class="s1">addWatchFile: (id: string) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">cache: PluginCache</span><span class="s0">;</span>
+	<span class="s1">emitFile: EmitFile</span><span class="s0">;</span>
+	<span class="s1">error: (error: RollupError | string</span><span class="s0">, </span><span class="s1">pos?: number | { column: number</span><span class="s0">; </span><span class="s1">line: number }) =&gt; never</span><span class="s0">;</span>
+	<span class="s1">getFileName: (fileReferenceId: string) =&gt; string</span><span class="s0">;</span>
+	<span class="s1">getModuleIds: () =&gt; IterableIterator&lt;string&gt;</span><span class="s0">;</span>
+	<span class="s1">getModuleInfo: GetModuleInfo</span><span class="s0">;</span>
+	<span class="s1">getWatchFiles: () =&gt; string[]</span><span class="s0">;</span>
+	<span class="s1">load: (</span>
+		<span class="s1">options: { id: string</span><span class="s0">; </span><span class="s1">resolveDependencies?: boolean } &amp; Partial&lt;PartialNull&lt;ModuleOptions&gt;&gt;</span>
+	<span class="s1">) =&gt; Promise&lt;ModuleInfo&gt;</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use `this.getModuleIds` instead */</span>
+	<span class="s1">moduleIds: IterableIterator&lt;string&gt;</span><span class="s0">;</span>
+	<span class="s1">parse: (input: string</span><span class="s0">, </span><span class="s1">options?: any) =&gt; AcornNode</span><span class="s0">;</span>
+	<span class="s1">resolve: (</span>
+		<span class="s1">source: string</span><span class="s0">,</span>
+		<span class="s1">importer?: string</span><span class="s0">,</span>
+		<span class="s1">options?: {</span>
+			<span class="s1">assertions?: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">;</span>
+			<span class="s1">custom?: CustomPluginOptions</span><span class="s0">;</span>
+			<span class="s1">isEntry?: boolean</span><span class="s0">;</span>
+			<span class="s1">skipSelf?: boolean</span><span class="s0">;</span>
+		<span class="s1">}</span>
+	<span class="s1">) =&gt; Promise&lt;ResolvedId | </span><span class="s0">null</span><span class="s1">&gt;</span><span class="s0">;</span>
+	<span class="s1">setAssetSource: (assetReferenceId: string</span><span class="s0">, </span><span class="s1">source: string | Uint8Array) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">warn: (warning: RollupWarning | string</span><span class="s0">, </span><span class="s1">pos?: number | { column: number</span><span class="s0">; </span><span class="s1">line: number }) =&gt; </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PluginContextMeta {</span>
+	<span class="s1">rollupVersion: string</span><span class="s0">;</span>
+	<span class="s1">watchMode: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ResolvedId </span><span class="s0">extends </span><span class="s1">ModuleOptions {</span>
+	<span class="s1">external: boolean | </span><span class="s3">'absolute'</span><span class="s0">;</span>
+	<span class="s1">id: string</span><span class="s0">;</span>
+	<span class="s1">resolvedBy: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ResolvedIdMap {</span>
+	<span class="s1">[key: string]: ResolvedId</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">interface </span><span class="s1">PartialResolvedId </span><span class="s0">extends </span><span class="s1">Partial&lt;PartialNull&lt;ModuleOptions&gt;&gt; {</span>
+	<span class="s1">external?: boolean | </span><span class="s3">'absolute' </span><span class="s1">| </span><span class="s3">'relative'</span><span class="s0">;</span>
+	<span class="s1">id: string</span><span class="s0">;</span>
+	<span class="s1">resolvedBy?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type ResolveIdResult = string | NullValue | </span><span class="s0">false </span><span class="s1">| PartialResolvedId</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ResolveIdResultWithoutNullValue = string | </span><span class="s0">false </span><span class="s1">| PartialResolvedId</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ResolveIdHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">source: string</span><span class="s0">,</span>
+	<span class="s1">importer: string | undefined</span><span class="s0">,</span>
+	<span class="s1">options: { assertions: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">; </span><span class="s1">custom?: CustomPluginOptions</span><span class="s0">; </span><span class="s1">isEntry: boolean }</span>
+<span class="s1">) =&gt; ResolveIdResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ShouldTransformCachedModuleHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">options: {</span>
+		<span class="s1">ast: AcornNode</span><span class="s0">;</span>
+		<span class="s1">code: string</span><span class="s0">;</span>
+		<span class="s1">id: string</span><span class="s0">;</span>
+		<span class="s1">meta: CustomPluginOptions</span><span class="s0">;</span>
+		<span class="s1">moduleSideEffects: boolean | </span><span class="s3">'no-treeshake'</span><span class="s0">;</span>
+		<span class="s1">resolvedSources: ResolvedIdMap</span><span class="s0">;</span>
+		<span class="s1">syntheticNamedExports: boolean | string</span><span class="s0">;</span>
+	<span class="s1">}</span>
+<span class="s1">) =&gt; boolean | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type IsExternal = (</span>
+	<span class="s1">source: string</span><span class="s0">,</span>
+	<span class="s1">importer: string | undefined</span><span class="s0">,</span>
+	<span class="s1">isResolved: boolean</span>
+<span class="s1">) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type IsPureModule = (id: string) =&gt; boolean | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type HasModuleSideEffects = (id: string</span><span class="s0">, </span><span class="s1">external: boolean) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type LoadResult = SourceDescription | string | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type LoadHook = (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">id: string) =&gt; LoadResult</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">TransformPluginContext </span><span class="s0">extends </span><span class="s1">PluginContext {</span>
+	<span class="s1">getCombinedSourcemap: () =&gt; SourceMap</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type TransformResult = string | NullValue | Partial&lt;SourceDescription&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type TransformHook = (</span>
+	<span class="s0">this</span><span class="s1">: TransformPluginContext</span><span class="s0">,</span>
+	<span class="s1">code: string</span><span class="s0">,</span>
+	<span class="s1">id: string</span>
+<span class="s1">) =&gt; TransformResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ModuleParsedHook = (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">info: ModuleInfo) =&gt; </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">type RenderChunkHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">code: string</span><span class="s0">,</span>
+	<span class="s1">chunk: RenderedChunk</span><span class="s0">,</span>
+	<span class="s1">options: NormalizedOutputOptions</span><span class="s0">,</span>
+	<span class="s1">meta: { chunks: Record&lt;string</span><span class="s0">, </span><span class="s1">RenderedChunk&gt; }</span>
+<span class="s1">) =&gt; { code: string</span><span class="s0">; </span><span class="s1">map?: SourceMapInput } | string | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ResolveDynamicImportHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">specifier: string | AcornNode</span><span class="s0">,</span>
+	<span class="s1">importer: string</span><span class="s0">,</span>
+	<span class="s1">options: { assertions: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt; }</span>
+<span class="s1">) =&gt; ResolveIdResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ResolveImportMetaHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">property: string | </span><span class="s0">null,</span>
+	<span class="s1">options: { chunkId: string</span><span class="s0">; </span><span class="s1">format: InternalModuleFormat</span><span class="s0">; </span><span class="s1">moduleId: string }</span>
+<span class="s1">) =&gt; string | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ResolveFileUrlHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">options: {</span>
+		<span class="s1">chunkId: string</span><span class="s0">;</span>
+		<span class="s1">fileName: string</span><span class="s0">;</span>
+		<span class="s1">format: InternalModuleFormat</span><span class="s0">;</span>
+		<span class="s1">moduleId: string</span><span class="s0">;</span>
+		<span class="s1">referenceId: string</span><span class="s0">;</span>
+		<span class="s1">relativePath: string</span><span class="s0">;</span>
+	<span class="s1">}</span>
+<span class="s1">) =&gt; string | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type AddonHookFunction = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">chunk: RenderedChunk</span>
+<span class="s1">) =&gt; string | Promise&lt;string&gt;</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type AddonHook = string | AddonHookFunction</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ChangeEvent = </span><span class="s3">'create' </span><span class="s1">| </span><span class="s3">'update' </span><span class="s1">| </span><span class="s3">'delete'</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type WatchChangeHook = (</span>
+	<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+	<span class="s1">id: string</span><span class="s0">,</span>
+	<span class="s1">change: { event: ChangeEvent }</span>
+<span class="s1">) =&gt; </span><span class="s0">void;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* use this type for plugin annotation</span>
+ <span class="s4">* </span><span class="s5">@example</span>
+ <span class="s4">* ```ts</span>
+ <span class="s4">* interface Options {</span>
+ <span class="s4">* ...</span>
+ <span class="s4">* }</span>
+ <span class="s4">* const myPlugin: PluginImpl&lt;Options&gt; = (options = {}) =&gt; { ... }</span>
+ <span class="s4">* ```</span>
+ <span class="s4">*/</span>
+<span class="s2">// eslint-disable-next-line @typescript-eslint/ban-types</span>
+<span class="s0">export </span><span class="s1">type PluginImpl&lt;O </span><span class="s0">extends </span><span class="s1">object = object&gt; = (options?: O) =&gt; Plugin</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">OutputBundle {</span>
+	<span class="s1">[fileName: string]: OutputAsset | OutputChunk</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">FunctionPluginHooks {</span>
+	<span class="s1">augmentChunkHash: (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">chunk: RenderedChunk) =&gt; string | </span><span class="s0">void;</span>
+	<span class="s1">buildEnd: (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">error?: Error) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">buildStart: (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">options: NormalizedInputOptions) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">closeBundle: (</span><span class="s0">this</span><span class="s1">: PluginContext) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">closeWatcher: (</span><span class="s0">this</span><span class="s1">: PluginContext) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">generateBundle: (</span>
+		<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+		<span class="s1">options: NormalizedOutputOptions</span><span class="s0">,</span>
+		<span class="s1">bundle: OutputBundle</span><span class="s0">,</span>
+		<span class="s1">isWrite: boolean</span>
+	<span class="s1">) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">load: LoadHook</span><span class="s0">;</span>
+	<span class="s1">moduleParsed: ModuleParsedHook</span><span class="s0">;</span>
+	<span class="s1">options: (</span><span class="s0">this</span><span class="s1">: MinimalPluginContext</span><span class="s0">, </span><span class="s1">options: InputOptions) =&gt; InputOptions | NullValue</span><span class="s0">;</span>
+	<span class="s1">outputOptions: (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">options: OutputOptions) =&gt; OutputOptions | NullValue</span><span class="s0">;</span>
+	<span class="s1">renderChunk: RenderChunkHook</span><span class="s0">;</span>
+	<span class="s1">renderDynamicImport: (</span>
+		<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+		<span class="s1">options: {</span>
+			<span class="s1">customResolution: string | </span><span class="s0">null;</span>
+			<span class="s1">format: InternalModuleFormat</span><span class="s0">;</span>
+			<span class="s1">moduleId: string</span><span class="s0">;</span>
+			<span class="s1">targetModuleId: string | </span><span class="s0">null;</span>
+		<span class="s1">}</span>
+	<span class="s1">) =&gt; { left: string</span><span class="s0">; </span><span class="s1">right: string } | NullValue</span><span class="s0">;</span>
+	<span class="s1">renderError: (</span><span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">, </span><span class="s1">error?: Error) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">renderStart: (</span>
+		<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+		<span class="s1">outputOptions: NormalizedOutputOptions</span><span class="s0">,</span>
+		<span class="s1">inputOptions: NormalizedInputOptions</span>
+	<span class="s1">) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">resolveDynamicImport: ResolveDynamicImportHook</span><span class="s0">;</span>
+	<span class="s1">resolveFileUrl: ResolveFileUrlHook</span><span class="s0">;</span>
+	<span class="s1">resolveId: ResolveIdHook</span><span class="s0">;</span>
+	<span class="s1">resolveImportMeta: ResolveImportMetaHook</span><span class="s0">;</span>
+	<span class="s1">shouldTransformCachedModule: ShouldTransformCachedModuleHook</span><span class="s0">;</span>
+	<span class="s1">transform: TransformHook</span><span class="s0">;</span>
+	<span class="s1">watchChange: WatchChangeHook</span><span class="s0">;</span>
+	<span class="s1">writeBundle: (</span>
+		<span class="s0">this</span><span class="s1">: PluginContext</span><span class="s0">,</span>
+		<span class="s1">options: NormalizedOutputOptions</span><span class="s0">,</span>
+		<span class="s1">bundle: OutputBundle</span>
+	<span class="s1">) =&gt; </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type OutputPluginHooks =</span>
+	<span class="s1">| </span><span class="s3">'augmentChunkHash'</span>
+	<span class="s1">| </span><span class="s3">'generateBundle'</span>
+	<span class="s1">| </span><span class="s3">'outputOptions'</span>
+	<span class="s1">| </span><span class="s3">'renderChunk'</span>
+	<span class="s1">| </span><span class="s3">'renderDynamicImport'</span>
+	<span class="s1">| </span><span class="s3">'renderError'</span>
+	<span class="s1">| </span><span class="s3">'renderStart'</span>
+	<span class="s1">| </span><span class="s3">'resolveFileUrl'</span>
+	<span class="s1">| </span><span class="s3">'resolveImportMeta'</span>
+	<span class="s1">| </span><span class="s3">'writeBundle'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type InputPluginHooks = Exclude&lt;keyof FunctionPluginHooks</span><span class="s0">, </span><span class="s1">OutputPluginHooks&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type SyncPluginHooks =</span>
+	<span class="s1">| </span><span class="s3">'augmentChunkHash'</span>
+	<span class="s1">| </span><span class="s3">'outputOptions'</span>
+	<span class="s1">| </span><span class="s3">'renderDynamicImport'</span>
+	<span class="s1">| </span><span class="s3">'resolveFileUrl'</span>
+	<span class="s1">| </span><span class="s3">'resolveImportMeta'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type AsyncPluginHooks = Exclude&lt;keyof FunctionPluginHooks</span><span class="s0">, </span><span class="s1">SyncPluginHooks&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type FirstPluginHooks =</span>
+	<span class="s1">| </span><span class="s3">'load'</span>
+	<span class="s1">| </span><span class="s3">'renderDynamicImport'</span>
+	<span class="s1">| </span><span class="s3">'resolveDynamicImport'</span>
+	<span class="s1">| </span><span class="s3">'resolveFileUrl'</span>
+	<span class="s1">| </span><span class="s3">'resolveId'</span>
+	<span class="s1">| </span><span class="s3">'resolveImportMeta'</span>
+	<span class="s1">| </span><span class="s3">'shouldTransformCachedModule'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type SequentialPluginHooks =</span>
+	<span class="s1">| </span><span class="s3">'augmentChunkHash'</span>
+	<span class="s1">| </span><span class="s3">'generateBundle'</span>
+	<span class="s1">| </span><span class="s3">'options'</span>
+	<span class="s1">| </span><span class="s3">'outputOptions'</span>
+	<span class="s1">| </span><span class="s3">'renderChunk'</span>
+	<span class="s1">| </span><span class="s3">'transform'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ParallelPluginHooks = Exclude&lt;</span>
+	<span class="s1">keyof FunctionPluginHooks | AddonHooks</span><span class="s0">,</span>
+	<span class="s1">FirstPluginHooks | SequentialPluginHooks</span>
+<span class="s1">&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type AddonHooks = </span><span class="s3">'banner' </span><span class="s1">| </span><span class="s3">'footer' </span><span class="s1">| </span><span class="s3">'intro' </span><span class="s1">| </span><span class="s3">'outro'</span><span class="s0">;</span>
+
+<span class="s1">type MakeAsync&lt;Function_&gt; = Function_ </span><span class="s0">extends </span><span class="s1">(</span>
+	<span class="s0">this</span><span class="s1">: infer This</span><span class="s0">,</span>
+	<span class="s1">...parameters: infer Arguments</span>
+<span class="s1">) =&gt; infer Return</span>
+	<span class="s1">? (</span><span class="s0">this</span><span class="s1">: This</span><span class="s0">, </span><span class="s1">...parameters: Arguments) =&gt; Return | Promise&lt;Return&gt;</span>
+	<span class="s1">: never</span><span class="s0">;</span>
+
+<span class="s2">// eslint-disable-next-line @typescript-eslint/ban-types</span>
+<span class="s1">type ObjectHook&lt;T</span><span class="s0">, </span><span class="s1">O = {}&gt; = T | ({ handler: T</span><span class="s0">; </span><span class="s1">order?: </span><span class="s3">'pre' </span><span class="s1">| </span><span class="s3">'post' </span><span class="s1">| </span><span class="s0">null </span><span class="s1">} &amp; O)</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type PluginHooks = {</span>
+	<span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof FunctionPluginHooks]: ObjectHook&lt;</span>
+		<span class="s1">K </span><span class="s0">extends </span><span class="s1">AsyncPluginHooks ? MakeAsync&lt;FunctionPluginHooks[K]&gt; : FunctionPluginHooks[K]</span><span class="s0">,</span>
+		<span class="s2">// eslint-disable-next-line @typescript-eslint/ban-types</span>
+		<span class="s1">K </span><span class="s0">extends </span><span class="s1">ParallelPluginHooks ? { sequential?: boolean } : {}</span>
+	<span class="s1">&gt;</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">OutputPlugin</span>
+	<span class="s0">extends </span><span class="s1">Partial&lt;{ [K </span><span class="s0">in </span><span class="s1">OutputPluginHooks]: PluginHooks[K] }&gt;</span><span class="s0">,</span>
+		<span class="s1">Partial&lt;{ [K </span><span class="s0">in </span><span class="s1">AddonHooks]: ObjectHook&lt;AddonHook&gt; }&gt; {</span>
+	<span class="s1">cacheKey?: string</span><span class="s0">;</span>
+	<span class="s1">name: string</span><span class="s0">;</span>
+	<span class="s1">version?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Plugin </span><span class="s0">extends </span><span class="s1">OutputPlugin</span><span class="s0">, </span><span class="s1">Partial&lt;PluginHooks&gt; {</span>
+	<span class="s2">// for inter-plugin communication</span>
+	<span class="s1">api?: any</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">type TreeshakingPreset = </span><span class="s3">'smallest' </span><span class="s1">| </span><span class="s3">'safest' </span><span class="s1">| </span><span class="s3">'recommended'</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">NormalizedTreeshakingOptions {</span>
+	<span class="s1">annotations: boolean</span><span class="s0">;</span>
+	<span class="s1">correctVarValueBeforeDeclaration: boolean</span><span class="s0">;</span>
+	<span class="s1">manualPureFunctions: readonly string[]</span><span class="s0">;</span>
+	<span class="s1">moduleSideEffects: HasModuleSideEffects</span><span class="s0">;</span>
+	<span class="s1">propertyReadSideEffects: boolean | </span><span class="s3">'always'</span><span class="s0">;</span>
+	<span class="s1">tryCatchDeoptimization: boolean</span><span class="s0">;</span>
+	<span class="s1">unknownGlobalSideEffects: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TreeshakingOptions</span>
+	<span class="s0">extends </span><span class="s1">Partial&lt;Omit&lt;NormalizedTreeshakingOptions</span><span class="s0">, </span><span class="s3">'moduleSideEffects'</span><span class="s1">&gt;&gt; {</span>
+	<span class="s1">moduleSideEffects?: ModuleSideEffectsOption</span><span class="s0">;</span>
+	<span class="s1">preset?: TreeshakingPreset</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">interface </span><span class="s1">ManualChunkMeta {</span>
+	<span class="s1">getModuleIds: () =&gt; IterableIterator&lt;string&gt;</span><span class="s0">;</span>
+	<span class="s1">getModuleInfo: GetModuleInfo</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">export </span><span class="s1">type GetManualChunk = (id: string</span><span class="s0">, </span><span class="s1">meta: ManualChunkMeta) =&gt; string | NullValue</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ExternalOption =</span>
+	<span class="s1">| (string | RegExp)[]</span>
+	<span class="s1">| string</span>
+	<span class="s1">| RegExp</span>
+	<span class="s1">| ((source: string</span><span class="s0">, </span><span class="s1">importer: string | undefined</span><span class="s0">, </span><span class="s1">isResolved: boolean) =&gt; boolean | NullValue)</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type PureModulesOption = boolean | string[] | IsPureModule</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type GlobalsOption = { [name: string]: string } | ((name: string) =&gt; string)</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type InputOption = string | string[] | { [entryAlias: string]: string }</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type ModuleSideEffectsOption = boolean | </span><span class="s3">'no-external' </span><span class="s1">| string[] | HasModuleSideEffects</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type PreserveEntrySignaturesOption = </span><span class="s0">false </span><span class="s1">| </span><span class="s3">'strict' </span><span class="s1">| </span><span class="s3">'allow-extension' </span><span class="s1">| </span><span class="s3">'exports-only'</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type SourcemapPathTransformOption = (</span>
+	<span class="s1">relativeSourcePath: string</span><span class="s0">,</span>
+	<span class="s1">sourcemapPath: string</span>
+<span class="s1">) =&gt; string</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">type SourcemapIgnoreListOption = (</span>
+	<span class="s1">relativeSourcePath: string</span><span class="s0">,</span>
+	<span class="s1">sourcemapPath: string</span>
+<span class="s1">) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type InputPluginOption = MaybePromise&lt;Plugin | NullValue | </span><span class="s0">false </span><span class="s1">| InputPluginOption[]&gt;</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">InputOptions {</span>
+	<span class="s1">acorn?: Record&lt;string</span><span class="s0">, </span><span class="s1">unknown&gt;</span><span class="s0">;</span>
+	<span class="s1">acornInjectPlugins?: (() =&gt; unknown)[] | (() =&gt; unknown)</span><span class="s0">;</span>
+	<span class="s1">cache?: boolean | RollupCache</span><span class="s0">;</span>
+	<span class="s1">context?: string</span><span class="s0">;</span>
+	<span class="s1">experimentalCacheExpiry?: number</span><span class="s0">;</span>
+	<span class="s1">experimentalLogSideEffects?: boolean</span><span class="s0">;</span>
+	<span class="s1">external?: ExternalOption</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;inlineDynamicImports&quot; output option instead. */</span>
+	<span class="s1">inlineDynamicImports?: boolean</span><span class="s0">;</span>
+	<span class="s1">input?: InputOption</span><span class="s0">;</span>
+	<span class="s1">makeAbsoluteExternalsRelative?: boolean | </span><span class="s3">'ifRelativeSource'</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;manualChunks&quot; output option instead. */</span>
+	<span class="s1">manualChunks?: ManualChunksOption</span><span class="s0">;</span>
+	<span class="s1">maxParallelFileOps?: number</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;maxParallelFileOps&quot; option instead. */</span>
+	<span class="s1">maxParallelFileReads?: number</span><span class="s0">;</span>
+	<span class="s1">moduleContext?: ((id: string) =&gt; string | NullValue) | { [id: string]: string }</span><span class="s0">;</span>
+	<span class="s1">onwarn?: WarningHandlerWithDefault</span><span class="s0">;</span>
+	<span class="s1">perf?: boolean</span><span class="s0">;</span>
+	<span class="s1">plugins?: InputPluginOption</span><span class="s0">;</span>
+	<span class="s1">preserveEntrySignatures?: PreserveEntrySignaturesOption</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;preserveModules&quot; output option instead. */</span>
+	<span class="s1">preserveModules?: boolean</span><span class="s0">;</span>
+	<span class="s1">preserveSymlinks?: boolean</span><span class="s0">;</span>
+	<span class="s1">shimMissingExports?: boolean</span><span class="s0">;</span>
+	<span class="s1">strictDeprecations?: boolean</span><span class="s0">;</span>
+	<span class="s1">treeshake?: boolean | TreeshakingPreset | TreeshakingOptions</span><span class="s0">;</span>
+	<span class="s1">watch?: WatcherOptions | </span><span class="s0">false;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">InputOptionsWithPlugins </span><span class="s0">extends </span><span class="s1">InputOptions {</span>
+	<span class="s1">plugins: Plugin[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">NormalizedInputOptions {</span>
+	<span class="s1">acorn: Record&lt;string</span><span class="s0">, </span><span class="s1">unknown&gt;</span><span class="s0">;</span>
+	<span class="s1">acornInjectPlugins: (() =&gt; unknown)[]</span><span class="s0">;</span>
+	<span class="s1">cache: </span><span class="s0">false </span><span class="s1">| undefined | RollupCache</span><span class="s0">;</span>
+	<span class="s1">context: string</span><span class="s0">;</span>
+	<span class="s1">experimentalCacheExpiry: number</span><span class="s0">;</span>
+	<span class="s1">experimentalLogSideEffects: boolean</span><span class="s0">;</span>
+	<span class="s1">external: IsExternal</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;inlineDynamicImports&quot; output option instead. */</span>
+	<span class="s1">inlineDynamicImports: boolean | undefined</span><span class="s0">;</span>
+	<span class="s1">input: string[] | { [entryAlias: string]: string }</span><span class="s0">;</span>
+	<span class="s1">makeAbsoluteExternalsRelative: boolean | </span><span class="s3">'ifRelativeSource'</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;manualChunks&quot; output option instead. */</span>
+	<span class="s1">manualChunks: ManualChunksOption | undefined</span><span class="s0">;</span>
+	<span class="s1">maxParallelFileOps: number</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;maxParallelFileOps&quot; option instead. */</span>
+	<span class="s1">maxParallelFileReads: number</span><span class="s0">;</span>
+	<span class="s1">moduleContext: (id: string) =&gt; string</span><span class="s0">;</span>
+	<span class="s1">onwarn: WarningHandler</span><span class="s0">;</span>
+	<span class="s1">perf: boolean</span><span class="s0">;</span>
+	<span class="s1">plugins: Plugin[]</span><span class="s0">;</span>
+	<span class="s1">preserveEntrySignatures: PreserveEntrySignaturesOption</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;preserveModules&quot; output option instead. */</span>
+	<span class="s1">preserveModules: boolean | undefined</span><span class="s0">;</span>
+	<span class="s1">preserveSymlinks: boolean</span><span class="s0">;</span>
+	<span class="s1">shimMissingExports: boolean</span><span class="s0">;</span>
+	<span class="s1">strictDeprecations: boolean</span><span class="s0">;</span>
+	<span class="s1">treeshake: </span><span class="s0">false </span><span class="s1">| NormalizedTreeshakingOptions</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type InternalModuleFormat = </span><span class="s3">'amd' </span><span class="s1">| </span><span class="s3">'cjs' </span><span class="s1">| </span><span class="s3">'es' </span><span class="s1">| </span><span class="s3">'iife' </span><span class="s1">| </span><span class="s3">'system' </span><span class="s1">| </span><span class="s3">'umd'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type ModuleFormat = InternalModuleFormat | </span><span class="s3">'commonjs' </span><span class="s1">| </span><span class="s3">'esm' </span><span class="s1">| </span><span class="s3">'module' </span><span class="s1">| </span><span class="s3">'systemjs'</span><span class="s0">;</span>
+
+<span class="s1">type GeneratedCodePreset = </span><span class="s3">'es5' </span><span class="s1">| </span><span class="s3">'es2015'</span><span class="s0">;</span>
+
+<span class="s0">interface </span><span class="s1">NormalizedGeneratedCodeOptions {</span>
+	<span class="s1">arrowFunctions: boolean</span><span class="s0">;</span>
+	<span class="s1">constBindings: boolean</span><span class="s0">;</span>
+	<span class="s1">objectShorthand: boolean</span><span class="s0">;</span>
+	<span class="s1">reservedNamesAsProps: boolean</span><span class="s0">;</span>
+	<span class="s1">symbols: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">interface </span><span class="s1">GeneratedCodeOptions </span><span class="s0">extends </span><span class="s1">Partial&lt;NormalizedGeneratedCodeOptions&gt; {</span>
+	<span class="s1">preset?: GeneratedCodePreset</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type OptionsPaths = Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt; | ((id: string) =&gt; string)</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type InteropType = </span><span class="s3">'compat' </span><span class="s1">| </span><span class="s3">'auto' </span><span class="s1">| </span><span class="s3">'esModule' </span><span class="s1">| </span><span class="s3">'default' </span><span class="s1">| </span><span class="s3">'defaultOnly'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type GetInterop = (id: string | </span><span class="s0">null</span><span class="s1">) =&gt; InteropType</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type AmdOptions = (</span>
+	<span class="s1">| {</span>
+			<span class="s1">autoId?: </span><span class="s0">false;</span>
+			<span class="s1">id: string</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+	<span class="s1">| {</span>
+			<span class="s1">autoId: </span><span class="s0">true;</span>
+			<span class="s1">basePath?: string</span><span class="s0">;</span>
+			<span class="s1">id?: undefined</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+	<span class="s1">| {</span>
+			<span class="s1">autoId?: </span><span class="s0">false;</span>
+			<span class="s1">id?: undefined</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+<span class="s1">) &amp; {</span>
+	<span class="s1">define?: string</span><span class="s0">;</span>
+	<span class="s1">forceJsExtensionForImports?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type NormalizedAmdOptions = (</span>
+	<span class="s1">| {</span>
+			<span class="s1">autoId: </span><span class="s0">false;</span>
+			<span class="s1">id?: string</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+	<span class="s1">| {</span>
+			<span class="s1">autoId: </span><span class="s0">true;</span>
+			<span class="s1">basePath: string</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+<span class="s1">) &amp; {</span>
+	<span class="s1">define: string</span><span class="s0">;</span>
+	<span class="s1">forceJsExtensionForImports: boolean</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">type AddonFunction = (chunk: RenderedChunk) =&gt; string | Promise&lt;string&gt;</span><span class="s0">;</span>
+
+<span class="s1">type OutputPluginOption = MaybePromise&lt;OutputPlugin | NullValue | </span><span class="s0">false </span><span class="s1">| OutputPluginOption[]&gt;</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">OutputOptions {</span>
+	<span class="s1">amd?: AmdOptions</span><span class="s0">;</span>
+	<span class="s1">assetFileNames?: string | ((chunkInfo: PreRenderedAsset) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">banner?: string | AddonFunction</span><span class="s0">;</span>
+	<span class="s1">chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">compact?: boolean</span><span class="s0">;</span>
+	<span class="s2">// only required for bundle.write</span>
+	<span class="s1">dir?: string</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;renderDynamicImport&quot; plugin hook instead. */</span>
+	<span class="s1">dynamicImportFunction?: string</span><span class="s0">;</span>
+	<span class="s1">dynamicImportInCjs?: boolean</span><span class="s0">;</span>
+	<span class="s1">entryFileNames?: string | ((chunkInfo: PreRenderedChunk) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">esModule?: boolean | </span><span class="s3">'if-default-prop'</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">This option is no longer needed and ignored. */</span>
+	<span class="s1">experimentalDeepDynamicChunkOptimization?: boolean</span><span class="s0">;</span>
+	<span class="s1">experimentalMinChunkSize?: number</span><span class="s0">;</span>
+	<span class="s1">exports?: </span><span class="s3">'default' </span><span class="s1">| </span><span class="s3">'named' </span><span class="s1">| </span><span class="s3">'none' </span><span class="s1">| </span><span class="s3">'auto'</span><span class="s0">;</span>
+	<span class="s1">extend?: boolean</span><span class="s0">;</span>
+	<span class="s1">externalImportAssertions?: boolean</span><span class="s0">;</span>
+	<span class="s1">externalLiveBindings?: boolean</span><span class="s0">;</span>
+	<span class="s2">// only required for bundle.write</span>
+	<span class="s1">file?: string</span><span class="s0">;</span>
+	<span class="s1">footer?: string | AddonFunction</span><span class="s0">;</span>
+	<span class="s1">format?: ModuleFormat</span><span class="s0">;</span>
+	<span class="s1">freeze?: boolean</span><span class="s0">;</span>
+	<span class="s1">generatedCode?: GeneratedCodePreset | GeneratedCodeOptions</span><span class="s0">;</span>
+	<span class="s1">globals?: GlobalsOption</span><span class="s0">;</span>
+	<span class="s1">hoistTransitiveImports?: boolean</span><span class="s0">;</span>
+	<span class="s1">indent?: string | boolean</span><span class="s0">;</span>
+	<span class="s1">inlineDynamicImports?: boolean</span><span class="s0">;</span>
+	<span class="s1">interop?: InteropType | GetInterop</span><span class="s0">;</span>
+	<span class="s1">intro?: string | AddonFunction</span><span class="s0">;</span>
+	<span class="s1">manualChunks?: ManualChunksOption</span><span class="s0">;</span>
+	<span class="s1">minifyInternalExports?: boolean</span><span class="s0">;</span>
+	<span class="s1">name?: string</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use &quot;generatedCode.symbols&quot; instead. */</span>
+	<span class="s1">namespaceToStringTag?: boolean</span><span class="s0">;</span>
+	<span class="s1">noConflict?: boolean</span><span class="s0">;</span>
+	<span class="s1">outro?: string | AddonFunction</span><span class="s0">;</span>
+	<span class="s1">paths?: OptionsPaths</span><span class="s0">;</span>
+	<span class="s1">plugins?: OutputPluginOption</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use &quot;generatedCode.constBindings&quot; instead. */</span>
+	<span class="s1">preferConst?: boolean</span><span class="s0">;</span>
+	<span class="s1">preserveModules?: boolean</span><span class="s0">;</span>
+	<span class="s1">preserveModulesRoot?: string</span><span class="s0">;</span>
+	<span class="s1">sanitizeFileName?: boolean | ((fileName: string) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">sourcemap?: boolean | </span><span class="s3">'inline' </span><span class="s1">| </span><span class="s3">'hidden'</span><span class="s0">;</span>
+	<span class="s1">sourcemapBaseUrl?: string</span><span class="s0">;</span>
+	<span class="s1">sourcemapExcludeSources?: boolean</span><span class="s0">;</span>
+	<span class="s1">sourcemapFile?: string</span><span class="s0">;</span>
+	<span class="s1">sourcemapIgnoreList?: boolean | SourcemapIgnoreListOption</span><span class="s0">;</span>
+	<span class="s1">sourcemapPathTransform?: SourcemapPathTransformOption</span><span class="s0">;</span>
+	<span class="s1">strict?: boolean</span><span class="s0">;</span>
+	<span class="s1">systemNullSetters?: boolean</span><span class="s0">;</span>
+	<span class="s1">validate?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">NormalizedOutputOptions {</span>
+	<span class="s1">amd: NormalizedAmdOptions</span><span class="s0">;</span>
+	<span class="s1">assetFileNames: string | ((chunkInfo: PreRenderedAsset) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">banner: AddonFunction</span><span class="s0">;</span>
+	<span class="s1">chunkFileNames: string | ((chunkInfo: PreRenderedChunk) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">compact: boolean</span><span class="s0">;</span>
+	<span class="s1">dir: string | undefined</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use the &quot;renderDynamicImport&quot; plugin hook instead. */</span>
+	<span class="s1">dynamicImportFunction: string | undefined</span><span class="s0">;</span>
+	<span class="s1">dynamicImportInCjs: boolean</span><span class="s0">;</span>
+	<span class="s1">entryFileNames: string | ((chunkInfo: PreRenderedChunk) =&gt; string)</span><span class="s0">;</span>
+	<span class="s1">esModule: boolean | </span><span class="s3">'if-default-prop'</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">This option is no longer needed and ignored. */</span>
+	<span class="s1">experimentalDeepDynamicChunkOptimization: boolean</span><span class="s0">;</span>
+	<span class="s1">experimentalMinChunkSize: number</span><span class="s0">;</span>
+	<span class="s1">exports: </span><span class="s3">'default' </span><span class="s1">| </span><span class="s3">'named' </span><span class="s1">| </span><span class="s3">'none' </span><span class="s1">| </span><span class="s3">'auto'</span><span class="s0">;</span>
+	<span class="s1">extend: boolean</span><span class="s0">;</span>
+	<span class="s1">externalImportAssertions: boolean</span><span class="s0">;</span>
+	<span class="s1">externalLiveBindings: boolean</span><span class="s0">;</span>
+	<span class="s1">file: string | undefined</span><span class="s0">;</span>
+	<span class="s1">footer: AddonFunction</span><span class="s0">;</span>
+	<span class="s1">format: InternalModuleFormat</span><span class="s0">;</span>
+	<span class="s1">freeze: boolean</span><span class="s0">;</span>
+	<span class="s1">generatedCode: NormalizedGeneratedCodeOptions</span><span class="s0">;</span>
+	<span class="s1">globals: GlobalsOption</span><span class="s0">;</span>
+	<span class="s1">hoistTransitiveImports: boolean</span><span class="s0">;</span>
+	<span class="s1">indent: </span><span class="s0">true </span><span class="s1">| string</span><span class="s0">;</span>
+	<span class="s1">inlineDynamicImports: boolean</span><span class="s0">;</span>
+	<span class="s1">interop: GetInterop</span><span class="s0">;</span>
+	<span class="s1">intro: AddonFunction</span><span class="s0">;</span>
+	<span class="s1">manualChunks: ManualChunksOption</span><span class="s0">;</span>
+	<span class="s1">minifyInternalExports: boolean</span><span class="s0">;</span>
+	<span class="s1">name: string | undefined</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use &quot;generatedCode.symbols&quot; instead. */</span>
+	<span class="s1">namespaceToStringTag: boolean</span><span class="s0">;</span>
+	<span class="s1">noConflict: boolean</span><span class="s0">;</span>
+	<span class="s1">outro: AddonFunction</span><span class="s0">;</span>
+	<span class="s1">paths: OptionsPaths</span><span class="s0">;</span>
+	<span class="s1">plugins: OutputPlugin[]</span><span class="s0">;</span>
+	<span class="s4">/** </span><span class="s5">@deprecated </span><span class="s4">Use &quot;generatedCode.constBindings&quot; instead. */</span>
+	<span class="s1">preferConst: boolean</span><span class="s0">;</span>
+	<span class="s1">preserveModules: boolean</span><span class="s0">;</span>
+	<span class="s1">preserveModulesRoot: string | undefined</span><span class="s0">;</span>
+	<span class="s1">sanitizeFileName: (fileName: string) =&gt; string</span><span class="s0">;</span>
+	<span class="s1">sourcemap: boolean | </span><span class="s3">'inline' </span><span class="s1">| </span><span class="s3">'hidden'</span><span class="s0">;</span>
+	<span class="s1">sourcemapBaseUrl: string | undefined</span><span class="s0">;</span>
+	<span class="s1">sourcemapExcludeSources: boolean</span><span class="s0">;</span>
+	<span class="s1">sourcemapFile: string | undefined</span><span class="s0">;</span>
+	<span class="s1">sourcemapIgnoreList: SourcemapIgnoreListOption</span><span class="s0">;</span>
+	<span class="s1">sourcemapPathTransform: SourcemapPathTransformOption | undefined</span><span class="s0">;</span>
+	<span class="s1">strict: boolean</span><span class="s0">;</span>
+	<span class="s1">systemNullSetters: boolean</span><span class="s0">;</span>
+	<span class="s1">validate: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type WarningHandlerWithDefault = (</span>
+	<span class="s1">warning: RollupWarning</span><span class="s0">,</span>
+	<span class="s1">defaultHandler: WarningHandler</span>
+<span class="s1">) =&gt; </span><span class="s0">void;</span>
+<span class="s0">export </span><span class="s1">type WarningHandler = (warning: RollupWarning) =&gt; </span><span class="s0">void;</span>
+
+<span class="s0">export interface </span><span class="s1">SerializedTimings {</span>
+	<span class="s1">[label: string]: [number</span><span class="s0">, </span><span class="s1">number</span><span class="s0">, </span><span class="s1">number]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PreRenderedAsset {</span>
+	<span class="s1">name: string | undefined</span><span class="s0">;</span>
+	<span class="s1">source: string | Uint8Array</span><span class="s0">;</span>
+	<span class="s1">type: </span><span class="s3">'asset'</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OutputAsset </span><span class="s0">extends </span><span class="s1">PreRenderedAsset {</span>
+	<span class="s1">fileName: string</span><span class="s0">;</span>
+	<span class="s1">needsCodeReference: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RenderedModule {</span>
+	<span class="s1">code: string | </span><span class="s0">null;</span>
+	<span class="s1">originalLength: number</span><span class="s0">;</span>
+	<span class="s1">removedExports: string[]</span><span class="s0">;</span>
+	<span class="s1">renderedExports: string[]</span><span class="s0">;</span>
+	<span class="s1">renderedLength: number</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PreRenderedChunk {</span>
+	<span class="s1">exports: string[]</span><span class="s0">;</span>
+	<span class="s1">facadeModuleId: string | </span><span class="s0">null;</span>
+	<span class="s1">isDynamicEntry: boolean</span><span class="s0">;</span>
+	<span class="s1">isEntry: boolean</span><span class="s0">;</span>
+	<span class="s1">isImplicitEntry: boolean</span><span class="s0">;</span>
+	<span class="s1">moduleIds: string[]</span><span class="s0">;</span>
+	<span class="s1">name: string</span><span class="s0">;</span>
+	<span class="s1">type: </span><span class="s3">'chunk'</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RenderedChunk </span><span class="s0">extends </span><span class="s1">PreRenderedChunk {</span>
+	<span class="s1">dynamicImports: string[]</span><span class="s0">;</span>
+	<span class="s1">fileName: string</span><span class="s0">;</span>
+	<span class="s1">implicitlyLoadedBefore: string[]</span><span class="s0">;</span>
+	<span class="s1">importedBindings: {</span>
+		<span class="s1">[imported: string]: string[]</span><span class="s0">;</span>
+	<span class="s1">}</span><span class="s0">;</span>
+	<span class="s1">imports: string[]</span><span class="s0">;</span>
+	<span class="s1">modules: {</span>
+		<span class="s1">[id: string]: RenderedModule</span><span class="s0">;</span>
+	<span class="s1">}</span><span class="s0">;</span>
+	<span class="s1">referencedFiles: string[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OutputChunk </span><span class="s0">extends </span><span class="s1">RenderedChunk {</span>
+	<span class="s1">code: string</span><span class="s0">;</span>
+	<span class="s1">map: SourceMap | </span><span class="s0">null;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">SerializablePluginCache {</span>
+	<span class="s1">[key: string]: [number</span><span class="s0">, </span><span class="s1">any]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RollupCache {</span>
+	<span class="s1">modules: ModuleJSON[]</span><span class="s0">;</span>
+	<span class="s1">plugins?: Record&lt;string</span><span class="s0">, </span><span class="s1">SerializablePluginCache&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RollupOutput {</span>
+	<span class="s1">output: [OutputChunk</span><span class="s0">, </span><span class="s1">...(OutputChunk | OutputAsset)[]]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RollupBuild {</span>
+	<span class="s1">cache: RollupCache | undefined</span><span class="s0">;</span>
+	<span class="s1">close: () =&gt; Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span><span class="s0">;</span>
+	<span class="s1">closed: boolean</span><span class="s0">;</span>
+	<span class="s1">generate: (outputOptions: OutputOptions) =&gt; Promise&lt;RollupOutput&gt;</span><span class="s0">;</span>
+	<span class="s1">getTimings?: () =&gt; SerializedTimings</span><span class="s0">;</span>
+	<span class="s1">watchFiles: string[]</span><span class="s0">;</span>
+	<span class="s1">write: (options: OutputOptions) =&gt; Promise&lt;RollupOutput&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RollupOptions </span><span class="s0">extends </span><span class="s1">InputOptions {</span>
+	<span class="s2">// This is included for compatibility with config files but ignored by rollup.rollup</span>
+	<span class="s1">output?: OutputOptions | OutputOptions[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MergedRollupOptions </span><span class="s0">extends </span><span class="s1">InputOptionsWithPlugins {</span>
+	<span class="s1">output: OutputOptions[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export function </span><span class="s1">rollup(options: RollupOptions): Promise&lt;RollupBuild&gt;</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">ChokidarOptions {</span>
+	<span class="s1">alwaysStat?: boolean</span><span class="s0">;</span>
+	<span class="s1">atomic?: boolean | number</span><span class="s0">;</span>
+	<span class="s1">awaitWriteFinish?:</span>
+		<span class="s1">| {</span>
+				<span class="s1">pollInterval?: number</span><span class="s0">;</span>
+				<span class="s1">stabilityThreshold?: number</span><span class="s0">;</span>
+		  <span class="s1">}</span>
+		<span class="s1">| boolean</span><span class="s0">;</span>
+	<span class="s1">binaryInterval?: number</span><span class="s0">;</span>
+	<span class="s1">cwd?: string</span><span class="s0">;</span>
+	<span class="s1">depth?: number</span><span class="s0">;</span>
+	<span class="s1">disableGlobbing?: boolean</span><span class="s0">;</span>
+	<span class="s1">followSymlinks?: boolean</span><span class="s0">;</span>
+	<span class="s1">ignoreInitial?: boolean</span><span class="s0">;</span>
+	<span class="s1">ignorePermissionErrors?: boolean</span><span class="s0">;</span>
+	<span class="s1">ignored?: any</span><span class="s0">;</span>
+	<span class="s1">interval?: number</span><span class="s0">;</span>
+	<span class="s1">persistent?: boolean</span><span class="s0">;</span>
+	<span class="s1">useFsEvents?: boolean</span><span class="s0">;</span>
+	<span class="s1">usePolling?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type RollupWatchHooks = </span><span class="s3">'onError' </span><span class="s1">| </span><span class="s3">'onStart' </span><span class="s1">| </span><span class="s3">'onBundleStart' </span><span class="s1">| </span><span class="s3">'onBundleEnd' </span><span class="s1">| </span><span class="s3">'onEnd'</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">WatcherOptions {</span>
+	<span class="s1">buildDelay?: number</span><span class="s0">;</span>
+	<span class="s1">chokidar?: ChokidarOptions</span><span class="s0">;</span>
+	<span class="s1">clearScreen?: boolean</span><span class="s0">;</span>
+	<span class="s1">exclude?: string | RegExp | (string | RegExp)[]</span><span class="s0">;</span>
+	<span class="s1">include?: string | RegExp | (string | RegExp)[]</span><span class="s0">;</span>
+	<span class="s1">skipWrite?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">RollupWatchOptions </span><span class="s0">extends </span><span class="s1">InputOptions {</span>
+	<span class="s1">output?: OutputOptions | OutputOptions[]</span><span class="s0">;</span>
+	<span class="s1">watch?: WatcherOptions | </span><span class="s0">false;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type AwaitedEventListener&lt;</span>
+	<span class="s1">T </span><span class="s0">extends </span><span class="s1">{ [event: string]: (...parameters: any) =&gt; any }</span><span class="s0">,</span>
+	<span class="s1">K </span><span class="s0">extends </span><span class="s1">keyof T</span>
+<span class="s1">&gt; = (...parameters: Parameters&lt;T[K]&gt;) =&gt; </span><span class="s0">void </span><span class="s1">| Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span><span class="s0">;</span>
+
+<span class="s0">export interface </span><span class="s1">AwaitingEventEmitter&lt;T </span><span class="s0">extends </span><span class="s1">{ [event: string]: (...parameters: any) =&gt; any }&gt; {</span>
+	<span class="s1">close(): Promise&lt;</span><span class="s0">void</span><span class="s1">&gt;</span><span class="s0">;</span>
+	<span class="s1">emit&lt;K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(event: K</span><span class="s0">, </span><span class="s1">...parameters: Parameters&lt;T[K]&gt;): Promise&lt;unknown&gt;</span><span class="s0">;</span>
+	<span class="s4">/**</span>
+	 <span class="s4">* Removes an event listener.</span>
+	 <span class="s4">*/</span>
+	<span class="s1">off&lt;K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(event: K</span><span class="s0">, </span><span class="s1">listener: AwaitedEventListener&lt;T</span><span class="s0">, </span><span class="s1">K&gt;): </span><span class="s0">this;</span>
+	<span class="s4">/**</span>
+	 <span class="s4">* Registers an event listener that will be awaited before Rollup continues.</span>
+	 <span class="s4">* All listeners will be awaited in parallel while rejections are tracked via</span>
+	 <span class="s4">* Promise.all.</span>
+	 <span class="s4">*/</span>
+	<span class="s1">on&lt;K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(event: K</span><span class="s0">, </span><span class="s1">listener: AwaitedEventListener&lt;T</span><span class="s0">, </span><span class="s1">K&gt;): </span><span class="s0">this;</span>
+	<span class="s4">/**</span>
+	 <span class="s4">* Registers an event listener that will be awaited before Rollup continues.</span>
+	 <span class="s4">* All listeners will be awaited in parallel while rejections are tracked via</span>
+	 <span class="s4">* Promise.all.</span>
+	 <span class="s4">* Listeners are removed automatically when removeListenersForCurrentRun is</span>
+	 <span class="s4">* called, which happens automatically after each run.</span>
+	 <span class="s4">*/</span>
+	<span class="s1">onCurrentRun&lt;K </span><span class="s0">extends </span><span class="s1">keyof T&gt;(</span>
+		<span class="s1">event: K</span><span class="s0">,</span>
+		<span class="s1">listener: (...parameters: Parameters&lt;T[K]&gt;) =&gt; Promise&lt;ReturnType&lt;T[K]&gt;&gt;</span>
+	<span class="s1">): </span><span class="s0">this;</span>
+	<span class="s1">removeAllListeners(): </span><span class="s0">this;</span>
+	<span class="s1">removeListenersForCurrentRun(): </span><span class="s0">this;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type RollupWatcherEvent =</span>
+	<span class="s1">| { code: </span><span class="s3">'START' </span><span class="s1">}</span>
+	<span class="s1">| { code: </span><span class="s3">'BUNDLE_START'</span><span class="s0">; </span><span class="s1">input?: InputOption</span><span class="s0">; </span><span class="s1">output: readonly string[] }</span>
+	<span class="s1">| {</span>
+			<span class="s1">code: </span><span class="s3">'BUNDLE_END'</span><span class="s0">;</span>
+			<span class="s1">duration: number</span><span class="s0">;</span>
+			<span class="s1">input?: InputOption</span><span class="s0">;</span>
+			<span class="s1">output: readonly string[]</span><span class="s0">;</span>
+			<span class="s1">result: RollupBuild</span><span class="s0">;</span>
+	  <span class="s1">}</span>
+	<span class="s1">| { code: </span><span class="s3">'END' </span><span class="s1">}</span>
+	<span class="s1">| { code: </span><span class="s3">'ERROR'</span><span class="s0">; </span><span class="s1">error: RollupError</span><span class="s0">; </span><span class="s1">result: RollupBuild | </span><span class="s0">null </span><span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type RollupWatcher = AwaitingEventEmitter&lt;{</span>
+	<span class="s1">change: (id: string</span><span class="s0">, </span><span class="s1">change: { event: ChangeEvent }) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">close: () =&gt; </span><span class="s0">void;</span>
+	<span class="s1">event: (event: RollupWatcherEvent) =&gt; </span><span class="s0">void;</span>
+	<span class="s1">restart: () =&gt; </span><span class="s0">void;</span>
+<span class="s1">}&gt;</span><span class="s0">;</span>
+
+<span class="s0">export function </span><span class="s1">watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher</span><span class="s0">;</span>
+
+<span class="s0">interface </span><span class="s1">AcornNode {</span>
+	<span class="s1">end: number</span><span class="s0">;</span>
+	<span class="s1">start: number</span><span class="s0">;</span>
+	<span class="s1">type: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export function </span><span class="s1">defineConfig(options: RollupOptions): RollupOptions</span><span class="s0">;</span>
+<span class="s0">export function </span><span class="s1">defineConfig(options: RollupOptions[]): RollupOptions[]</span><span class="s0">;</span>
+<span class="s0">export function </span><span class="s1">defineConfig(optionsFunction: RollupOptionsFunction): RollupOptionsFunction</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">type RollupOptionsFunction = (</span>
+	<span class="s1">commandLineArguments: Record&lt;string</span><span class="s0">, </span><span class="s1">any&gt;</span>
+<span class="s1">) =&gt; MaybePromise&lt;RollupOptions | RollupOptions[]&gt;</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

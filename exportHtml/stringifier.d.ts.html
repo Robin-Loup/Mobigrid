@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>stringifier.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+stringifier.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{</span>
+  <span class="s1">Document</span><span class="s0">,</span>
+  <span class="s1">Root</span><span class="s0">,</span>
+  <span class="s1">Comment</span><span class="s0">,</span>
+  <span class="s1">Declaration</span><span class="s0">,</span>
+  <span class="s1">Builder</span><span class="s0">,</span>
+  <span class="s1">AnyNode</span><span class="s0">,</span>
+  <span class="s1">Rule</span><span class="s0">,</span>
+  <span class="s1">AtRule</span><span class="s0">,</span>
+  <span class="s1">Container</span>
+<span class="s1">} from </span><span class="s2">'./postcss.js'</span>
+
+<span class="s1">declare namespace Stringifier {</span>
+  <span class="s3">// eslint-disable-next-line @typescript-eslint/no-use-before-define</span>
+  <span class="s0">export </span><span class="s1">{ Stringifier_ as </span><span class="s0">default </span><span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">Stringifier_ {</span>
+  <span class="s1">builder: Builder</span>
+  <span class="s1">constructor(builder: Builder)</span>
+  <span class="s1">stringify(node: AnyNode</span><span class="s0">, </span><span class="s1">semicolon?: boolean): </span><span class="s0">void</span>
+  <span class="s1">document(node: Document): </span><span class="s0">void</span>
+  <span class="s1">root(node: Root): </span><span class="s0">void</span>
+  <span class="s1">comment(node: Comment): </span><span class="s0">void</span>
+  <span class="s1">decl(node: Declaration</span><span class="s0">, </span><span class="s1">semicolon?: boolean): </span><span class="s0">void</span>
+  <span class="s1">rule(node: Rule): </span><span class="s0">void</span>
+  <span class="s1">atrule(node: AtRule</span><span class="s0">, </span><span class="s1">semicolon?: boolean): </span><span class="s0">void</span>
+  <span class="s1">body(node: Container): </span><span class="s0">void</span>
+  <span class="s1">block(node: AnyNode</span><span class="s0">, </span><span class="s1">start: string): </span><span class="s0">void</span>
+  <span class="s1">raw(node: AnyNode</span><span class="s0">, </span><span class="s1">own: string | </span><span class="s0">null, </span><span class="s1">detect?: string): string</span>
+  <span class="s1">rawSemicolon(root: Root): boolean | undefined</span>
+  <span class="s1">rawEmptyBody(root: Root): string | undefined</span>
+  <span class="s1">rawIndent(root: Root): string | undefined</span>
+  <span class="s1">rawBeforeComment(root: Root</span><span class="s0">, </span><span class="s1">node: Comment): string | undefined</span>
+  <span class="s1">rawBeforeDecl(root: Root</span><span class="s0">, </span><span class="s1">node: Declaration): string | undefined</span>
+  <span class="s1">rawBeforeRule(root: Root): string | undefined</span>
+  <span class="s1">rawBeforeClose(root: Root): string | undefined</span>
+  <span class="s1">rawBeforeOpen(root: Root): string | undefined</span>
+  <span class="s1">rawColon(root: Root): string | undefined</span>
+  <span class="s1">beforeAfter(node: AnyNode</span><span class="s0">, </span><span class="s1">detect: </span><span class="s2">'before' </span><span class="s1">| </span><span class="s2">'after'</span><span class="s1">): string</span>
+  <span class="s1">rawValue(node: AnyNode</span><span class="s0">, </span><span class="s1">prop: string): string</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">Stringifier </span><span class="s0">extends </span><span class="s1">Stringifier_ {}</span>
+
+<span class="s0">export </span><span class="s1">= Stringifier</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<html>
+<head>
+<title>hot.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+hot.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">type { InferCustomEventPayload } from </span><span class="s2">'./customEvent'</span>
+
+<span class="s0">export </span><span class="s1">type ModuleNamespace = Record&lt;string</span><span class="s0">, </span><span class="s1">any&gt; &amp; {</span>
+  <span class="s1">[Symbol.toStringTag]: </span><span class="s2">'Module'</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ViteHotContext {</span>
+  <span class="s1">readonly data: any</span>
+
+  <span class="s1">accept(): </span><span class="s0">void</span>
+  <span class="s1">accept(cb: (mod: ModuleNamespace | undefined) =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void</span>
+  <span class="s1">accept(dep: string</span><span class="s0">, </span><span class="s1">cb: (mod: ModuleNamespace | undefined) =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void</span>
+  <span class="s1">accept(</span>
+    <span class="s1">deps: readonly string[]</span><span class="s0">,</span>
+    <span class="s1">cb: (mods: Array&lt;ModuleNamespace | undefined&gt;) =&gt; </span><span class="s0">void,</span>
+  <span class="s1">): </span><span class="s0">void</span>
+
+  <span class="s1">acceptExports(</span>
+    <span class="s1">exportNames: string | readonly string[]</span><span class="s0">,</span>
+    <span class="s1">cb?: (mod: ModuleNamespace | undefined) =&gt; </span><span class="s0">void,</span>
+  <span class="s1">): </span><span class="s0">void</span>
+
+  <span class="s1">dispose(cb: (data: any) =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void</span>
+  <span class="s1">prune(cb: (data: any) =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void</span>
+  <span class="s1">invalidate(message?: string): </span><span class="s0">void</span>
+
+  <span class="s1">on&lt;T </span><span class="s0">extends </span><span class="s1">string&gt;(</span>
+    <span class="s1">event: T</span><span class="s0">,</span>
+    <span class="s1">cb: (payload: InferCustomEventPayload&lt;T&gt;) =&gt; </span><span class="s0">void,</span>
+  <span class="s1">): </span><span class="s0">void</span>
+  <span class="s1">send&lt;T </span><span class="s0">extends </span><span class="s1">string&gt;(event: T</span><span class="s0">, </span><span class="s1">data?: InferCustomEventPayload&lt;T&gt;): </span><span class="s0">void</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

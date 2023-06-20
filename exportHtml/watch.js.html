@@ -1,0 +1,338 @@
+<html>
+<head>
+<title>watch.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #cc7832;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+watch.js</font>
+</center></td></tr></table>
+<pre><span class="s0">/* 
+  @license 
+    Rollup.js v3.21.0 
+    Sun, 23 Apr 2023 19:43:51 GMT - commit b79b73cd8bb98c10ab7eedae154bb5c1e03ced7d 
+ 
+    https://github.com/rollup/rollup 
+ 
+    Released under the MIT License. 
+*/</span>
+<span class="s2">'use strict'</span><span class="s3">;</span>
+
+<span class="s1">Object.defineProperty(exports</span><span class="s3">, </span><span class="s1">Symbol.toStringTag</span><span class="s3">, </span><span class="s1">{ value: </span><span class="s2">'Module' </span><span class="s1">})</span><span class="s3">;</span>
+
+<span class="s3">const </span><span class="s1">node_path = require(</span><span class="s2">'node:path'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">const </span><span class="s1">process = require(</span><span class="s2">'node:process'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">const </span><span class="s1">rollup = require(</span><span class="s2">'./rollup.js'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">const </span><span class="s1">node_os = require(</span><span class="s2">'node:os'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">const </span><span class="s1">index = require(</span><span class="s2">'./index.js'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'tty'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'path'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'node:perf_hooks'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'node:crypto'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'node:fs/promises'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'node:events'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'fs'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'util'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'stream'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'os'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'./fsevents-importer.js'</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">require(</span><span class="s2">'events'</span><span class="s1">)</span><span class="s3">;</span>
+
+<span class="s3">class </span><span class="s1">FileWatcher {</span>
+    <span class="s1">constructor(task</span><span class="s3">, </span><span class="s1">chokidarOptions) {</span>
+        <span class="s3">this</span><span class="s1">.transformWatchers = </span><span class="s3">new </span><span class="s1">Map()</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.chokidarOptions = chokidarOptions</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.task = task</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.watcher = </span><span class="s3">this</span><span class="s1">.createWatcher(</span><span class="s3">null</span><span class="s1">)</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">close() {</span>
+        <span class="s3">this</span><span class="s1">.watcher.close()</span><span class="s3">;</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">watcher of </span><span class="s3">this</span><span class="s1">.transformWatchers.values()) {</span>
+            <span class="s1">watcher.close()</span><span class="s3">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">unwatch(id) {</span>
+        <span class="s3">this</span><span class="s1">.watcher.unwatch(id)</span><span class="s3">;</span>
+        <span class="s3">const </span><span class="s1">transformWatcher = </span><span class="s3">this</span><span class="s1">.transformWatchers.get(id)</span><span class="s3">;</span>
+        <span class="s3">if </span><span class="s1">(transformWatcher) {</span>
+            <span class="s3">this</span><span class="s1">.transformWatchers.delete(id)</span><span class="s3">;</span>
+            <span class="s1">transformWatcher.close()</span><span class="s3">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">watch(id</span><span class="s3">, </span><span class="s1">isTransformDependency) {</span>
+        <span class="s3">if </span><span class="s1">(isTransformDependency) {</span>
+            <span class="s3">const </span><span class="s1">watcher = </span><span class="s3">this</span><span class="s1">.transformWatchers.get(id) ?? </span><span class="s3">this</span><span class="s1">.createWatcher(id)</span><span class="s3">;</span>
+            <span class="s1">watcher.add(id)</span><span class="s3">;</span>
+            <span class="s3">this</span><span class="s1">.transformWatchers.set(id</span><span class="s3">, </span><span class="s1">watcher)</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s3">else </span><span class="s1">{</span>
+            <span class="s3">this</span><span class="s1">.watcher.add(id)</span><span class="s3">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">createWatcher(transformWatcherId) {</span>
+        <span class="s3">const </span><span class="s1">task = </span><span class="s3">this</span><span class="s1">.task</span><span class="s3">;</span>
+        <span class="s3">const </span><span class="s1">isLinux = node_os.platform() === </span><span class="s2">'linux'</span><span class="s3">;</span>
+        <span class="s3">const </span><span class="s1">isTransformDependency = transformWatcherId !== </span><span class="s3">null;</span>
+        <span class="s3">const </span><span class="s1">handleChange = (id</span><span class="s3">, </span><span class="s1">event) =&gt; {</span>
+            <span class="s3">const </span><span class="s1">changedId = transformWatcherId || id</span><span class="s3">;</span>
+            <span class="s3">if </span><span class="s1">(isLinux) {</span>
+                <span class="s0">// unwatching and watching fixes an issue with chokidar where on certain systems,</span>
+                <span class="s0">// a file that was unlinked and immediately recreated would create a change event</span>
+                <span class="s0">// but then no longer any further events</span>
+                <span class="s1">watcher.unwatch(changedId)</span><span class="s3">;</span>
+                <span class="s1">watcher.add(changedId)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+            <span class="s1">task.invalidate(changedId</span><span class="s3">, </span><span class="s1">{ event</span><span class="s3">, </span><span class="s1">isTransformDependency })</span><span class="s3">;</span>
+        <span class="s1">}</span><span class="s3">;</span>
+        <span class="s3">const </span><span class="s1">watcher = index.chokidar</span>
+            <span class="s1">.watch([]</span><span class="s3">, this</span><span class="s1">.chokidarOptions)</span>
+            <span class="s1">.on(</span><span class="s2">'add'</span><span class="s3">, </span><span class="s1">id =&gt; handleChange(id</span><span class="s3">, </span><span class="s2">'create'</span><span class="s1">))</span>
+            <span class="s1">.on(</span><span class="s2">'change'</span><span class="s3">, </span><span class="s1">id =&gt; handleChange(id</span><span class="s3">, </span><span class="s2">'update'</span><span class="s1">))</span>
+            <span class="s1">.on(</span><span class="s2">'unlink'</span><span class="s3">, </span><span class="s1">id =&gt; handleChange(id</span><span class="s3">, </span><span class="s2">'delete'</span><span class="s1">))</span><span class="s3">;</span>
+        <span class="s3">return </span><span class="s1">watcher</span><span class="s3">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">const </span><span class="s1">eventsRewrites = {</span>
+    <span class="s1">create: {</span>
+        <span class="s1">create: </span><span class="s2">'buggy'</span><span class="s3">,</span>
+        <span class="s3">delete</span><span class="s1">: </span><span class="s3">null,</span>
+        <span class="s1">update: </span><span class="s2">'create'</span>
+    <span class="s1">}</span><span class="s3">,</span>
+    <span class="s3">delete</span><span class="s1">: {</span>
+        <span class="s1">create: </span><span class="s2">'update'</span><span class="s3">,</span>
+        <span class="s3">delete</span><span class="s1">: </span><span class="s2">'buggy'</span><span class="s3">,</span>
+        <span class="s1">update: </span><span class="s2">'buggy'</span>
+    <span class="s1">}</span><span class="s3">,</span>
+    <span class="s1">update: {</span>
+        <span class="s1">create: </span><span class="s2">'buggy'</span><span class="s3">,</span>
+        <span class="s3">delete</span><span class="s1">: </span><span class="s2">'delete'</span><span class="s3">,</span>
+        <span class="s1">update: </span><span class="s2">'update'</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s3">;</span>
+<span class="s3">class </span><span class="s1">Watcher {</span>
+    <span class="s1">constructor(optionsList</span><span class="s3">, </span><span class="s1">emitter) {</span>
+        <span class="s3">this</span><span class="s1">.buildDelay = </span><span class="s4">0</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.buildTimeout = </span><span class="s3">null;</span>
+        <span class="s3">this</span><span class="s1">.closed = </span><span class="s3">false;</span>
+        <span class="s3">this</span><span class="s1">.invalidatedIds = </span><span class="s3">new </span><span class="s1">Map()</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.rerun = </span><span class="s3">false;</span>
+        <span class="s3">this</span><span class="s1">.running = </span><span class="s3">true;</span>
+        <span class="s3">this</span><span class="s1">.emitter = emitter</span><span class="s3">;</span>
+        <span class="s1">emitter.close = </span><span class="s3">this</span><span class="s1">.close.bind(</span><span class="s3">this</span><span class="s1">)</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.tasks = optionsList.map(options =&gt; </span><span class="s3">new </span><span class="s1">Task(</span><span class="s3">this, </span><span class="s1">options))</span><span class="s3">;</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">{ watch } of optionsList) {</span>
+            <span class="s3">if </span><span class="s1">(watch &amp;&amp; </span><span class="s3">typeof </span><span class="s1">watch.buildDelay === </span><span class="s2">'number'</span><span class="s1">) {</span>
+                <span class="s3">this</span><span class="s1">.buildDelay = Math.max(</span><span class="s3">this</span><span class="s1">.buildDelay</span><span class="s3">, </span><span class="s1">watch.buildDelay)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s1">process.nextTick(() =&gt; </span><span class="s3">this</span><span class="s1">.run())</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">async close() {</span>
+        <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.closed)</span>
+            <span class="s3">return;</span>
+        <span class="s3">this</span><span class="s1">.closed = </span><span class="s3">true;</span>
+        <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.buildTimeout)</span>
+            <span class="s1">clearTimeout(</span><span class="s3">this</span><span class="s1">.buildTimeout)</span><span class="s3">;</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">task of </span><span class="s3">this</span><span class="s1">.tasks) {</span>
+            <span class="s1">task.close()</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s3">await this</span><span class="s1">.emitter.emit(</span><span class="s2">'close'</span><span class="s1">)</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.emitter.removeAllListeners()</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">invalidate(file) {</span>
+        <span class="s3">if </span><span class="s1">(file) {</span>
+            <span class="s3">const </span><span class="s1">previousEvent = </span><span class="s3">this</span><span class="s1">.invalidatedIds.get(file.id)</span><span class="s3">;</span>
+            <span class="s3">const </span><span class="s1">event = previousEvent ? eventsRewrites[previousEvent][file.event] : file.event</span><span class="s3">;</span>
+            <span class="s3">if </span><span class="s1">(event === </span><span class="s2">'buggy'</span><span class="s1">) {</span>
+                <span class="s0">//TODO: throws or warn? Currently just ignore, uses new event</span>
+                <span class="s3">this</span><span class="s1">.invalidatedIds.set(file.id</span><span class="s3">, </span><span class="s1">file.event)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+            <span class="s3">else if </span><span class="s1">(event === </span><span class="s3">null</span><span class="s1">) {</span>
+                <span class="s3">this</span><span class="s1">.invalidatedIds.delete(file.id)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+            <span class="s3">else </span><span class="s1">{</span>
+                <span class="s3">this</span><span class="s1">.invalidatedIds.set(file.id</span><span class="s3">, </span><span class="s1">event)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.running) {</span>
+            <span class="s3">this</span><span class="s1">.rerun = </span><span class="s3">true;</span>
+            <span class="s3">return;</span>
+        <span class="s1">}</span>
+        <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.buildTimeout)</span>
+            <span class="s1">clearTimeout(</span><span class="s3">this</span><span class="s1">.buildTimeout)</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.buildTimeout = setTimeout(async () =&gt; {</span>
+            <span class="s3">this</span><span class="s1">.buildTimeout = </span><span class="s3">null;</span>
+            <span class="s3">try </span><span class="s1">{</span>
+                <span class="s3">await </span><span class="s1">Promise.all([...</span><span class="s3">this</span><span class="s1">.invalidatedIds].map(([id</span><span class="s3">, </span><span class="s1">event]) =&gt; </span><span class="s3">this</span><span class="s1">.emitter.emit(</span><span class="s2">'change'</span><span class="s3">, </span><span class="s1">id</span><span class="s3">, </span><span class="s1">{ event })))</span><span class="s3">;</span>
+                <span class="s3">this</span><span class="s1">.invalidatedIds.clear()</span><span class="s3">;</span>
+                <span class="s3">await this</span><span class="s1">.emitter.emit(</span><span class="s2">'restart'</span><span class="s1">)</span><span class="s3">;</span>
+                <span class="s3">this</span><span class="s1">.emitter.removeListenersForCurrentRun()</span><span class="s3">;</span>
+                <span class="s3">this</span><span class="s1">.run()</span><span class="s3">;</span>
+            <span class="s1">}</span>
+            <span class="s3">catch </span><span class="s1">(error) {</span>
+                <span class="s3">this</span><span class="s1">.invalidatedIds.clear()</span><span class="s3">;</span>
+                <span class="s3">await this</span><span class="s1">.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+                    <span class="s1">code: </span><span class="s2">'ERROR'</span><span class="s3">,</span>
+                    <span class="s1">error</span><span class="s3">,</span>
+                    <span class="s1">result: </span><span class="s3">null</span>
+                <span class="s1">})</span><span class="s3">;</span>
+                <span class="s3">await this</span><span class="s1">.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+                    <span class="s1">code: </span><span class="s2">'END'</span>
+                <span class="s1">})</span><span class="s3">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span><span class="s3">, this</span><span class="s1">.buildDelay)</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">async run() {</span>
+        <span class="s3">this</span><span class="s1">.running = </span><span class="s3">true;</span>
+        <span class="s3">await this</span><span class="s1">.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+            <span class="s1">code: </span><span class="s2">'START'</span>
+        <span class="s1">})</span><span class="s3">;</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">task of </span><span class="s3">this</span><span class="s1">.tasks) {</span>
+            <span class="s3">await </span><span class="s1">task.run()</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s3">this</span><span class="s1">.running = </span><span class="s3">false;</span>
+        <span class="s3">await this</span><span class="s1">.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+            <span class="s1">code: </span><span class="s2">'END'</span>
+        <span class="s1">})</span><span class="s3">;</span>
+        <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.rerun) {</span>
+            <span class="s3">this</span><span class="s1">.rerun = </span><span class="s3">false;</span>
+            <span class="s3">this</span><span class="s1">.invalidate()</span><span class="s3">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s3">class </span><span class="s1">Task {</span>
+    <span class="s1">constructor(watcher</span><span class="s3">, </span><span class="s1">options) {</span>
+        <span class="s3">this</span><span class="s1">.cache = { modules: [] }</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.watchFiles = []</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.closed = </span><span class="s3">false;</span>
+        <span class="s3">this</span><span class="s1">.invalidated = </span><span class="s3">true;</span>
+        <span class="s3">this</span><span class="s1">.watched = </span><span class="s3">new </span><span class="s1">Set()</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.watcher = watcher</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.options = options</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.skipWrite = Boolean(options.watch &amp;&amp; options.watch.skipWrite)</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.outputs = </span><span class="s3">this</span><span class="s1">.options.output</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.outputFiles = </span><span class="s3">this</span><span class="s1">.outputs.map(output =&gt; {</span>
+            <span class="s3">if </span><span class="s1">(output.file || output.dir)</span>
+                <span class="s3">return </span><span class="s1">node_path.resolve(output.file || output.dir)</span><span class="s3">;</span>
+            <span class="s3">return </span><span class="s1">undefined</span><span class="s3">;</span>
+        <span class="s1">})</span><span class="s3">;</span>
+        <span class="s3">const </span><span class="s1">watchOptions = </span><span class="s3">this</span><span class="s1">.options.watch || {}</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.filter = rollup.createFilter(watchOptions.include</span><span class="s3">, </span><span class="s1">watchOptions.exclude)</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.fileWatcher = </span><span class="s3">new </span><span class="s1">FileWatcher(</span><span class="s3">this, </span><span class="s1">{</span>
+            <span class="s1">...watchOptions.chokidar</span><span class="s3">,</span>
+            <span class="s1">disableGlobbing: </span><span class="s3">true,</span>
+            <span class="s1">ignoreInitial: </span><span class="s3">true</span>
+        <span class="s1">})</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">close() {</span>
+        <span class="s3">this</span><span class="s1">.closed = </span><span class="s3">true;</span>
+        <span class="s3">this</span><span class="s1">.fileWatcher.close()</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">invalidate(id</span><span class="s3">, </span><span class="s1">details) {</span>
+        <span class="s3">this</span><span class="s1">.invalidated = </span><span class="s3">true;</span>
+        <span class="s3">if </span><span class="s1">(details.isTransformDependency) {</span>
+            <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">module of </span><span class="s3">this</span><span class="s1">.cache.modules) {</span>
+                <span class="s3">if </span><span class="s1">(!module.transformDependencies.includes(id))</span>
+                    <span class="s3">continue;</span>
+                <span class="s0">// effective invalidation</span>
+                <span class="s1">module.originalCode = </span><span class="s3">null;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s3">this</span><span class="s1">.watcher.invalidate({ event: details.event</span><span class="s3">, </span><span class="s1">id })</span><span class="s3">;</span>
+    <span class="s1">}</span>
+    <span class="s1">async run() {</span>
+        <span class="s3">if </span><span class="s1">(!</span><span class="s3">this</span><span class="s1">.invalidated)</span>
+            <span class="s3">return;</span>
+        <span class="s3">this</span><span class="s1">.invalidated = </span><span class="s3">false;</span>
+        <span class="s3">const </span><span class="s1">options = {</span>
+            <span class="s1">...</span><span class="s3">this</span><span class="s1">.options</span><span class="s3">,</span>
+            <span class="s1">cache: </span><span class="s3">this</span><span class="s1">.cache</span>
+        <span class="s1">}</span><span class="s3">;</span>
+        <span class="s3">const </span><span class="s1">start = Date.now()</span><span class="s3">;</span>
+        <span class="s3">await this</span><span class="s1">.watcher.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+            <span class="s1">code: </span><span class="s2">'BUNDLE_START'</span><span class="s3">,</span>
+            <span class="s1">input: </span><span class="s3">this</span><span class="s1">.options.input</span><span class="s3">,</span>
+            <span class="s1">output: </span><span class="s3">this</span><span class="s1">.outputFiles</span>
+        <span class="s1">})</span><span class="s3">;</span>
+        <span class="s3">let </span><span class="s1">result = </span><span class="s3">null;</span>
+        <span class="s3">try </span><span class="s1">{</span>
+            <span class="s1">result = </span><span class="s3">await </span><span class="s1">rollup.rollupInternal(options</span><span class="s3">, this</span><span class="s1">.watcher.emitter)</span><span class="s3">;</span>
+            <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.closed) {</span>
+                <span class="s3">return;</span>
+            <span class="s1">}</span>
+            <span class="s3">this</span><span class="s1">.updateWatchedFiles(result)</span><span class="s3">;</span>
+            <span class="s3">this</span><span class="s1">.skipWrite || (</span><span class="s3">await </span><span class="s1">Promise.all(</span><span class="s3">this</span><span class="s1">.outputs.map(output =&gt; result.write(output))))</span><span class="s3">;</span>
+            <span class="s3">await this</span><span class="s1">.watcher.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+                <span class="s1">code: </span><span class="s2">'BUNDLE_END'</span><span class="s3">,</span>
+                <span class="s1">duration: Date.now() - start</span><span class="s3">,</span>
+                <span class="s1">input: </span><span class="s3">this</span><span class="s1">.options.input</span><span class="s3">,</span>
+                <span class="s1">output: </span><span class="s3">this</span><span class="s1">.outputFiles</span><span class="s3">,</span>
+                <span class="s1">result</span>
+            <span class="s1">})</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s3">catch </span><span class="s1">(error) {</span>
+            <span class="s3">if </span><span class="s1">(!</span><span class="s3">this</span><span class="s1">.closed) {</span>
+                <span class="s3">if </span><span class="s1">(Array.isArray(error.watchFiles)) {</span>
+                    <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">id of error.watchFiles) {</span>
+                        <span class="s3">this</span><span class="s1">.watchFile(id)</span><span class="s3">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+                <span class="s3">if </span><span class="s1">(error.id) {</span>
+                    <span class="s3">this</span><span class="s1">.cache.modules = </span><span class="s3">this</span><span class="s1">.cache.modules.filter(module =&gt; module.id !== error.id)</span><span class="s3">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s3">await this</span><span class="s1">.watcher.emitter.emit(</span><span class="s2">'event'</span><span class="s3">, </span><span class="s1">{</span>
+                <span class="s1">code: </span><span class="s2">'ERROR'</span><span class="s3">,</span>
+                <span class="s1">error</span><span class="s3">,</span>
+                <span class="s1">result</span>
+            <span class="s1">})</span><span class="s3">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">updateWatchedFiles(result) {</span>
+        <span class="s3">const </span><span class="s1">previouslyWatched = </span><span class="s3">this</span><span class="s1">.watched</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.watched = </span><span class="s3">new </span><span class="s1">Set()</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.watchFiles = result.watchFiles</span><span class="s3">;</span>
+        <span class="s3">this</span><span class="s1">.cache = result.cache</span><span class="s3">;</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">id of </span><span class="s3">this</span><span class="s1">.watchFiles) {</span>
+            <span class="s3">this</span><span class="s1">.watchFile(id)</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">module of </span><span class="s3">this</span><span class="s1">.cache.modules) {</span>
+            <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">depId of module.transformDependencies) {</span>
+                <span class="s3">this</span><span class="s1">.watchFile(depId</span><span class="s3">, true</span><span class="s1">)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">id of previouslyWatched) {</span>
+            <span class="s3">if </span><span class="s1">(!</span><span class="s3">this</span><span class="s1">.watched.has(id)) {</span>
+                <span class="s3">this</span><span class="s1">.fileWatcher.unwatch(id)</span><span class="s3">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">watchFile(id</span><span class="s3">, </span><span class="s1">isTransformDependency = </span><span class="s3">false</span><span class="s1">) {</span>
+        <span class="s3">if </span><span class="s1">(!</span><span class="s3">this</span><span class="s1">.filter(id))</span>
+            <span class="s3">return;</span>
+        <span class="s3">this</span><span class="s1">.watched.add(id)</span><span class="s3">;</span>
+        <span class="s3">if </span><span class="s1">(</span><span class="s3">this</span><span class="s1">.outputFiles.includes(id)) {</span>
+            <span class="s3">throw new </span><span class="s1">Error(</span><span class="s2">'Cannot import the generated bundle'</span><span class="s1">)</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s0">// this is necessary to ensure that any 'renamed' files</span>
+        <span class="s0">// continue to be watched following an error</span>
+        <span class="s3">this</span><span class="s1">.fileWatcher.watch(id</span><span class="s3">, </span><span class="s1">isTransformDependency)</span><span class="s3">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">exports.Task = Task</span><span class="s3">;</span>
+<span class="s1">exports.Watcher = Watcher</span><span class="s3">;</span>
+<span class="s0">//# sourceMappingURL=watch.js.map</span>
+</pre>
+</body>
+</html>

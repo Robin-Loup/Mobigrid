@@ -1,0 +1,81 @@
+<html>
+<head>
+<title>root.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+root.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span>
+
+<span class="s2">let </span><span class="s1">Container = require(</span><span class="s0">'./container'</span><span class="s1">)</span>
+
+<span class="s2">let </span><span class="s1">LazyResult</span><span class="s2">, </span><span class="s1">Processor</span>
+
+<span class="s2">class </span><span class="s1">Root </span><span class="s2">extends </span><span class="s1">Container {</span>
+  <span class="s1">constructor(defaults) {</span>
+    <span class="s2">super</span><span class="s1">(defaults)</span>
+    <span class="s2">this</span><span class="s1">.type = </span><span class="s0">'root'</span>
+    <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.nodes) </span><span class="s2">this</span><span class="s1">.nodes = []</span>
+  <span class="s1">}</span>
+
+  <span class="s1">removeChild(child</span><span class="s2">, </span><span class="s1">ignore) {</span>
+    <span class="s2">let </span><span class="s1">index = </span><span class="s2">this</span><span class="s1">.index(child)</span>
+
+    <span class="s2">if </span><span class="s1">(!ignore &amp;&amp; index === </span><span class="s3">0 </span><span class="s1">&amp;&amp; </span><span class="s2">this</span><span class="s1">.nodes.length &gt; </span><span class="s3">1</span><span class="s1">) {</span>
+      <span class="s2">this</span><span class="s1">.nodes[</span><span class="s3">1</span><span class="s1">].raws.before = </span><span class="s2">this</span><span class="s1">.nodes[index].raws.before</span>
+    <span class="s1">}</span>
+
+    <span class="s2">return super</span><span class="s1">.removeChild(child)</span>
+  <span class="s1">}</span>
+
+  <span class="s1">normalize(child</span><span class="s2">, </span><span class="s1">sample</span><span class="s2">, </span><span class="s1">type) {</span>
+    <span class="s2">let </span><span class="s1">nodes = </span><span class="s2">super</span><span class="s1">.normalize(child)</span>
+
+    <span class="s2">if </span><span class="s1">(sample) {</span>
+      <span class="s2">if </span><span class="s1">(type === </span><span class="s0">'prepend'</span><span class="s1">) {</span>
+        <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.nodes.length &gt; </span><span class="s3">1</span><span class="s1">) {</span>
+          <span class="s1">sample.raws.before = </span><span class="s2">this</span><span class="s1">.nodes[</span><span class="s3">1</span><span class="s1">].raws.before</span>
+        <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+          <span class="s2">delete </span><span class="s1">sample.raws.before</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.first !== sample) {</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">node of nodes) {</span>
+          <span class="s1">node.raws.before = sample.raws.before</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">return </span><span class="s1">nodes</span>
+  <span class="s1">}</span>
+
+  <span class="s1">toResult(opts = {}) {</span>
+    <span class="s2">let </span><span class="s1">lazy = </span><span class="s2">new </span><span class="s1">LazyResult(</span><span class="s2">new </span><span class="s1">Processor()</span><span class="s2">, this, </span><span class="s1">opts)</span>
+    <span class="s2">return </span><span class="s1">lazy.stringify()</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">Root.registerLazyResult = dependant =&gt; {</span>
+  <span class="s1">LazyResult = dependant</span>
+<span class="s1">}</span>
+
+<span class="s1">Root.registerProcessor = dependant =&gt; {</span>
+  <span class="s1">Processor = dependant</span>
+<span class="s1">}</span>
+
+<span class="s1">module.exports = Root</span>
+<span class="s1">Root.default = Root</span>
+
+<span class="s1">Container.registerRoot(Root)</span>
+</pre>
+</body>
+</html>

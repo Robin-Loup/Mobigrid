@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>compiler-dom.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+compiler-dom.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{ CodegenResult } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ CompilerError } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ CompilerOptions } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ DirectiveTransform } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ NodeTransform } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ParserOptions } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RootNode } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ SourceLocation } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">compile(template: string</span><span class="s0">, </span><span class="s1">options?: CompilerOptions): CodegenResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createDOMCompilerError(code: DOMErrorCodes</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): DOMCompilerError</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">DOMCompilerError </span><span class="s0">extends </span><span class="s1">CompilerError {</span>
+    <span class="s1">code: DOMErrorCodes</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">DOMDirectiveTransforms: Record&lt;string</span><span class="s0">, </span><span class="s1">DirectiveTransform&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">DOMErrorCodes {</span>
+    <span class="s1">X_V_HTML_NO_EXPRESSION = </span><span class="s3">51</span><span class="s0">,</span>
+    <span class="s1">X_V_HTML_WITH_CHILDREN = </span><span class="s3">52</span><span class="s0">,</span>
+    <span class="s1">X_V_TEXT_NO_EXPRESSION = </span><span class="s3">53</span><span class="s0">,</span>
+    <span class="s1">X_V_TEXT_WITH_CHILDREN = </span><span class="s3">54</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_ON_INVALID_ELEMENT = </span><span class="s3">55</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_ARG_ON_ELEMENT = </span><span class="s3">56</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_ON_FILE_INPUT_ELEMENT = </span><span class="s3">57</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_UNNECESSARY_VALUE = </span><span class="s3">58</span><span class="s0">,</span>
+    <span class="s1">X_V_SHOW_NO_EXPRESSION = </span><span class="s3">59</span><span class="s0">,</span>
+    <span class="s1">X_TRANSITION_INVALID_CHILDREN = </span><span class="s3">60</span><span class="s0">,</span>
+    <span class="s1">X_IGNORED_SIDE_EFFECT_TAG = </span><span class="s3">61</span><span class="s0">,</span>
+    <span class="s1">__EXTEND_POINT__ = </span><span class="s3">62</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">DOMNodeTransforms: NodeTransform[]</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">parse(template: string</span><span class="s0">, </span><span class="s1">options?: ParserOptions): RootNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">parserOptions: ParserOptions</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">transformStyle: NodeTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TRANSITION: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TRANSITION_GROUP: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_MODEL_CHECKBOX: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_MODEL_DYNAMIC: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_MODEL_RADIO: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_MODEL_SELECT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_MODEL_TEXT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_ON_WITH_KEYS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_ON_WITH_MODIFIERS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">V_SHOW: unique symbol</span><span class="s0">;</span>
+
+
+<span class="s0">export </span><span class="s1">* from </span><span class="s2">&quot;@vue/compiler-core&quot;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ }</span>
+</pre>
+</body>
+</html>

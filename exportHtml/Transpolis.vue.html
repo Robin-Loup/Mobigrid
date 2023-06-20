@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>Transpolis.vue</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #e8bf6a;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #bababa;}
+.s5 { color: #a5c261;}
+.s6 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Transpolis.vue</font>
+</center></td></tr></table>
+<pre><span class="s0">&lt;script&gt;</span>
+<span class="s2">import </span><span class="s1">Capteur_ambiance from </span><span class="s3">&quot;@/components/Capteur_ambiance.vue&quot;</span><span class="s2">;</span>
+
+<span class="s2">export default </span><span class="s1">{</span>
+    <span class="s1">name: </span><span class="s3">&quot;Transpolis&quot;</span><span class="s2">,</span>
+    <span class="s1">components: {Capteur_ambiance}</span>
+<span class="s1">}</span>
+<span class="s0">&lt;/script&gt;</span>
+
+<span class="s0">&lt;template&gt;</span>
+  <span class="s0">&lt;header&gt;</span>
+      <span class="s0">&lt;h1 </span><span class="s4">class</span><span class="s5">=&quot;text-center&quot;</span><span class="s0">&gt;</span><span class="s1">Transpolis</span><span class="s0">&lt;/h1&gt;</span>
+  <span class="s0">&lt;/header&gt;</span>
+  <span class="s0">&lt;div </span><span class="s4">class</span><span class="s5">=&quot;row justify-content-center, transpolis&quot;</span><span class="s0">&gt;</span>
+      <span class="s0">&lt;a </span><span class="s4">id</span><span class="s5">=&quot;superviseur&quot; </span><span class="s4">class</span><span class="s5">=&quot;btn btn-primary&quot; </span><span class="s4">href</span><span class="s5">=&quot;assets/src/superviseur.html&quot;</span><span class="s0">&gt;</span><span class="s1">Superviseur</span><span class="s0">&lt;/a&gt;</span>
+      <span class="s0">&lt;a </span><span class="s4">id</span><span class="s5">=&quot;bat&quot; </span><span class="s4">class</span><span class="s5">=&quot;btn btn-primary&quot; </span><span class="s4">href</span><span class="s5">=&quot;assets/src/bat172.html&quot;</span><span class="s0">&gt;</span><span class="s1">Bat 172</span><span class="s0">&lt;/a&gt;</span>
+
+      <span class="s0">&lt;a </span><span class="s4">id</span><span class="s5">=&quot;atelier&quot; </span><span class="s4">class</span><span class="s5">=&quot;btn btn-primary&quot; </span><span class="s4">href</span><span class="s5">=&quot;assets/src/atelier.html&quot;</span><span class="s0">&gt;</span><span class="s1">Atelier</span><span class="s0">&lt;/a&gt;</span>
+      <span class="s0">&lt;a </span><span class="s4">id</span><span class="s5">=&quot;bureau&quot; </span><span class="s4">class</span><span class="s5">=&quot;btn btn-primary&quot; </span><span class="s4">href</span><span class="s5">=&quot;assets/src/bureau.html&quot;</span><span class="s0">&gt;</span><span class="s1">Bureau</span><span class="s0">&lt;/a&gt;</span>
+      <span class="s0">&lt;a </span><span class="s4">id</span><span class="s5">=&quot;plug&quot; </span><span class="s4">class</span><span class="s5">=&quot;btn btn-secondary&quot; </span><span class="s4">href</span><span class="s5">=&quot;assets/src/plug.html&quot;</span><span class="s0">&gt;</span><span class="s1">Plug</span><span class="s0">&lt;/a&gt;</span>
+  <span class="s0">&lt;/div&gt;</span>
+<span class="s0">&lt;/template&gt;</span>
+
+
+
+<span class="s0">&lt;style </span><span class="s4">scoped</span><span class="s0">&gt;</span>
+<span class="s1">.</span><span class="s0">transpolis </span><span class="s1">{</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">1875</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">min-height</span><span class="s1">: </span><span class="s6">960</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">background-attachment</span><span class="s1">: </span><span class="s5">scroll</span><span class="s2">;</span>
+    <span class="s4">background-image</span><span class="s1">: </span><span class="s0">url</span><span class="s1">(</span><span class="s3">&quot;src/assets/plan_Transpolis.png&quot;</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s4">background-size</span><span class="s1">: </span><span class="s5">contain</span><span class="s2">;</span>
+    <span class="s4">background-repeat</span><span class="s1">: </span><span class="s5">no-repeat</span><span class="s2">;</span>
+
+<span class="s1">}</span>
+
+<span class="s0">#bat</span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">250</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">136</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">80</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">height</span><span class="s1">: </span><span class="s6">35</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">opacity</span><span class="s1">: </span><span class="s6">70</span><span class="s1">%</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s0">#superviseur</span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">350</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">520</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">110</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">height</span><span class="s1">: </span><span class="s6">35</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">opacity</span><span class="s1">: </span><span class="s6">70</span><span class="s1">%</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s0">#atelier</span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">390</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">815</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">70</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">height</span><span class="s1">: </span><span class="s6">42</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">opacity</span><span class="s1">: </span><span class="s6">70</span><span class="s1">%</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s0">#bureau</span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: </span><span class="s6">410</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">2</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">80</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">height</span><span class="s1">: </span><span class="s6">42</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">opacity</span><span class="s1">: </span><span class="s6">70</span><span class="s1">%</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s0">#plug</span><span class="s1">{</span>
+    <span class="s4">margin-top</span><span class="s1">: -</span><span class="s6">651</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">margin-left</span><span class="s1">: </span><span class="s6">221</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">width</span><span class="s1">: </span><span class="s6">80</span><span class="s5">px</span><span class="s2">;</span>
+    <span class="s4">height</span><span class="s1">: </span><span class="s6">42</span><span class="s5">px</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s0">&lt;/style&gt;</span></pre>
+</body>
+</html>

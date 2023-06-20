@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>at-rule.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+at-rule.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span>
+
+<span class="s2">let </span><span class="s1">Container = require(</span><span class="s0">'./container'</span><span class="s1">)</span>
+
+<span class="s2">class </span><span class="s1">AtRule </span><span class="s2">extends </span><span class="s1">Container {</span>
+  <span class="s1">constructor(defaults) {</span>
+    <span class="s2">super</span><span class="s1">(defaults)</span>
+    <span class="s2">this</span><span class="s1">.type = </span><span class="s0">'atrule'</span>
+  <span class="s1">}</span>
+
+  <span class="s1">append(...children) {</span>
+    <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.proxyOf.nodes) </span><span class="s2">this</span><span class="s1">.nodes = []</span>
+    <span class="s2">return super</span><span class="s1">.append(...children)</span>
+  <span class="s1">}</span>
+
+  <span class="s1">prepend(...children) {</span>
+    <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.proxyOf.nodes) </span><span class="s2">this</span><span class="s1">.nodes = []</span>
+    <span class="s2">return super</span><span class="s1">.prepend(...children)</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">module.exports = AtRule</span>
+<span class="s1">AtRule.default = AtRule</span>
+
+<span class="s1">Container.registerAtRule(AtRule)</span>
+</pre>
+</body>
+</html>

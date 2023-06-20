@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>main.css</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #e8bf6a;}
+.s4 { color: #bababa;}
+.s5 { color: #a9b7c6;}
+.s6 { color: #6897bb;}
+.s7 { color: #a5c261;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.css</font>
+</center></td></tr></table>
+<pre><span class="s0">@import </span><span class="s2">'./base.css'</span><span class="s0">;</span>
+
+<span class="s3">#app </span><span class="s1">{</span>
+  <span class="s4">max-width</span><span class="s5">: </span><span class="s6">1280</span><span class="s7">px</span><span class="s0">;</span>
+  <span class="s4">margin</span><span class="s5">: </span><span class="s6">0 </span><span class="s7">auto</span><span class="s0">;</span>
+  <span class="s4">padding</span><span class="s5">: </span><span class="s6">2</span><span class="s7">rem</span><span class="s0">;</span>
+
+  <span class="s4">font-weight</span><span class="s5">: </span><span class="s7">normal</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s3">a</span><span class="s0">,</span>
+<span class="s1">.</span><span class="s3">green </span><span class="s1">{</span>
+  <span class="s4">text-decoration</span><span class="s5">: </span><span class="s7">none</span><span class="s0">;</span>
+  <span class="s4">color</span><span class="s5">: </span><span class="s3">hsla</span><span class="s1">(</span><span class="s6">160</span><span class="s0">, </span><span class="s6">100</span><span class="s1">%</span><span class="s0">, </span><span class="s6">37</span><span class="s1">%</span><span class="s0">, </span><span class="s6">1</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s4">transition</span><span class="s5">: </span><span class="s6">0.4</span><span class="s7">s</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">@media </span><span class="s1">(</span><span class="s4">hover</span><span class="s5">: </span><span class="s7">hover</span><span class="s1">) {</span>
+  <span class="s3">a</span><span class="s5">:</span><span class="s3">hover </span><span class="s1">{</span>
+    <span class="s4">background-color</span><span class="s5">: </span><span class="s3">hsla</span><span class="s1">(</span><span class="s6">160</span><span class="s0">, </span><span class="s6">100</span><span class="s1">%</span><span class="s0">, </span><span class="s6">37</span><span class="s1">%</span><span class="s0">, </span><span class="s6">0.2</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">@media </span><span class="s1">(</span><span class="s4">min-width</span><span class="s5">: </span><span class="s6">1024</span><span class="s7">px</span><span class="s1">) {</span>
+  <span class="s3">body </span><span class="s1">{</span>
+    <span class="s4">display</span><span class="s5">: </span><span class="s7">flex</span><span class="s0">;</span>
+    <span class="s4">place-items</span><span class="s5">: </span><span class="s7">center</span><span class="s0">;</span>
+  <span class="s1">}</span>
+
+  <span class="s3">#app </span><span class="s1">{</span>
+    <span class="s4">display</span><span class="s5">: </span><span class="s7">grid</span><span class="s0">;</span>
+    <span class="s4">grid-template-columns</span><span class="s5">: </span><span class="s6">1</span><span class="s3">fr </span><span class="s6">1</span><span class="s3">fr</span><span class="s0">;</span>
+    <span class="s4">padding</span><span class="s5">: </span><span class="s6">0 2</span><span class="s7">rem</span><span class="s0">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

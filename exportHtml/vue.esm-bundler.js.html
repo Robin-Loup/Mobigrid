@@ -1,0 +1,92 @@
+<html>
+<head>
+<title>vue.esm-bundler.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+vue.esm-bundler.js</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">* as runtimeDom from </span><span class="s2">'@vue/runtime-dom'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ initCustomFormatter</span><span class="s0">, </span><span class="s1">registerRuntimeCompiler</span><span class="s0">, </span><span class="s1">warn } from </span><span class="s2">'@vue/runtime-dom'</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">* from </span><span class="s2">'@vue/runtime-dom'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ compile } from </span><span class="s2">'@vue/compiler-dom'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ isString</span><span class="s0">, </span><span class="s1">NOOP</span><span class="s0">, </span><span class="s1">extend</span><span class="s0">, </span><span class="s1">generateCodeFrame } from </span><span class="s2">'@vue/shared'</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">initDev() {</span>
+    <span class="s1">{</span>
+        <span class="s1">initCustomFormatter()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">// This entry is the &quot;full-build&quot; that includes both the runtime</span>
+<span class="s0">if </span><span class="s1">((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">)) {</span>
+    <span class="s1">initDev()</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">const </span><span class="s1">compileCache = Object.create(</span><span class="s0">null</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">compileToFunction(template</span><span class="s0">, </span><span class="s1">options) {</span>
+    <span class="s0">if </span><span class="s1">(!isString(template)) {</span>
+        <span class="s0">if </span><span class="s1">(template.nodeType) {</span>
+            <span class="s1">template = template.innerHTML</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s1">(process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) &amp;&amp; warn(</span><span class="s2">`invalid template option: `</span><span class="s0">, </span><span class="s1">template)</span><span class="s0">;</span>
+            <span class="s0">return </span><span class="s1">NOOP</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">key = template</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">cached = compileCache[key]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(cached) {</span>
+        <span class="s0">return </span><span class="s1">cached</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(template[</span><span class="s4">0</span><span class="s1">] === </span><span class="s2">'#'</span><span class="s1">) {</span>
+        <span class="s0">const </span><span class="s1">el = document.querySelector(template)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) &amp;&amp; !el) {</span>
+            <span class="s1">warn(</span><span class="s2">`Template element not found or is empty: </span><span class="s1">${template}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s3">// __UNSAFE__</span>
+        <span class="s3">// Reason: potential execution of JS expressions in in-DOM template.</span>
+        <span class="s3">// The user must make sure the in-DOM template is trusted. If it's rendered</span>
+        <span class="s3">// by the server, the template should not contain any user data.</span>
+        <span class="s1">template = el ? el.innerHTML : </span><span class="s2">``</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">opts = extend({</span>
+        <span class="s1">hoistStatic: </span><span class="s0">true,</span>
+        <span class="s1">onError: (process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? onError : undefined</span><span class="s0">,</span>
+        <span class="s1">onWarn: (process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? e =&gt; onError(e</span><span class="s0">, true</span><span class="s1">) : NOOP</span>
+    <span class="s1">}</span><span class="s0">, </span><span class="s1">options)</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!opts.isCustomElement &amp;&amp; </span><span class="s0">typeof </span><span class="s1">customElements !== </span><span class="s2">'undefined'</span><span class="s1">) {</span>
+        <span class="s1">opts.isCustomElement = tag =&gt; !!customElements.get(tag)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">{ code } = compile(template</span><span class="s0">, </span><span class="s1">opts)</span><span class="s0">;</span>
+    <span class="s0">function </span><span class="s1">onError(err</span><span class="s0">, </span><span class="s1">asWarning = </span><span class="s0">false</span><span class="s1">) {</span>
+        <span class="s0">const </span><span class="s1">message = asWarning</span>
+            <span class="s1">? err.message</span>
+            <span class="s1">: </span><span class="s2">`Template compilation error: </span><span class="s1">${err.message}</span><span class="s2">`</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">codeFrame = err.loc &amp;&amp;</span>
+            <span class="s1">generateCodeFrame(template</span><span class="s0">, </span><span class="s1">err.loc.start.offset</span><span class="s0">, </span><span class="s1">err.loc.end.offset)</span><span class="s0">;</span>
+        <span class="s1">warn(codeFrame ? </span><span class="s2">`</span><span class="s1">${message}</span><span class="s0">\n</span><span class="s1">${codeFrame}</span><span class="s2">` </span><span class="s1">: message)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s3">// The wildcard import results in a huge object with every export</span>
+    <span class="s3">// with keys that cannot be mangled, and can be quite heavy size-wise.</span>
+    <span class="s3">// In the global build we know `Vue` is available globally so we can avoid</span>
+    <span class="s3">// the wildcard object.</span>
+    <span class="s0">const </span><span class="s1">render = (</span><span class="s0">new </span><span class="s1">Function(</span><span class="s2">'Vue'</span><span class="s0">, </span><span class="s1">code)(runtimeDom))</span><span class="s0">;</span>
+    <span class="s1">render._rc = </span><span class="s0">true;</span>
+    <span class="s0">return </span><span class="s1">(compileCache[key] = render)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s1">registerRuntimeCompiler(compileToFunction)</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ compileToFunction as compile }</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

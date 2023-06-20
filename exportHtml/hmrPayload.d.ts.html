@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>hmrPayload.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+hmrPayload.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">export </span><span class="s1">type HMRPayload =</span>
+  <span class="s1">| ConnectedPayload</span>
+  <span class="s1">| UpdatePayload</span>
+  <span class="s1">| FullReloadPayload</span>
+  <span class="s1">| CustomPayload</span>
+  <span class="s1">| ErrorPayload</span>
+  <span class="s1">| PrunePayload</span>
+
+<span class="s0">export interface </span><span class="s1">ConnectedPayload {</span>
+  <span class="s1">type: </span><span class="s2">'connected'</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">UpdatePayload {</span>
+  <span class="s1">type: </span><span class="s2">'update'</span>
+  <span class="s1">updates: Update[]</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Update {</span>
+  <span class="s1">type: </span><span class="s2">'js-update' </span><span class="s1">| </span><span class="s2">'css-update'</span>
+  <span class="s1">path: string</span>
+  <span class="s1">acceptedPath: string</span>
+  <span class="s1">timestamp: number</span>
+  <span class="s3">/**</span>
+   <span class="s3">* </span><span class="s4">@experimental </span><span class="s3">internal</span>
+   <span class="s3">*/</span>
+  <span class="s1">explicitImportRequired?: boolean | undefined</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">PrunePayload {</span>
+  <span class="s1">type: </span><span class="s2">'prune'</span>
+  <span class="s1">paths: string[]</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">FullReloadPayload {</span>
+  <span class="s1">type: </span><span class="s2">'full-reload'</span>
+  <span class="s1">path?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">CustomPayload {</span>
+  <span class="s1">type: </span><span class="s2">'custom'</span>
+  <span class="s1">event: string</span>
+  <span class="s1">data?: any</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ErrorPayload {</span>
+  <span class="s1">type: </span><span class="s2">'error'</span>
+  <span class="s1">err: {</span>
+    <span class="s1">[name: string]: any</span>
+    <span class="s1">message: string</span>
+    <span class="s1">stack: string</span>
+    <span class="s1">id?: string</span>
+    <span class="s1">frame?: string</span>
+    <span class="s1">plugin?: string</span>
+    <span class="s1">pluginCode?: string</span>
+    <span class="s1">loc?: {</span>
+      <span class="s1">file?: string</span>
+      <span class="s1">line: number</span>
+      <span class="s1">column: number</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

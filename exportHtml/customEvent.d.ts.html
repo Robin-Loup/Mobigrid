@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>customEvent.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+customEvent.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">type {</span>
+  <span class="s1">ErrorPayload</span><span class="s0">,</span>
+  <span class="s1">FullReloadPayload</span><span class="s0">,</span>
+  <span class="s1">PrunePayload</span><span class="s0">,</span>
+  <span class="s1">UpdatePayload</span><span class="s0">,</span>
+<span class="s1">} from </span><span class="s2">'./hmrPayload'</span>
+
+<span class="s0">export interface </span><span class="s1">CustomEventMap {</span>
+  <span class="s2">'vite:beforeUpdate'</span><span class="s1">: UpdatePayload</span>
+  <span class="s2">'vite:afterUpdate'</span><span class="s1">: UpdatePayload</span>
+  <span class="s2">'vite:beforePrune'</span><span class="s1">: PrunePayload</span>
+  <span class="s2">'vite:beforeFullReload'</span><span class="s1">: FullReloadPayload</span>
+  <span class="s2">'vite:error'</span><span class="s1">: ErrorPayload</span>
+  <span class="s2">'vite:invalidate'</span><span class="s1">: InvalidatePayload</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">InvalidatePayload {</span>
+  <span class="s1">path: string</span>
+  <span class="s1">message: string | undefined</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type InferCustomEventPayload&lt;T </span><span class="s0">extends </span><span class="s1">string&gt; =</span>
+  <span class="s1">T </span><span class="s0">extends </span><span class="s1">keyof CustomEventMap ? CustomEventMap[T] : any</span>
+</pre>
+</body>
+</html>

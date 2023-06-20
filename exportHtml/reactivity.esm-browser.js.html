@@ -1,0 +1,1340 @@
+<html>
+<head>
+<title>reactivity.esm-browser.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #629755; font-style: italic;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+.s5 { color: #808080;}
+.s6 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+reactivity.esm-browser.js</font>
+</center></td></tr></table>
+<pre><span class="s0">/**</span>
+ <span class="s0">* Make a map and return a function for checking if a key</span>
+ <span class="s0">* is in that map.</span>
+ <span class="s0">* IMPORTANT: all calls of this function must be prefixed with</span>
+ <span class="s0">* \/\*#\_\_PURE\_\_\*\/</span>
+ <span class="s0">* So that rollup can tree-shake them if necessary.</span>
+ <span class="s0">*/</span>
+<span class="s2">function </span><span class="s1">makeMap(str</span><span class="s2">, </span><span class="s1">expectsLowerCase) {</span>
+    <span class="s2">const </span><span class="s1">map = Object.create(</span><span class="s2">null</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">list = str.split(</span><span class="s3">','</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; list.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+        <span class="s1">map[list[i]] = </span><span class="s2">true;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">expectsLowerCase ? val =&gt; !!map[val.toLowerCase()] : val =&gt; !!map[val]</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">const </span><span class="s1">extend = Object.assign</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">hasOwnProperty$1 = Object.prototype.hasOwnProperty</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">hasOwn = (val</span><span class="s2">, </span><span class="s1">key) =&gt; hasOwnProperty$1.call(val</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isArray = Array.isArray</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isMap = (val) =&gt; toTypeString(val) === </span><span class="s3">'[object Map]'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isFunction = (val) =&gt; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'function'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isString = (val) =&gt; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'string'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isSymbol = (val) =&gt; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'symbol'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isObject = (val) =&gt; val !== </span><span class="s2">null </span><span class="s1">&amp;&amp; </span><span class="s2">typeof </span><span class="s1">val === </span><span class="s3">'object'</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">objectToString = Object.prototype.toString</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">toTypeString = (value) =&gt; objectToString.call(value)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">toRawType = (value) =&gt; {</span>
+    <span class="s5">// extract &quot;RawType&quot; from strings like &quot;[object RawType]&quot;</span>
+    <span class="s2">return </span><span class="s1">toTypeString(value).slice(</span><span class="s4">8</span><span class="s2">, </span><span class="s1">-</span><span class="s4">1</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">isIntegerKey = (key) =&gt; isString(key) &amp;&amp;</span>
+    <span class="s1">key !== </span><span class="s3">'NaN' </span><span class="s1">&amp;&amp;</span>
+    <span class="s1">key[</span><span class="s4">0</span><span class="s1">] !== </span><span class="s3">'-' </span><span class="s1">&amp;&amp;</span>
+    <span class="s3">'' </span><span class="s1">+ parseInt(key</span><span class="s2">, </span><span class="s4">10</span><span class="s1">) === key</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">cacheStringFunction = (fn) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">cache = Object.create(</span><span class="s2">null</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">((str) =&gt; {</span>
+        <span class="s2">const </span><span class="s1">hit = cache[str]</span><span class="s2">;</span>
+        <span class="s2">return </span><span class="s1">hit || (cache[str] = fn(str))</span><span class="s2">;</span>
+    <span class="s1">})</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* </span><span class="s6">@private</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">capitalize = cacheStringFunction((str) =&gt; str.charAt(</span><span class="s4">0</span><span class="s1">).toUpperCase() + str.slice(</span><span class="s4">1</span><span class="s1">))</span><span class="s2">;</span>
+<span class="s5">// compare whether a value has changed, accounting for NaN.</span>
+<span class="s2">const </span><span class="s1">hasChanged = (value</span><span class="s2">, </span><span class="s1">oldValue) =&gt; !Object.is(value</span><span class="s2">, </span><span class="s1">oldValue)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">def = (obj</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value) =&gt; {</span>
+    <span class="s1">Object.defineProperty(obj</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">{</span>
+        <span class="s1">configurable: </span><span class="s2">true,</span>
+        <span class="s1">enumerable: </span><span class="s2">false,</span>
+        <span class="s1">value</span>
+    <span class="s1">})</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s2">function </span><span class="s1">warn(msg</span><span class="s2">, </span><span class="s1">...args) {</span>
+    <span class="s1">console.warn(</span><span class="s3">`[Vue warn] </span><span class="s1">${msg}</span><span class="s3">`</span><span class="s2">, </span><span class="s1">...args)</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">let </span><span class="s1">activeEffectScope</span><span class="s2">;</span>
+<span class="s2">class </span><span class="s1">EffectScope {</span>
+    <span class="s1">constructor(detached = </span><span class="s2">false</span><span class="s1">) {</span>
+        <span class="s2">this</span><span class="s1">.detached = detached</span><span class="s2">;</span>
+        <span class="s0">/**</span>
+         <span class="s0">* </span><span class="s6">@internal</span>
+         <span class="s0">*/</span>
+        <span class="s2">this</span><span class="s1">._active = </span><span class="s2">true;</span>
+        <span class="s0">/**</span>
+         <span class="s0">* </span><span class="s6">@internal</span>
+         <span class="s0">*/</span>
+        <span class="s2">this</span><span class="s1">.effects = []</span><span class="s2">;</span>
+        <span class="s0">/**</span>
+         <span class="s0">* </span><span class="s6">@internal</span>
+         <span class="s0">*/</span>
+        <span class="s2">this</span><span class="s1">.cleanups = []</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.parent = activeEffectScope</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(!detached &amp;&amp; activeEffectScope) {</span>
+            <span class="s2">this</span><span class="s1">.index =</span>
+                <span class="s1">(activeEffectScope.scopes || (activeEffectScope.scopes = [])).push(</span><span class="s2">this</span><span class="s1">) - </span><span class="s4">1</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">get active() {</span>
+        <span class="s2">return this</span><span class="s1">._active</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">run(fn) {</span>
+        <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">._active) {</span>
+            <span class="s2">const </span><span class="s1">currentEffectScope = activeEffectScope</span><span class="s2">;</span>
+            <span class="s2">try </span><span class="s1">{</span>
+                <span class="s1">activeEffectScope = </span><span class="s2">this;</span>
+                <span class="s2">return </span><span class="s1">fn()</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">finally </span><span class="s1">{</span>
+                <span class="s1">activeEffectScope = currentEffectScope</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s2">else </span><span class="s1">{</span>
+            <span class="s1">warn(</span><span class="s3">`cannot run an inactive effect scope.`</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">/**</span>
+     <span class="s0">* This should only be called on non-detached scopes</span>
+     <span class="s0">* </span><span class="s6">@internal</span>
+     <span class="s0">*/</span>
+    <span class="s1">on() {</span>
+        <span class="s1">activeEffectScope = </span><span class="s2">this;</span>
+    <span class="s1">}</span>
+    <span class="s0">/**</span>
+     <span class="s0">* This should only be called on non-detached scopes</span>
+     <span class="s0">* </span><span class="s6">@internal</span>
+     <span class="s0">*/</span>
+    <span class="s1">off() {</span>
+        <span class="s1">activeEffectScope = </span><span class="s2">this</span><span class="s1">.parent</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">stop(fromParent) {</span>
+        <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">._active) {</span>
+            <span class="s2">let </span><span class="s1">i</span><span class="s2">, </span><span class="s1">l</span><span class="s2">;</span>
+            <span class="s2">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s2">, </span><span class="s1">l = </span><span class="s2">this</span><span class="s1">.effects.length</span><span class="s2">; </span><span class="s1">i &lt; l</span><span class="s2">; </span><span class="s1">i++) {</span>
+                <span class="s2">this</span><span class="s1">.effects[i].stop()</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s2">, </span><span class="s1">l = </span><span class="s2">this</span><span class="s1">.cleanups.length</span><span class="s2">; </span><span class="s1">i &lt; l</span><span class="s2">; </span><span class="s1">i++) {</span>
+                <span class="s2">this</span><span class="s1">.cleanups[i]()</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.scopes) {</span>
+                <span class="s2">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s2">, </span><span class="s1">l = </span><span class="s2">this</span><span class="s1">.scopes.length</span><span class="s2">; </span><span class="s1">i &lt; l</span><span class="s2">; </span><span class="s1">i++) {</span>
+                    <span class="s2">this</span><span class="s1">.scopes[i].stop(</span><span class="s2">true</span><span class="s1">)</span><span class="s2">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s5">// nested scope, dereference from parent to avoid memory leaks</span>
+            <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.detached &amp;&amp; </span><span class="s2">this</span><span class="s1">.parent &amp;&amp; !fromParent) {</span>
+                <span class="s5">// optimized O(1) removal</span>
+                <span class="s2">const </span><span class="s1">last = </span><span class="s2">this</span><span class="s1">.parent.scopes.pop()</span><span class="s2">;</span>
+                <span class="s2">if </span><span class="s1">(last &amp;&amp; last !== </span><span class="s2">this</span><span class="s1">) {</span>
+                    <span class="s2">this</span><span class="s1">.parent.scopes[</span><span class="s2">this</span><span class="s1">.index] = last</span><span class="s2">;</span>
+                    <span class="s1">last.index = </span><span class="s2">this</span><span class="s1">.index</span><span class="s2">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s2">this</span><span class="s1">.parent = undefined</span><span class="s2">;</span>
+            <span class="s2">this</span><span class="s1">._active = </span><span class="s2">false;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">effectScope(detached) {</span>
+    <span class="s2">return new </span><span class="s1">EffectScope(detached)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">recordEffectScope(effect</span><span class="s2">, </span><span class="s1">scope = activeEffectScope) {</span>
+    <span class="s2">if </span><span class="s1">(scope &amp;&amp; scope.active) {</span>
+        <span class="s1">scope.effects.push(effect)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">getCurrentScope() {</span>
+    <span class="s2">return </span><span class="s1">activeEffectScope</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">onScopeDispose(fn) {</span>
+    <span class="s2">if </span><span class="s1">(activeEffectScope) {</span>
+        <span class="s1">activeEffectScope.cleanups.push(fn)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">warn(</span><span class="s3">`onScopeDispose() is called when there is no active effect scope` </span><span class="s1">+</span>
+            <span class="s3">` to be associated with.`</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s2">const </span><span class="s1">createDep = (effects) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">dep = </span><span class="s2">new </span><span class="s1">Set(effects)</span><span class="s2">;</span>
+    <span class="s1">dep.w = </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s1">dep.n = </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">dep</span><span class="s2">;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">wasTracked = (dep) =&gt; (dep.w &amp; trackOpBit) &gt; </span><span class="s4">0</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">newTracked = (dep) =&gt; (dep.n &amp; trackOpBit) &gt; </span><span class="s4">0</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">initDepMarkers = ({ deps }) =&gt; {</span>
+    <span class="s2">if </span><span class="s1">(deps.length) {</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; deps.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+            <span class="s1">deps[i].w |= trackOpBit</span><span class="s2">; </span><span class="s5">// set was tracked</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">finalizeDepMarkers = (effect) =&gt; {</span>
+    <span class="s2">const </span><span class="s1">{ deps } = effect</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(deps.length) {</span>
+        <span class="s2">let </span><span class="s1">ptr = </span><span class="s4">0</span><span class="s2">;</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; deps.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+            <span class="s2">const </span><span class="s1">dep = deps[i]</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(wasTracked(dep) &amp;&amp; !newTracked(dep)) {</span>
+                <span class="s1">dep.delete(effect)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">else </span><span class="s1">{</span>
+                <span class="s1">deps[ptr++] = dep</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s5">// clear bits</span>
+            <span class="s1">dep.w &amp;= ~trackOpBit</span><span class="s2">;</span>
+            <span class="s1">dep.n &amp;= ~trackOpBit</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s1">deps.length = ptr</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+
+<span class="s2">const </span><span class="s1">targetMap = </span><span class="s2">new </span><span class="s1">WeakMap()</span><span class="s2">;</span>
+<span class="s5">// The number of effects currently being tracked recursively.</span>
+<span class="s2">let </span><span class="s1">effectTrackDepth = </span><span class="s4">0</span><span class="s2">;</span>
+<span class="s2">let </span><span class="s1">trackOpBit = </span><span class="s4">1</span><span class="s2">;</span>
+<span class="s0">/**</span>
+ <span class="s0">* The bitwise track markers support at most 30 levels of recursion.</span>
+ <span class="s0">* This value is chosen to enable modern JS engines to use a SMI on all platforms.</span>
+ <span class="s0">* When recursion depth is greater, fall back to using a full cleanup.</span>
+ <span class="s0">*/</span>
+<span class="s2">const </span><span class="s1">maxMarkerBits = </span><span class="s4">30</span><span class="s2">;</span>
+<span class="s2">let </span><span class="s1">activeEffect</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">ITERATE_KEY = Symbol(</span><span class="s3">'iterate' </span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">MAP_KEY_ITERATE_KEY = Symbol(</span><span class="s3">'Map key iterate' </span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">class </span><span class="s1">ReactiveEffect {</span>
+    <span class="s1">constructor(fn</span><span class="s2">, </span><span class="s1">scheduler = </span><span class="s2">null, </span><span class="s1">scope) {</span>
+        <span class="s2">this</span><span class="s1">.fn = fn</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.scheduler = scheduler</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.active = </span><span class="s2">true;</span>
+        <span class="s2">this</span><span class="s1">.deps = []</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.parent = undefined</span><span class="s2">;</span>
+        <span class="s1">recordEffectScope(</span><span class="s2">this, </span><span class="s1">scope)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">run() {</span>
+        <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.active) {</span>
+            <span class="s2">return this</span><span class="s1">.fn()</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">let </span><span class="s1">parent = activeEffect</span><span class="s2">;</span>
+        <span class="s2">let </span><span class="s1">lastShouldTrack = shouldTrack</span><span class="s2">;</span>
+        <span class="s2">while </span><span class="s1">(parent) {</span>
+            <span class="s2">if </span><span class="s1">(parent === </span><span class="s2">this</span><span class="s1">) {</span>
+                <span class="s2">return;</span>
+            <span class="s1">}</span>
+            <span class="s1">parent = parent.parent</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">try </span><span class="s1">{</span>
+            <span class="s2">this</span><span class="s1">.parent = activeEffect</span><span class="s2">;</span>
+            <span class="s1">activeEffect = </span><span class="s2">this;</span>
+            <span class="s1">shouldTrack = </span><span class="s2">true;</span>
+            <span class="s1">trackOpBit = </span><span class="s4">1 </span><span class="s1">&lt;&lt; ++effectTrackDepth</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(effectTrackDepth &lt;= maxMarkerBits) {</span>
+                <span class="s1">initDepMarkers(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">else </span><span class="s1">{</span>
+                <span class="s1">cleanupEffect(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">return this</span><span class="s1">.fn()</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">finally </span><span class="s1">{</span>
+            <span class="s2">if </span><span class="s1">(effectTrackDepth &lt;= maxMarkerBits) {</span>
+                <span class="s1">finalizeDepMarkers(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s1">trackOpBit = </span><span class="s4">1 </span><span class="s1">&lt;&lt; --effectTrackDepth</span><span class="s2">;</span>
+            <span class="s1">activeEffect = </span><span class="s2">this</span><span class="s1">.parent</span><span class="s2">;</span>
+            <span class="s1">shouldTrack = lastShouldTrack</span><span class="s2">;</span>
+            <span class="s2">this</span><span class="s1">.parent = undefined</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.deferStop) {</span>
+                <span class="s2">this</span><span class="s1">.stop()</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">stop() {</span>
+        <span class="s5">// stopped while running itself - defer the cleanup</span>
+        <span class="s2">if </span><span class="s1">(activeEffect === </span><span class="s2">this</span><span class="s1">) {</span>
+            <span class="s2">this</span><span class="s1">.deferStop = </span><span class="s2">true;</span>
+        <span class="s1">}</span>
+        <span class="s2">else if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.active) {</span>
+            <span class="s1">cleanupEffect(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.onStop) {</span>
+                <span class="s2">this</span><span class="s1">.onStop()</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">this</span><span class="s1">.active = </span><span class="s2">false;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">cleanupEffect(effect) {</span>
+    <span class="s2">const </span><span class="s1">{ deps } = effect</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(deps.length) {</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; deps.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+            <span class="s1">deps[i].delete(effect)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s1">deps.length = </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">effect(fn</span><span class="s2">, </span><span class="s1">options) {</span>
+    <span class="s2">if </span><span class="s1">(fn.effect) {</span>
+        <span class="s1">fn = fn.effect.fn</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">_effect = </span><span class="s2">new </span><span class="s1">ReactiveEffect(fn)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(options) {</span>
+        <span class="s1">extend(_effect</span><span class="s2">, </span><span class="s1">options)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(options.scope)</span>
+            <span class="s1">recordEffectScope(_effect</span><span class="s2">, </span><span class="s1">options.scope)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">if </span><span class="s1">(!options || !options.lazy) {</span>
+        <span class="s1">_effect.run()</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">runner = _effect.run.bind(_effect)</span><span class="s2">;</span>
+    <span class="s1">runner.effect = _effect</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">runner</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">stop(runner) {</span>
+    <span class="s1">runner.effect.stop()</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">let </span><span class="s1">shouldTrack = </span><span class="s2">true;</span>
+<span class="s2">const </span><span class="s1">trackStack = []</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">pauseTracking() {</span>
+    <span class="s1">trackStack.push(shouldTrack)</span><span class="s2">;</span>
+    <span class="s1">shouldTrack = </span><span class="s2">false;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">enableTracking() {</span>
+    <span class="s1">trackStack.push(shouldTrack)</span><span class="s2">;</span>
+    <span class="s1">shouldTrack = </span><span class="s2">true;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">resetTracking() {</span>
+    <span class="s2">const </span><span class="s1">last = trackStack.pop()</span><span class="s2">;</span>
+    <span class="s1">shouldTrack = last === undefined ? </span><span class="s2">true </span><span class="s1">: last</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">track(target</span><span class="s2">, </span><span class="s1">type</span><span class="s2">, </span><span class="s1">key) {</span>
+    <span class="s2">if </span><span class="s1">(shouldTrack &amp;&amp; activeEffect) {</span>
+        <span class="s2">let </span><span class="s1">depsMap = targetMap.get(target)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(!depsMap) {</span>
+            <span class="s1">targetMap.set(target</span><span class="s2">, </span><span class="s1">(depsMap = </span><span class="s2">new </span><span class="s1">Map()))</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">let </span><span class="s1">dep = depsMap.get(key)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(!dep) {</span>
+            <span class="s1">depsMap.set(key</span><span class="s2">, </span><span class="s1">(dep = createDep()))</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">const </span><span class="s1">eventInfo = { effect: activeEffect</span><span class="s2">, </span><span class="s1">target</span><span class="s2">, </span><span class="s1">type</span><span class="s2">, </span><span class="s1">key }</span>
+            <span class="s2">;</span>
+        <span class="s1">trackEffects(dep</span><span class="s2">, </span><span class="s1">eventInfo)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">trackEffects(dep</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo) {</span>
+    <span class="s2">let </span><span class="s1">shouldTrack = </span><span class="s2">false;</span>
+    <span class="s2">if </span><span class="s1">(effectTrackDepth &lt;= maxMarkerBits) {</span>
+        <span class="s2">if </span><span class="s1">(!newTracked(dep)) {</span>
+            <span class="s1">dep.n |= trackOpBit</span><span class="s2">; </span><span class="s5">// set newly tracked</span>
+            <span class="s1">shouldTrack = !wasTracked(dep)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s5">// Full cleanup mode.</span>
+        <span class="s1">shouldTrack = !dep.has(activeEffect)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">if </span><span class="s1">(shouldTrack) {</span>
+        <span class="s1">dep.add(activeEffect)</span><span class="s2">;</span>
+        <span class="s1">activeEffect.deps.push(dep)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(activeEffect.onTrack) {</span>
+            <span class="s1">activeEffect.onTrack(Object.assign({ effect: activeEffect }</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo))</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">trigger(target</span><span class="s2">, </span><span class="s1">type</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">newValue</span><span class="s2">, </span><span class="s1">oldValue</span><span class="s2">, </span><span class="s1">oldTarget) {</span>
+    <span class="s2">const </span><span class="s1">depsMap = targetMap.get(target)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!depsMap) {</span>
+        <span class="s5">// never been tracked</span>
+        <span class="s2">return;</span>
+    <span class="s1">}</span>
+    <span class="s2">let </span><span class="s1">deps = []</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(type === </span><span class="s3">&quot;clear&quot; </span><span class="s5">/* TriggerOpTypes.CLEAR */</span><span class="s1">) {</span>
+        <span class="s5">// collection being cleared</span>
+        <span class="s5">// trigger all effects for target</span>
+        <span class="s1">deps = [...depsMap.values()]</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(key === </span><span class="s3">'length' </span><span class="s1">&amp;&amp; isArray(target)) {</span>
+        <span class="s2">const </span><span class="s1">newLength = Number(newValue)</span><span class="s2">;</span>
+        <span class="s1">depsMap.forEach((dep</span><span class="s2">, </span><span class="s1">key) =&gt; {</span>
+            <span class="s2">if </span><span class="s1">(key === </span><span class="s3">'length' </span><span class="s1">|| key &gt;= newLength) {</span>
+                <span class="s1">deps.push(dep)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">})</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s5">// schedule runs for SET | ADD | DELETE</span>
+        <span class="s2">if </span><span class="s1">(key !== </span><span class="s2">void </span><span class="s4">0</span><span class="s1">) {</span>
+            <span class="s1">deps.push(depsMap.get(key))</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s5">// also run for iteration key on ADD | DELETE | Map.SET</span>
+        <span class="s2">switch </span><span class="s1">(type) {</span>
+            <span class="s2">case </span><span class="s3">&quot;add&quot; </span><span class="s5">/* TriggerOpTypes.ADD */</span><span class="s1">:</span>
+                <span class="s2">if </span><span class="s1">(!isArray(target)) {</span>
+                    <span class="s1">deps.push(depsMap.get(ITERATE_KEY))</span><span class="s2">;</span>
+                    <span class="s2">if </span><span class="s1">(isMap(target)) {</span>
+                        <span class="s1">deps.push(depsMap.get(MAP_KEY_ITERATE_KEY))</span><span class="s2">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+                <span class="s2">else if </span><span class="s1">(isIntegerKey(key)) {</span>
+                    <span class="s5">// new index added to array -&gt; length changes</span>
+                    <span class="s1">deps.push(depsMap.get(</span><span class="s3">'length'</span><span class="s1">))</span><span class="s2">;</span>
+                <span class="s1">}</span>
+                <span class="s2">break;</span>
+            <span class="s2">case </span><span class="s3">&quot;delete&quot; </span><span class="s5">/* TriggerOpTypes.DELETE */</span><span class="s1">:</span>
+                <span class="s2">if </span><span class="s1">(!isArray(target)) {</span>
+                    <span class="s1">deps.push(depsMap.get(ITERATE_KEY))</span><span class="s2">;</span>
+                    <span class="s2">if </span><span class="s1">(isMap(target)) {</span>
+                        <span class="s1">deps.push(depsMap.get(MAP_KEY_ITERATE_KEY))</span><span class="s2">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+                <span class="s2">break;</span>
+            <span class="s2">case </span><span class="s3">&quot;set&quot; </span><span class="s5">/* TriggerOpTypes.SET */</span><span class="s1">:</span>
+                <span class="s2">if </span><span class="s1">(isMap(target)) {</span>
+                    <span class="s1">deps.push(depsMap.get(ITERATE_KEY))</span><span class="s2">;</span>
+                <span class="s1">}</span>
+                <span class="s2">break;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">eventInfo = { target</span><span class="s2">, </span><span class="s1">type</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">newValue</span><span class="s2">, </span><span class="s1">oldValue</span><span class="s2">, </span><span class="s1">oldTarget }</span>
+        <span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(deps.length === </span><span class="s4">1</span><span class="s1">) {</span>
+        <span class="s2">if </span><span class="s1">(deps[</span><span class="s4">0</span><span class="s1">]) {</span>
+            <span class="s1">{</span>
+                <span class="s1">triggerEffects(deps[</span><span class="s4">0</span><span class="s1">]</span><span class="s2">, </span><span class="s1">eventInfo)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s2">const </span><span class="s1">effects = []</span><span class="s2">;</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">dep of deps) {</span>
+            <span class="s2">if </span><span class="s1">(dep) {</span>
+                <span class="s1">effects.push(...dep)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s1">{</span>
+            <span class="s1">triggerEffects(createDep(effects)</span><span class="s2">, </span><span class="s1">eventInfo)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">triggerEffects(dep</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo) {</span>
+    <span class="s5">// spread into array for stabilization</span>
+    <span class="s2">const </span><span class="s1">effects = isArray(dep) ? dep : [...dep]</span><span class="s2">;</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">effect of effects) {</span>
+        <span class="s2">if </span><span class="s1">(effect.computed) {</span>
+            <span class="s1">triggerEffect(effect</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">effect of effects) {</span>
+        <span class="s2">if </span><span class="s1">(!effect.computed) {</span>
+            <span class="s1">triggerEffect(effect</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">triggerEffect(effect</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo) {</span>
+    <span class="s2">if </span><span class="s1">(effect !== activeEffect || effect.allowRecurse) {</span>
+        <span class="s2">if </span><span class="s1">(effect.onTrigger) {</span>
+            <span class="s1">effect.onTrigger(extend({ effect }</span><span class="s2">, </span><span class="s1">debuggerEventExtraInfo))</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(effect.scheduler) {</span>
+            <span class="s1">effect.scheduler()</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">else </span><span class="s1">{</span>
+            <span class="s1">effect.run()</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">getDepFromReactive(object</span><span class="s2">, </span><span class="s1">key) {</span>
+    <span class="s2">var </span><span class="s1">_a</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">(_a = targetMap.get(object)) === </span><span class="s2">null </span><span class="s1">|| _a === </span><span class="s2">void </span><span class="s4">0 </span><span class="s1">? </span><span class="s2">void </span><span class="s4">0 </span><span class="s1">: _a.get(key)</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">const </span><span class="s1">isNonTrackableKeys = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s3">`__proto__,__v_isRef,__isVue`</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">builtInSymbols = </span><span class="s2">new </span><span class="s1">Set(</span>
+<span class="s5">/*#__PURE__*/</span>
+<span class="s1">Object.getOwnPropertyNames(Symbol)</span>
+    <span class="s5">// ios10.x Object.getOwnPropertyNames(Symbol) can enumerate 'arguments' and 'caller'</span>
+    <span class="s5">// but accessing them on Symbol leads to TypeError because Symbol is a strict mode</span>
+    <span class="s5">// function</span>
+    <span class="s1">.filter(key =&gt; key !== </span><span class="s3">'arguments' </span><span class="s1">&amp;&amp; key !== </span><span class="s3">'caller'</span><span class="s1">)</span>
+    <span class="s1">.map(key =&gt; Symbol[key])</span>
+    <span class="s1">.filter(isSymbol))</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">get$1 = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createGetter()</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowGet = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createGetter(</span><span class="s2">false, true</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">readonlyGet = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createGetter(</span><span class="s2">true</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowReadonlyGet = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createGetter(</span><span class="s2">true, true</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">arrayInstrumentations = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createArrayInstrumentations()</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">createArrayInstrumentations() {</span>
+    <span class="s2">const </span><span class="s1">instrumentations = {}</span><span class="s2">;</span>
+    <span class="s1">[</span><span class="s3">'includes'</span><span class="s2">, </span><span class="s3">'indexOf'</span><span class="s2">, </span><span class="s3">'lastIndexOf'</span><span class="s1">].forEach(key =&gt; {</span>
+        <span class="s1">instrumentations[key] = </span><span class="s2">function </span><span class="s1">(...args) {</span>
+            <span class="s2">const </span><span class="s1">arr = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">, </span><span class="s1">l = </span><span class="s2">this</span><span class="s1">.length</span><span class="s2">; </span><span class="s1">i &lt; l</span><span class="s2">; </span><span class="s1">i++) {</span>
+                <span class="s1">track(arr</span><span class="s2">, </span><span class="s3">&quot;get&quot; </span><span class="s5">/* TrackOpTypes.GET */</span><span class="s2">, </span><span class="s1">i + </span><span class="s3">''</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s5">// we run the method using the original args first (which may be reactive)</span>
+            <span class="s2">const </span><span class="s1">res = arr[key](...args)</span><span class="s2">;</span>
+            <span class="s2">if </span><span class="s1">(res === -</span><span class="s4">1 </span><span class="s1">|| res === </span><span class="s2">false</span><span class="s1">) {</span>
+                <span class="s5">// if that didn't work, run it again using raw values.</span>
+                <span class="s2">return </span><span class="s1">arr[key](...args.map(toRaw))</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">else </span><span class="s1">{</span>
+                <span class="s2">return </span><span class="s1">res</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span><span class="s2">;</span>
+    <span class="s1">})</span><span class="s2">;</span>
+    <span class="s1">[</span><span class="s3">'push'</span><span class="s2">, </span><span class="s3">'pop'</span><span class="s2">, </span><span class="s3">'shift'</span><span class="s2">, </span><span class="s3">'unshift'</span><span class="s2">, </span><span class="s3">'splice'</span><span class="s1">].forEach(key =&gt; {</span>
+        <span class="s1">instrumentations[key] = </span><span class="s2">function </span><span class="s1">(...args) {</span>
+            <span class="s1">pauseTracking()</span><span class="s2">;</span>
+            <span class="s2">const </span><span class="s1">res = toRaw(</span><span class="s2">this</span><span class="s1">)[key].apply(</span><span class="s2">this, </span><span class="s1">args)</span><span class="s2">;</span>
+            <span class="s1">resetTracking()</span><span class="s2">;</span>
+            <span class="s2">return </span><span class="s1">res</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">;</span>
+    <span class="s1">})</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">instrumentations</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">hasOwnProperty(key) {</span>
+    <span class="s2">const </span><span class="s1">obj = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">track(obj</span><span class="s2">, </span><span class="s3">&quot;has&quot; </span><span class="s5">/* TrackOpTypes.HAS */</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">obj.hasOwnProperty(key)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createGetter(isReadonly = </span><span class="s2">false, </span><span class="s1">shallow = </span><span class="s2">false</span><span class="s1">) {</span>
+    <span class="s2">return function </span><span class="s1">get(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver) {</span>
+        <span class="s2">if </span><span class="s1">(key === </span><span class="s3">&quot;__v_isReactive&quot; </span><span class="s5">/* ReactiveFlags.IS_REACTIVE */</span><span class="s1">) {</span>
+            <span class="s2">return </span><span class="s1">!isReadonly</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">else if </span><span class="s1">(key === </span><span class="s3">&quot;__v_isReadonly&quot; </span><span class="s5">/* ReactiveFlags.IS_READONLY */</span><span class="s1">) {</span>
+            <span class="s2">return </span><span class="s1">isReadonly</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">else if </span><span class="s1">(key === </span><span class="s3">&quot;__v_isShallow&quot; </span><span class="s5">/* ReactiveFlags.IS_SHALLOW */</span><span class="s1">) {</span>
+            <span class="s2">return </span><span class="s1">shallow</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">else if </span><span class="s1">(key === </span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */ </span><span class="s1">&amp;&amp;</span>
+            <span class="s1">receiver ===</span>
+                <span class="s1">(isReadonly</span>
+                    <span class="s1">? shallow</span>
+                        <span class="s1">? shallowReadonlyMap</span>
+                        <span class="s1">: readonlyMap</span>
+                    <span class="s1">: shallow</span>
+                        <span class="s1">? shallowReactiveMap</span>
+                        <span class="s1">: reactiveMap).get(target)) {</span>
+            <span class="s2">return </span><span class="s1">target</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">const </span><span class="s1">targetIsArray = isArray(target)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(!isReadonly) {</span>
+            <span class="s2">if </span><span class="s1">(targetIsArray &amp;&amp; hasOwn(arrayInstrumentations</span><span class="s2">, </span><span class="s1">key)) {</span>
+                <span class="s2">return </span><span class="s1">Reflect.get(arrayInstrumentations</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">if </span><span class="s1">(key === </span><span class="s3">'hasOwnProperty'</span><span class="s1">) {</span>
+                <span class="s2">return </span><span class="s1">hasOwnProperty</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s2">const </span><span class="s1">res = Reflect.get(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {</span>
+            <span class="s2">return </span><span class="s1">res</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(!isReadonly) {</span>
+            <span class="s1">track(target</span><span class="s2">, </span><span class="s3">&quot;get&quot; </span><span class="s5">/* TrackOpTypes.GET */</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(shallow) {</span>
+            <span class="s2">return </span><span class="s1">res</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(isRef(res)) {</span>
+            <span class="s5">// ref unwrapping - skip unwrap for Array + integer key.</span>
+            <span class="s2">return </span><span class="s1">targetIsArray &amp;&amp; isIntegerKey(key) ? res : res.value</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(isObject(res)) {</span>
+            <span class="s5">// Convert returned value into a proxy as well. we do the isObject check</span>
+            <span class="s5">// here to avoid invalid value warning. Also need to lazy access readonly</span>
+            <span class="s5">// and reactive here to avoid circular dependency.</span>
+            <span class="s2">return </span><span class="s1">isReadonly ? readonly(res) : reactive(res)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">res</span><span class="s2">;</span>
+    <span class="s1">}</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">set$1 = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createSetter()</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowSet = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createSetter(</span><span class="s2">true</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">createSetter(shallow = </span><span class="s2">false</span><span class="s1">) {</span>
+    <span class="s2">return function </span><span class="s1">set(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">receiver) {</span>
+        <span class="s2">let </span><span class="s1">oldValue = target[key]</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(isReadonly(oldValue) &amp;&amp; isRef(oldValue) &amp;&amp; !isRef(value)) {</span>
+            <span class="s2">return false;</span>
+        <span class="s1">}</span>
+        <span class="s2">if </span><span class="s1">(!shallow) {</span>
+            <span class="s2">if </span><span class="s1">(!isShallow(value) &amp;&amp; !isReadonly(value)) {</span>
+                <span class="s1">oldValue = toRaw(oldValue)</span><span class="s2">;</span>
+                <span class="s1">value = toRaw(value)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">if </span><span class="s1">(!isArray(target) &amp;&amp; isRef(oldValue) &amp;&amp; !isRef(value)) {</span>
+                <span class="s1">oldValue.value = value</span><span class="s2">;</span>
+                <span class="s2">return true;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s2">const </span><span class="s1">hadKey = isArray(target) &amp;&amp; isIntegerKey(key)</span>
+            <span class="s1">? Number(key) &lt; target.length</span>
+            <span class="s1">: hasOwn(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">result = Reflect.set(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">receiver)</span><span class="s2">;</span>
+        <span class="s5">// don't trigger if target is something up in the prototype chain of original</span>
+        <span class="s2">if </span><span class="s1">(target === toRaw(receiver)) {</span>
+            <span class="s2">if </span><span class="s1">(!hadKey) {</span>
+                <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;add&quot; </span><span class="s5">/* TriggerOpTypes.ADD */</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">else if </span><span class="s1">(hasChanged(value</span><span class="s2">, </span><span class="s1">oldValue)) {</span>
+                <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;set&quot; </span><span class="s5">/* TriggerOpTypes.SET */</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">oldValue)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">result</span><span class="s2">;</span>
+    <span class="s1">}</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">deleteProperty(target</span><span class="s2">, </span><span class="s1">key) {</span>
+    <span class="s2">const </span><span class="s1">hadKey = hasOwn(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">oldValue = target[key]</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">result = Reflect.deleteProperty(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(result &amp;&amp; hadKey) {</span>
+        <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;delete&quot; </span><span class="s5">/* TriggerOpTypes.DELETE */</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">undefined</span><span class="s2">, </span><span class="s1">oldValue)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">result</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">has$1(target</span><span class="s2">, </span><span class="s1">key) {</span>
+    <span class="s2">const </span><span class="s1">result = Reflect.has(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!isSymbol(key) || !builtInSymbols.has(key)) {</span>
+        <span class="s1">track(target</span><span class="s2">, </span><span class="s3">&quot;has&quot; </span><span class="s5">/* TrackOpTypes.HAS */</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">result</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">ownKeys(target) {</span>
+    <span class="s1">track(target</span><span class="s2">, </span><span class="s3">&quot;iterate&quot; </span><span class="s5">/* TrackOpTypes.ITERATE */</span><span class="s2">, </span><span class="s1">isArray(target) ? </span><span class="s3">'length' </span><span class="s1">: ITERATE_KEY)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">Reflect.ownKeys(target)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">mutableHandlers = {</span>
+    <span class="s1">get: get$1</span><span class="s2">,</span>
+    <span class="s1">set: set$1</span><span class="s2">,</span>
+    <span class="s1">deleteProperty</span><span class="s2">,</span>
+    <span class="s1">has: has$1</span><span class="s2">,</span>
+    <span class="s1">ownKeys</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">readonlyHandlers = {</span>
+    <span class="s1">get: readonlyGet</span><span class="s2">,</span>
+    <span class="s1">set(target</span><span class="s2">, </span><span class="s1">key) {</span>
+        <span class="s1">{</span>
+            <span class="s1">warn(</span><span class="s3">`Set operation on key &quot;</span><span class="s1">${String(key)}</span><span class="s3">&quot; failed: target is readonly.`</span><span class="s2">, </span><span class="s1">target)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return true;</span>
+    <span class="s1">}</span><span class="s2">,</span>
+    <span class="s1">deleteProperty(target</span><span class="s2">, </span><span class="s1">key) {</span>
+        <span class="s1">{</span>
+            <span class="s1">warn(</span><span class="s3">`Delete operation on key &quot;</span><span class="s1">${String(key)}</span><span class="s3">&quot; failed: target is readonly.`</span><span class="s2">, </span><span class="s1">target)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return true;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowReactiveHandlers = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">extend({}</span><span class="s2">, </span><span class="s1">mutableHandlers</span><span class="s2">, </span><span class="s1">{</span>
+    <span class="s1">get: shallowGet</span><span class="s2">,</span>
+    <span class="s1">set: shallowSet</span>
+<span class="s1">})</span><span class="s2">;</span>
+<span class="s5">// Props handlers are special in the sense that it should not unwrap top-level</span>
+<span class="s5">// refs (in order to allow refs to be explicitly passed down), but should</span>
+<span class="s5">// retain the reactivity of the normal readonly object.</span>
+<span class="s2">const </span><span class="s1">shallowReadonlyHandlers = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">extend({}</span><span class="s2">, </span><span class="s1">readonlyHandlers</span><span class="s2">, </span><span class="s1">{</span>
+    <span class="s1">get: shallowReadonlyGet</span>
+<span class="s1">})</span><span class="s2">;</span>
+
+<span class="s2">const </span><span class="s1">toShallow = (value) =&gt; value</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">getProto = (v) =&gt; Reflect.getPrototypeOf(v)</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">get(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">isReadonly = </span><span class="s2">false, </span><span class="s1">isShallow = </span><span class="s2">false</span><span class="s1">) {</span>
+    <span class="s5">// #1772: readonly(reactive(Map)) should return readonly + reactive version</span>
+    <span class="s5">// of the value</span>
+    <span class="s1">target = target[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">rawTarget = toRaw(target)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">rawKey = toRaw(key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!isReadonly) {</span>
+        <span class="s2">if </span><span class="s1">(key !== rawKey) {</span>
+            <span class="s1">track(rawTarget</span><span class="s2">, </span><span class="s3">&quot;get&quot; </span><span class="s5">/* TrackOpTypes.GET */</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s1">track(rawTarget</span><span class="s2">, </span><span class="s3">&quot;get&quot; </span><span class="s5">/* TrackOpTypes.GET */</span><span class="s2">, </span><span class="s1">rawKey)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">{ has } = getProto(rawTarget)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(has.call(rawTarget</span><span class="s2">, </span><span class="s1">key)) {</span>
+        <span class="s2">return </span><span class="s1">wrap(target.get(key))</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(has.call(rawTarget</span><span class="s2">, </span><span class="s1">rawKey)) {</span>
+        <span class="s2">return </span><span class="s1">wrap(target.get(rawKey))</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(target !== rawTarget) {</span>
+        <span class="s5">// #3602 readonly(reactive(Map))</span>
+        <span class="s5">// ensure that the nested reactive `Map` can do tracking for itself</span>
+        <span class="s1">target.get(key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">has(key</span><span class="s2">, </span><span class="s1">isReadonly = </span><span class="s2">false</span><span class="s1">) {</span>
+    <span class="s2">const </span><span class="s1">target = </span><span class="s2">this</span><span class="s1">[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">rawTarget = toRaw(target)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">rawKey = toRaw(key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!isReadonly) {</span>
+        <span class="s2">if </span><span class="s1">(key !== rawKey) {</span>
+            <span class="s1">track(rawTarget</span><span class="s2">, </span><span class="s3">&quot;has&quot; </span><span class="s5">/* TrackOpTypes.HAS */</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s1">track(rawTarget</span><span class="s2">, </span><span class="s3">&quot;has&quot; </span><span class="s5">/* TrackOpTypes.HAS */</span><span class="s2">, </span><span class="s1">rawKey)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">key === rawKey</span>
+        <span class="s1">? target.has(key)</span>
+        <span class="s1">: target.has(key) || target.has(rawKey)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">size(target</span><span class="s2">, </span><span class="s1">isReadonly = </span><span class="s2">false</span><span class="s1">) {</span>
+    <span class="s1">target = target[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s2">;</span>
+    <span class="s1">!isReadonly &amp;&amp; track(toRaw(target)</span><span class="s2">, </span><span class="s3">&quot;iterate&quot; </span><span class="s5">/* TrackOpTypes.ITERATE */</span><span class="s2">, </span><span class="s1">ITERATE_KEY)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">Reflect.get(target</span><span class="s2">, </span><span class="s3">'size'</span><span class="s2">, </span><span class="s1">target)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">add(value) {</span>
+    <span class="s1">value = toRaw(value)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">target = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">proto = getProto(target)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">hadKey = proto.has.call(target</span><span class="s2">, </span><span class="s1">value)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!hadKey) {</span>
+        <span class="s1">target.add(value)</span><span class="s2">;</span>
+        <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;add&quot; </span><span class="s5">/* TriggerOpTypes.ADD */</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">value)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return this;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">set(key</span><span class="s2">, </span><span class="s1">value) {</span>
+    <span class="s1">value = toRaw(value)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">target = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">{ has</span><span class="s2">, </span><span class="s1">get } = getProto(target)</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">hadKey = has.call(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!hadKey) {</span>
+        <span class="s1">key = toRaw(key)</span><span class="s2">;</span>
+        <span class="s1">hadKey = has.call(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">checkIdentityKeys(target</span><span class="s2">, </span><span class="s1">has</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">oldValue = get.call(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">target.set(key</span><span class="s2">, </span><span class="s1">value)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!hadKey) {</span>
+        <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;add&quot; </span><span class="s5">/* TriggerOpTypes.ADD */</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else if </span><span class="s1">(hasChanged(value</span><span class="s2">, </span><span class="s1">oldValue)) {</span>
+        <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;set&quot; </span><span class="s5">/* TriggerOpTypes.SET */</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">oldValue)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return this;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">deleteEntry(key) {</span>
+    <span class="s2">const </span><span class="s1">target = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">{ has</span><span class="s2">, </span><span class="s1">get } = getProto(target)</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">hadKey = has.call(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!hadKey) {</span>
+        <span class="s1">key = toRaw(key)</span><span class="s2">;</span>
+        <span class="s1">hadKey = has.call(target</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">checkIdentityKeys(target</span><span class="s2">, </span><span class="s1">has</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">oldValue = get ? get.call(target</span><span class="s2">, </span><span class="s1">key) : undefined</span><span class="s2">;</span>
+    <span class="s5">// forward the operation before queueing reactions</span>
+    <span class="s2">const </span><span class="s1">result = target.delete(key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(hadKey) {</span>
+        <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;delete&quot; </span><span class="s5">/* TriggerOpTypes.DELETE */</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">undefined</span><span class="s2">, </span><span class="s1">oldValue)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">result</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">clear() {</span>
+    <span class="s2">const </span><span class="s1">target = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">hadItems = target.size !== </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">oldTarget = isMap(target)</span>
+            <span class="s1">? </span><span class="s2">new </span><span class="s1">Map(target)</span>
+            <span class="s1">: </span><span class="s2">new </span><span class="s1">Set(target)</span>
+        <span class="s2">;</span>
+    <span class="s5">// forward the operation before queueing reactions</span>
+    <span class="s2">const </span><span class="s1">result = target.clear()</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(hadItems) {</span>
+        <span class="s1">trigger(target</span><span class="s2">, </span><span class="s3">&quot;clear&quot; </span><span class="s5">/* TriggerOpTypes.CLEAR */</span><span class="s2">, </span><span class="s1">undefined</span><span class="s2">, </span><span class="s1">undefined</span><span class="s2">, </span><span class="s1">oldTarget)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">result</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createForEach(isReadonly</span><span class="s2">, </span><span class="s1">isShallow) {</span>
+    <span class="s2">return function </span><span class="s1">forEach(callback</span><span class="s2">, </span><span class="s1">thisArg) {</span>
+        <span class="s2">const </span><span class="s1">observed = </span><span class="s2">this;</span>
+        <span class="s2">const </span><span class="s1">target = observed[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">rawTarget = toRaw(target)</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive</span><span class="s2">;</span>
+        <span class="s1">!isReadonly &amp;&amp; track(rawTarget</span><span class="s2">, </span><span class="s3">&quot;iterate&quot; </span><span class="s5">/* TrackOpTypes.ITERATE */</span><span class="s2">, </span><span class="s1">ITERATE_KEY)</span><span class="s2">;</span>
+        <span class="s2">return </span><span class="s1">target.forEach((value</span><span class="s2">, </span><span class="s1">key) =&gt; {</span>
+            <span class="s5">// important: make sure the callback is</span>
+            <span class="s5">// 1. invoked with the reactive map as `this` and 3rd arg</span>
+            <span class="s5">// 2. the value received should be a corresponding reactive/readonly.</span>
+            <span class="s2">return </span><span class="s1">callback.call(thisArg</span><span class="s2">, </span><span class="s1">wrap(value)</span><span class="s2">, </span><span class="s1">wrap(key)</span><span class="s2">, </span><span class="s1">observed)</span><span class="s2">;</span>
+        <span class="s1">})</span><span class="s2">;</span>
+    <span class="s1">}</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createIterableMethod(method</span><span class="s2">, </span><span class="s1">isReadonly</span><span class="s2">, </span><span class="s1">isShallow) {</span>
+    <span class="s2">return function </span><span class="s1">(...args) {</span>
+        <span class="s2">const </span><span class="s1">target = </span><span class="s2">this</span><span class="s1">[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">rawTarget = toRaw(target)</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">targetIsMap = isMap(rawTarget)</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">isPair = method === </span><span class="s3">'entries' </span><span class="s1">|| (method === Symbol.iterator &amp;&amp; targetIsMap)</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">isKeyOnly = method === </span><span class="s3">'keys' </span><span class="s1">&amp;&amp; targetIsMap</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">innerIterator = target[method](...args)</span><span class="s2">;</span>
+        <span class="s2">const </span><span class="s1">wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive</span><span class="s2">;</span>
+        <span class="s1">!isReadonly &amp;&amp;</span>
+            <span class="s1">track(rawTarget</span><span class="s2">, </span><span class="s3">&quot;iterate&quot; </span><span class="s5">/* TrackOpTypes.ITERATE */</span><span class="s2">, </span><span class="s1">isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY)</span><span class="s2">;</span>
+        <span class="s5">// return a wrapped iterator which returns observed versions of the</span>
+        <span class="s5">// values emitted from the real iterator</span>
+        <span class="s2">return </span><span class="s1">{</span>
+            <span class="s5">// iterator protocol</span>
+            <span class="s1">next() {</span>
+                <span class="s2">const </span><span class="s1">{ value</span><span class="s2">, </span><span class="s1">done } = innerIterator.next()</span><span class="s2">;</span>
+                <span class="s2">return </span><span class="s1">done</span>
+                    <span class="s1">? { value</span><span class="s2">, </span><span class="s1">done }</span>
+                    <span class="s1">: {</span>
+                        <span class="s1">value: isPair ? [wrap(value[</span><span class="s4">0</span><span class="s1">])</span><span class="s2">, </span><span class="s1">wrap(value[</span><span class="s4">1</span><span class="s1">])] : wrap(value)</span><span class="s2">,</span>
+                        <span class="s1">done</span>
+                    <span class="s1">}</span><span class="s2">;</span>
+            <span class="s1">}</span><span class="s2">,</span>
+            <span class="s5">// iterable protocol</span>
+            <span class="s1">[Symbol.iterator]() {</span>
+                <span class="s2">return this;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span><span class="s2">;</span>
+    <span class="s1">}</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createReadonlyMethod(type) {</span>
+    <span class="s2">return function </span><span class="s1">(...args) {</span>
+        <span class="s1">{</span>
+            <span class="s2">const </span><span class="s1">key = args[</span><span class="s4">0</span><span class="s1">] ? </span><span class="s3">`on key &quot;</span><span class="s1">${args[</span><span class="s4">0</span><span class="s1">]}</span><span class="s3">&quot; ` </span><span class="s1">: </span><span class="s3">``</span><span class="s2">;</span>
+            <span class="s1">console.warn(</span><span class="s3">`</span><span class="s1">${capitalize(type)} </span><span class="s3">operation </span><span class="s1">${key}</span><span class="s3">failed: target is readonly.`</span><span class="s2">, </span><span class="s1">toRaw(</span><span class="s2">this</span><span class="s1">))</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">type === </span><span class="s3">&quot;delete&quot; </span><span class="s5">/* TriggerOpTypes.DELETE */ </span><span class="s1">? </span><span class="s2">false </span><span class="s1">: </span><span class="s2">this;</span>
+    <span class="s1">}</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createInstrumentations() {</span>
+    <span class="s2">const </span><span class="s1">mutableInstrumentations = {</span>
+        <span class="s1">get(key) {</span>
+            <span class="s2">return </span><span class="s1">get(</span><span class="s2">this, </span><span class="s1">key)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">get size() {</span>
+            <span class="s2">return </span><span class="s1">size(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">has</span><span class="s2">,</span>
+        <span class="s1">add</span><span class="s2">,</span>
+        <span class="s1">set</span><span class="s2">,</span>
+        <span class="s2">delete</span><span class="s1">: deleteEntry</span><span class="s2">,</span>
+        <span class="s1">clear</span><span class="s2">,</span>
+        <span class="s1">forEach: createForEach(</span><span class="s2">false, false</span><span class="s1">)</span>
+    <span class="s1">}</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">shallowInstrumentations = {</span>
+        <span class="s1">get(key) {</span>
+            <span class="s2">return </span><span class="s1">get(</span><span class="s2">this, </span><span class="s1">key</span><span class="s2">, false, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">get size() {</span>
+            <span class="s2">return </span><span class="s1">size(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">has</span><span class="s2">,</span>
+        <span class="s1">add</span><span class="s2">,</span>
+        <span class="s1">set</span><span class="s2">,</span>
+        <span class="s2">delete</span><span class="s1">: deleteEntry</span><span class="s2">,</span>
+        <span class="s1">clear</span><span class="s2">,</span>
+        <span class="s1">forEach: createForEach(</span><span class="s2">false, true</span><span class="s1">)</span>
+    <span class="s1">}</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">readonlyInstrumentations = {</span>
+        <span class="s1">get(key) {</span>
+            <span class="s2">return </span><span class="s1">get(</span><span class="s2">this, </span><span class="s1">key</span><span class="s2">, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">get size() {</span>
+            <span class="s2">return </span><span class="s1">size(</span><span class="s2">this, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">has(key) {</span>
+            <span class="s2">return </span><span class="s1">has.call(</span><span class="s2">this, </span><span class="s1">key</span><span class="s2">, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">add: createReadonlyMethod(</span><span class="s3">&quot;add&quot; </span><span class="s5">/* TriggerOpTypes.ADD */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s1">set: createReadonlyMethod(</span><span class="s3">&quot;set&quot; </span><span class="s5">/* TriggerOpTypes.SET */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s2">delete</span><span class="s1">: createReadonlyMethod(</span><span class="s3">&quot;delete&quot; </span><span class="s5">/* TriggerOpTypes.DELETE */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s1">clear: createReadonlyMethod(</span><span class="s3">&quot;clear&quot; </span><span class="s5">/* TriggerOpTypes.CLEAR */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s1">forEach: createForEach(</span><span class="s2">true, false</span><span class="s1">)</span>
+    <span class="s1">}</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">shallowReadonlyInstrumentations = {</span>
+        <span class="s1">get(key) {</span>
+            <span class="s2">return </span><span class="s1">get(</span><span class="s2">this, </span><span class="s1">key</span><span class="s2">, true, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">get size() {</span>
+            <span class="s2">return </span><span class="s1">size(</span><span class="s2">this, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">has(key) {</span>
+            <span class="s2">return </span><span class="s1">has.call(</span><span class="s2">this, </span><span class="s1">key</span><span class="s2">, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span><span class="s2">,</span>
+        <span class="s1">add: createReadonlyMethod(</span><span class="s3">&quot;add&quot; </span><span class="s5">/* TriggerOpTypes.ADD */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s1">set: createReadonlyMethod(</span><span class="s3">&quot;set&quot; </span><span class="s5">/* TriggerOpTypes.SET */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s2">delete</span><span class="s1">: createReadonlyMethod(</span><span class="s3">&quot;delete&quot; </span><span class="s5">/* TriggerOpTypes.DELETE */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s1">clear: createReadonlyMethod(</span><span class="s3">&quot;clear&quot; </span><span class="s5">/* TriggerOpTypes.CLEAR */</span><span class="s1">)</span><span class="s2">,</span>
+        <span class="s1">forEach: createForEach(</span><span class="s2">true, true</span><span class="s1">)</span>
+    <span class="s1">}</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">iteratorMethods = [</span><span class="s3">'keys'</span><span class="s2">, </span><span class="s3">'values'</span><span class="s2">, </span><span class="s3">'entries'</span><span class="s2">, </span><span class="s1">Symbol.iterator]</span><span class="s2">;</span>
+    <span class="s1">iteratorMethods.forEach(method =&gt; {</span>
+        <span class="s1">mutableInstrumentations[method] = createIterableMethod(method</span><span class="s2">, false, false</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">readonlyInstrumentations[method] = createIterableMethod(method</span><span class="s2">, true, false</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">shallowInstrumentations[method] = createIterableMethod(method</span><span class="s2">, false, true</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">shallowReadonlyInstrumentations[method] = createIterableMethod(method</span><span class="s2">, true, true</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">})</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">[</span>
+        <span class="s1">mutableInstrumentations</span><span class="s2">,</span>
+        <span class="s1">readonlyInstrumentations</span><span class="s2">,</span>
+        <span class="s1">shallowInstrumentations</span><span class="s2">,</span>
+        <span class="s1">shallowReadonlyInstrumentations</span>
+    <span class="s1">]</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">[mutableInstrumentations</span><span class="s2">, </span><span class="s1">readonlyInstrumentations</span><span class="s2">, </span><span class="s1">shallowInstrumentations</span><span class="s2">, </span><span class="s1">shallowReadonlyInstrumentations] = </span><span class="s5">/* #__PURE__*/ </span><span class="s1">createInstrumentations()</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">createInstrumentationGetter(isReadonly</span><span class="s2">, </span><span class="s1">shallow) {</span>
+    <span class="s2">const </span><span class="s1">instrumentations = shallow</span>
+        <span class="s1">? isReadonly</span>
+            <span class="s1">? shallowReadonlyInstrumentations</span>
+            <span class="s1">: shallowInstrumentations</span>
+        <span class="s1">: isReadonly</span>
+            <span class="s1">? readonlyInstrumentations</span>
+            <span class="s1">: mutableInstrumentations</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver) =&gt; {</span>
+        <span class="s2">if </span><span class="s1">(key === </span><span class="s3">&quot;__v_isReactive&quot; </span><span class="s5">/* ReactiveFlags.IS_REACTIVE */</span><span class="s1">) {</span>
+            <span class="s2">return </span><span class="s1">!isReadonly</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">else if </span><span class="s1">(key === </span><span class="s3">&quot;__v_isReadonly&quot; </span><span class="s5">/* ReactiveFlags.IS_READONLY */</span><span class="s1">) {</span>
+            <span class="s2">return </span><span class="s1">isReadonly</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">else if </span><span class="s1">(key === </span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">) {</span>
+            <span class="s2">return </span><span class="s1">target</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">Reflect.get(hasOwn(instrumentations</span><span class="s2">, </span><span class="s1">key) &amp;&amp; key </span><span class="s2">in </span><span class="s1">target</span>
+            <span class="s1">? instrumentations</span>
+            <span class="s1">: target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver)</span><span class="s2">;</span>
+    <span class="s1">}</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">mutableCollectionHandlers = {</span>
+    <span class="s1">get: </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createInstrumentationGetter(</span><span class="s2">false, false</span><span class="s1">)</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowCollectionHandlers = {</span>
+    <span class="s1">get: </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createInstrumentationGetter(</span><span class="s2">false, true</span><span class="s1">)</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">readonlyCollectionHandlers = {</span>
+    <span class="s1">get: </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createInstrumentationGetter(</span><span class="s2">true, false</span><span class="s1">)</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowReadonlyCollectionHandlers = {</span>
+    <span class="s1">get: </span><span class="s5">/*#__PURE__*/ </span><span class="s1">createInstrumentationGetter(</span><span class="s2">true, true</span><span class="s1">)</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">checkIdentityKeys(target</span><span class="s2">, </span><span class="s1">has</span><span class="s2">, </span><span class="s1">key) {</span>
+    <span class="s2">const </span><span class="s1">rawKey = toRaw(key)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(rawKey !== key &amp;&amp; has.call(target</span><span class="s2">, </span><span class="s1">rawKey)) {</span>
+        <span class="s2">const </span><span class="s1">type = toRawType(target)</span><span class="s2">;</span>
+        <span class="s1">console.warn(</span><span class="s3">`Reactive </span><span class="s1">${type} </span><span class="s3">contains both the raw and reactive ` </span><span class="s1">+</span>
+            <span class="s3">`versions of the same object</span><span class="s1">${type === </span><span class="s3">`Map` </span><span class="s1">? </span><span class="s3">` as keys` </span><span class="s1">: </span><span class="s3">``</span><span class="s1">}</span><span class="s3">, ` </span><span class="s1">+</span>
+            <span class="s3">`which can lead to inconsistencies. ` </span><span class="s1">+</span>
+            <span class="s3">`Avoid differentiating between the raw and reactive versions ` </span><span class="s1">+</span>
+            <span class="s3">`of an object and only use the reactive version if possible.`</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s2">const </span><span class="s1">reactiveMap = </span><span class="s2">new </span><span class="s1">WeakMap()</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowReactiveMap = </span><span class="s2">new </span><span class="s1">WeakMap()</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">readonlyMap = </span><span class="s2">new </span><span class="s1">WeakMap()</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">shallowReadonlyMap = </span><span class="s2">new </span><span class="s1">WeakMap()</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">targetTypeMap(rawType) {</span>
+    <span class="s2">switch </span><span class="s1">(rawType) {</span>
+        <span class="s2">case </span><span class="s3">'Object'</span><span class="s1">:</span>
+        <span class="s2">case </span><span class="s3">'Array'</span><span class="s1">:</span>
+            <span class="s2">return </span><span class="s4">1 </span><span class="s5">/* TargetType.COMMON */</span><span class="s2">;</span>
+        <span class="s2">case </span><span class="s3">'Map'</span><span class="s1">:</span>
+        <span class="s2">case </span><span class="s3">'Set'</span><span class="s1">:</span>
+        <span class="s2">case </span><span class="s3">'WeakMap'</span><span class="s1">:</span>
+        <span class="s2">case </span><span class="s3">'WeakSet'</span><span class="s1">:</span>
+            <span class="s2">return </span><span class="s4">2 </span><span class="s5">/* TargetType.COLLECTION */</span><span class="s2">;</span>
+        <span class="s2">default</span><span class="s1">:</span>
+            <span class="s2">return </span><span class="s4">0 </span><span class="s5">/* TargetType.INVALID */</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">getTargetType(value) {</span>
+    <span class="s2">return </span><span class="s1">value[</span><span class="s3">&quot;__v_skip&quot; </span><span class="s5">/* ReactiveFlags.SKIP */</span><span class="s1">] || !Object.isExtensible(value)</span>
+        <span class="s1">? </span><span class="s4">0 </span><span class="s5">/* TargetType.INVALID */</span>
+        <span class="s1">: targetTypeMap(toRawType(value))</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">reactive(target) {</span>
+    <span class="s5">// if trying to observe a readonly proxy, return the readonly version.</span>
+    <span class="s2">if </span><span class="s1">(isReadonly(target)) {</span>
+        <span class="s2">return </span><span class="s1">target</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">createReactiveObject(target</span><span class="s2">, false, </span><span class="s1">mutableHandlers</span><span class="s2">, </span><span class="s1">mutableCollectionHandlers</span><span class="s2">, </span><span class="s1">reactiveMap)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s0">/**</span>
+ <span class="s0">* Return a shallowly-reactive copy of the original object, where only the root</span>
+ <span class="s0">* level properties are reactive. It also does not auto-unwrap refs (even at the</span>
+ <span class="s0">* root level).</span>
+ <span class="s0">*/</span>
+<span class="s2">function </span><span class="s1">shallowReactive(target) {</span>
+    <span class="s2">return </span><span class="s1">createReactiveObject(target</span><span class="s2">, false, </span><span class="s1">shallowReactiveHandlers</span><span class="s2">, </span><span class="s1">shallowCollectionHandlers</span><span class="s2">, </span><span class="s1">shallowReactiveMap)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s0">/**</span>
+ <span class="s0">* Creates a readonly copy of the original object. Note the returned copy is not</span>
+ <span class="s0">* made reactive, but `readonly` can be called on an already reactive object.</span>
+ <span class="s0">*/</span>
+<span class="s2">function </span><span class="s1">readonly(target) {</span>
+    <span class="s2">return </span><span class="s1">createReactiveObject(target</span><span class="s2">, true, </span><span class="s1">readonlyHandlers</span><span class="s2">, </span><span class="s1">readonlyCollectionHandlers</span><span class="s2">, </span><span class="s1">readonlyMap)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s0">/**</span>
+ <span class="s0">* Returns a reactive-copy of the original object, where only the root level</span>
+ <span class="s0">* properties are readonly, and does NOT unwrap refs nor recursively convert</span>
+ <span class="s0">* returned properties.</span>
+ <span class="s0">* This is used for creating the props proxy object for stateful components.</span>
+ <span class="s0">*/</span>
+<span class="s2">function </span><span class="s1">shallowReadonly(target) {</span>
+    <span class="s2">return </span><span class="s1">createReactiveObject(target</span><span class="s2">, true, </span><span class="s1">shallowReadonlyHandlers</span><span class="s2">, </span><span class="s1">shallowReadonlyCollectionHandlers</span><span class="s2">, </span><span class="s1">shallowReadonlyMap)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createReactiveObject(target</span><span class="s2">, </span><span class="s1">isReadonly</span><span class="s2">, </span><span class="s1">baseHandlers</span><span class="s2">, </span><span class="s1">collectionHandlers</span><span class="s2">, </span><span class="s1">proxyMap) {</span>
+    <span class="s2">if </span><span class="s1">(!isObject(target)) {</span>
+        <span class="s1">{</span>
+            <span class="s1">console.warn(</span><span class="s3">`value cannot be made reactive: </span><span class="s1">${String(target)}</span><span class="s3">`</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">target</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s5">// target is already a Proxy, return it.</span>
+    <span class="s5">// exception: calling readonly() on a reactive object</span>
+    <span class="s2">if </span><span class="s1">(target[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">] &amp;&amp;</span>
+        <span class="s1">!(isReadonly &amp;&amp; target[</span><span class="s3">&quot;__v_isReactive&quot; </span><span class="s5">/* ReactiveFlags.IS_REACTIVE */</span><span class="s1">])) {</span>
+        <span class="s2">return </span><span class="s1">target</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s5">// target already has corresponding Proxy</span>
+    <span class="s2">const </span><span class="s1">existingProxy = proxyMap.get(target)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(existingProxy) {</span>
+        <span class="s2">return </span><span class="s1">existingProxy</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s5">// only specific value types can be observed.</span>
+    <span class="s2">const </span><span class="s1">targetType = getTargetType(target)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(targetType === </span><span class="s4">0 </span><span class="s5">/* TargetType.INVALID */</span><span class="s1">) {</span>
+        <span class="s2">return </span><span class="s1">target</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">proxy = </span><span class="s2">new </span><span class="s1">Proxy(target</span><span class="s2">, </span><span class="s1">targetType === </span><span class="s4">2 </span><span class="s5">/* TargetType.COLLECTION */ </span><span class="s1">? collectionHandlers : baseHandlers)</span><span class="s2">;</span>
+    <span class="s1">proxyMap.set(target</span><span class="s2">, </span><span class="s1">proxy)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">proxy</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">isReactive(value) {</span>
+    <span class="s2">if </span><span class="s1">(isReadonly(value)) {</span>
+        <span class="s2">return </span><span class="s1">isReactive(value[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">])</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">!!(value &amp;&amp; value[</span><span class="s3">&quot;__v_isReactive&quot; </span><span class="s5">/* ReactiveFlags.IS_REACTIVE */</span><span class="s1">])</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">isReadonly(value) {</span>
+    <span class="s2">return </span><span class="s1">!!(value &amp;&amp; value[</span><span class="s3">&quot;__v_isReadonly&quot; </span><span class="s5">/* ReactiveFlags.IS_READONLY */</span><span class="s1">])</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">isShallow(value) {</span>
+    <span class="s2">return </span><span class="s1">!!(value &amp;&amp; value[</span><span class="s3">&quot;__v_isShallow&quot; </span><span class="s5">/* ReactiveFlags.IS_SHALLOW */</span><span class="s1">])</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">isProxy(value) {</span>
+    <span class="s2">return </span><span class="s1">isReactive(value) || isReadonly(value)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">toRaw(observed) {</span>
+    <span class="s2">const </span><span class="s1">raw = observed &amp;&amp; observed[</span><span class="s3">&quot;__v_raw&quot; </span><span class="s5">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">raw ? toRaw(raw) : observed</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">markRaw(value) {</span>
+    <span class="s1">def(value</span><span class="s2">, </span><span class="s3">&quot;__v_skip&quot; </span><span class="s5">/* ReactiveFlags.SKIP */</span><span class="s2">, true</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">value</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">toReactive = (value) =&gt; isObject(value) ? reactive(value) : value</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">toReadonly = (value) =&gt; isObject(value) ? readonly(value) : value</span><span class="s2">;</span>
+
+<span class="s2">function </span><span class="s1">trackRefValue(ref) {</span>
+    <span class="s2">if </span><span class="s1">(shouldTrack &amp;&amp; activeEffect) {</span>
+        <span class="s1">ref = toRaw(ref)</span><span class="s2">;</span>
+        <span class="s1">{</span>
+            <span class="s1">trackEffects(ref.dep || (ref.dep = createDep())</span><span class="s2">, </span><span class="s1">{</span>
+                <span class="s1">target: ref</span><span class="s2">,</span>
+                <span class="s1">type: </span><span class="s3">&quot;get&quot; </span><span class="s5">/* TrackOpTypes.GET */</span><span class="s2">,</span>
+                <span class="s1">key: </span><span class="s3">'value'</span>
+            <span class="s1">})</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">triggerRefValue(ref</span><span class="s2">, </span><span class="s1">newVal) {</span>
+    <span class="s1">ref = toRaw(ref)</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">dep = ref.dep</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(dep) {</span>
+        <span class="s1">{</span>
+            <span class="s1">triggerEffects(dep</span><span class="s2">, </span><span class="s1">{</span>
+                <span class="s1">target: ref</span><span class="s2">,</span>
+                <span class="s1">type: </span><span class="s3">&quot;set&quot; </span><span class="s5">/* TriggerOpTypes.SET */</span><span class="s2">,</span>
+                <span class="s1">key: </span><span class="s3">'value'</span><span class="s2">,</span>
+                <span class="s1">newValue: newVal</span>
+            <span class="s1">})</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">isRef(r) {</span>
+    <span class="s2">return </span><span class="s1">!!(r &amp;&amp; r.__v_isRef === </span><span class="s2">true</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">ref(value) {</span>
+    <span class="s2">return </span><span class="s1">createRef(value</span><span class="s2">, false</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">shallowRef(value) {</span>
+    <span class="s2">return </span><span class="s1">createRef(value</span><span class="s2">, true</span><span class="s1">)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">createRef(rawValue</span><span class="s2">, </span><span class="s1">shallow) {</span>
+    <span class="s2">if </span><span class="s1">(isRef(rawValue)) {</span>
+        <span class="s2">return </span><span class="s1">rawValue</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return new </span><span class="s1">RefImpl(rawValue</span><span class="s2">, </span><span class="s1">shallow)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">class </span><span class="s1">RefImpl {</span>
+    <span class="s1">constructor(value</span><span class="s2">, </span><span class="s1">__v_isShallow) {</span>
+        <span class="s2">this</span><span class="s1">.__v_isShallow = __v_isShallow</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.dep = undefined</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.__v_isRef = </span><span class="s2">true;</span>
+        <span class="s2">this</span><span class="s1">._rawValue = __v_isShallow ? value : toRaw(value)</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">._value = __v_isShallow ? value : toReactive(value)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">get value() {</span>
+        <span class="s1">trackRefValue(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s2">return this</span><span class="s1">._value</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">set value(newVal) {</span>
+        <span class="s2">const </span><span class="s1">useDirectValue = </span><span class="s2">this</span><span class="s1">.__v_isShallow || isShallow(newVal) || isReadonly(newVal)</span><span class="s2">;</span>
+        <span class="s1">newVal = useDirectValue ? newVal : toRaw(newVal)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(hasChanged(newVal</span><span class="s2">, this</span><span class="s1">._rawValue)) {</span>
+            <span class="s2">this</span><span class="s1">._rawValue = newVal</span><span class="s2">;</span>
+            <span class="s2">this</span><span class="s1">._value = useDirectValue ? newVal : toReactive(newVal)</span><span class="s2">;</span>
+            <span class="s1">triggerRefValue(</span><span class="s2">this, </span><span class="s1">newVal)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">triggerRef(ref) {</span>
+    <span class="s1">triggerRefValue(ref</span><span class="s2">, </span><span class="s1">ref.value )</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">unref(ref) {</span>
+    <span class="s2">return </span><span class="s1">isRef(ref) ? ref.value : ref</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">const </span><span class="s1">shallowUnwrapHandlers = {</span>
+    <span class="s1">get: (target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver) =&gt; unref(Reflect.get(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">receiver))</span><span class="s2">,</span>
+    <span class="s1">set: (target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">receiver) =&gt; {</span>
+        <span class="s2">const </span><span class="s1">oldValue = target[key]</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(isRef(oldValue) &amp;&amp; !isRef(value)) {</span>
+            <span class="s1">oldValue.value = value</span><span class="s2">;</span>
+            <span class="s2">return true;</span>
+        <span class="s1">}</span>
+        <span class="s2">else </span><span class="s1">{</span>
+            <span class="s2">return </span><span class="s1">Reflect.set(target</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">, </span><span class="s1">receiver)</span><span class="s2">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">proxyRefs(objectWithRefs) {</span>
+    <span class="s2">return </span><span class="s1">isReactive(objectWithRefs)</span>
+        <span class="s1">? objectWithRefs</span>
+        <span class="s1">: </span><span class="s2">new </span><span class="s1">Proxy(objectWithRefs</span><span class="s2">, </span><span class="s1">shallowUnwrapHandlers)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">class </span><span class="s1">CustomRefImpl {</span>
+    <span class="s1">constructor(factory) {</span>
+        <span class="s2">this</span><span class="s1">.dep = undefined</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.__v_isRef = </span><span class="s2">true;</span>
+        <span class="s2">const </span><span class="s1">{ get</span><span class="s2">, </span><span class="s1">set } = factory(() =&gt; trackRefValue(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">, </span><span class="s1">() =&gt; triggerRefValue(</span><span class="s2">this</span><span class="s1">))</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">._get = get</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">._set = set</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">get value() {</span>
+        <span class="s2">return this</span><span class="s1">._get()</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">set value(newVal) {</span>
+        <span class="s2">this</span><span class="s1">._set(newVal)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">customRef(factory) {</span>
+    <span class="s2">return new </span><span class="s1">CustomRefImpl(factory)</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">toRefs(object) {</span>
+    <span class="s2">if </span><span class="s1">(!isProxy(object)) {</span>
+        <span class="s1">console.warn(</span><span class="s3">`toRefs() expects a reactive object but received a plain one.`</span><span class="s1">)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">ret = isArray(object) ? </span><span class="s2">new </span><span class="s1">Array(object.length) : {}</span><span class="s2">;</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">key </span><span class="s2">in </span><span class="s1">object) {</span>
+        <span class="s1">ret[key] = toRef(object</span><span class="s2">, </span><span class="s1">key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">ret</span><span class="s2">;</span>
+<span class="s1">}</span>
+<span class="s2">class </span><span class="s1">ObjectRefImpl {</span>
+    <span class="s1">constructor(_object</span><span class="s2">, </span><span class="s1">_key</span><span class="s2">, </span><span class="s1">_defaultValue) {</span>
+        <span class="s2">this</span><span class="s1">._object = _object</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">._key = _key</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">._defaultValue = _defaultValue</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.__v_isRef = </span><span class="s2">true;</span>
+    <span class="s1">}</span>
+    <span class="s1">get value() {</span>
+        <span class="s2">const </span><span class="s1">val = </span><span class="s2">this</span><span class="s1">._object[</span><span class="s2">this</span><span class="s1">._key]</span><span class="s2">;</span>
+        <span class="s2">return </span><span class="s1">val === undefined ? </span><span class="s2">this</span><span class="s1">._defaultValue : val</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">set value(newVal) {</span>
+        <span class="s2">this</span><span class="s1">._object[</span><span class="s2">this</span><span class="s1">._key] = newVal</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">get dep() {</span>
+        <span class="s2">return </span><span class="s1">getDepFromReactive(toRaw(</span><span class="s2">this</span><span class="s1">._object)</span><span class="s2">, this</span><span class="s1">._key)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s2">function </span><span class="s1">toRef(object</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">defaultValue) {</span>
+    <span class="s2">const </span><span class="s1">val = object[key]</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s1">isRef(val)</span>
+        <span class="s1">? val</span>
+        <span class="s1">: </span><span class="s2">new </span><span class="s1">ObjectRefImpl(object</span><span class="s2">, </span><span class="s1">key</span><span class="s2">, </span><span class="s1">defaultValue)</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">var </span><span class="s1">_a$1</span><span class="s2">;</span>
+<span class="s2">class </span><span class="s1">ComputedRefImpl {</span>
+    <span class="s1">constructor(getter</span><span class="s2">, </span><span class="s1">_setter</span><span class="s2">, </span><span class="s1">isReadonly</span><span class="s2">, </span><span class="s1">isSSR) {</span>
+        <span class="s2">this</span><span class="s1">._setter = _setter</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.dep = undefined</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.__v_isRef = </span><span class="s2">true;</span>
+        <span class="s2">this</span><span class="s1">[_a$1] = </span><span class="s2">false;</span>
+        <span class="s2">this</span><span class="s1">._dirty = </span><span class="s2">true;</span>
+        <span class="s2">this</span><span class="s1">.effect = </span><span class="s2">new </span><span class="s1">ReactiveEffect(getter</span><span class="s2">, </span><span class="s1">() =&gt; {</span>
+            <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">._dirty) {</span>
+                <span class="s2">this</span><span class="s1">._dirty = </span><span class="s2">true;</span>
+                <span class="s1">triggerRefValue(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+        <span class="s1">})</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.effect.computed = </span><span class="s2">this;</span>
+        <span class="s2">this</span><span class="s1">.effect.active = </span><span class="s2">this</span><span class="s1">._cacheable = !isSSR</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">[</span><span class="s3">&quot;__v_isReadonly&quot; </span><span class="s5">/* ReactiveFlags.IS_READONLY */</span><span class="s1">] = isReadonly</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">get value() {</span>
+        <span class="s5">// the computed ref may get wrapped by other proxies e.g. readonly() #3376</span>
+        <span class="s2">const </span><span class="s1">self = toRaw(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s1">trackRefValue(self)</span><span class="s2">;</span>
+        <span class="s2">if </span><span class="s1">(self._dirty || !self._cacheable) {</span>
+            <span class="s1">self._dirty = </span><span class="s2">false;</span>
+            <span class="s1">self._value = self.effect.run()</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return </span><span class="s1">self._value</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">set value(newValue) {</span>
+        <span class="s2">this</span><span class="s1">._setter(newValue)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s1">_a$1 = </span><span class="s3">&quot;__v_isReadonly&quot; </span><span class="s5">/* ReactiveFlags.IS_READONLY */</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">computed(getterOrOptions</span><span class="s2">, </span><span class="s1">debugOptions</span><span class="s2">, </span><span class="s1">isSSR = </span><span class="s2">false</span><span class="s1">) {</span>
+    <span class="s2">let </span><span class="s1">getter</span><span class="s2">;</span>
+    <span class="s2">let </span><span class="s1">setter</span><span class="s2">;</span>
+    <span class="s2">const </span><span class="s1">onlyGetter = isFunction(getterOrOptions)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(onlyGetter) {</span>
+        <span class="s1">getter = getterOrOptions</span><span class="s2">;</span>
+        <span class="s1">setter = () =&gt; {</span>
+                <span class="s1">console.warn(</span><span class="s3">'Write operation failed: computed value is readonly'</span><span class="s1">)</span><span class="s2">;</span>
+            <span class="s1">}</span>
+            <span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">getter = getterOrOptions.get</span><span class="s2">;</span>
+        <span class="s1">setter = getterOrOptions.set</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">const </span><span class="s1">cRef = </span><span class="s2">new </span><span class="s1">ComputedRefImpl(getter</span><span class="s2">, </span><span class="s1">setter</span><span class="s2">, </span><span class="s1">onlyGetter || !setter</span><span class="s2">, </span><span class="s1">isSSR)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(debugOptions &amp;&amp; !isSSR) {</span>
+        <span class="s1">cRef.effect.onTrack = debugOptions.onTrack</span><span class="s2">;</span>
+        <span class="s1">cRef.effect.onTrigger = debugOptions.onTrigger</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">cRef</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">var </span><span class="s1">_a</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">tick = </span><span class="s5">/*#__PURE__*/ </span><span class="s1">Promise.resolve()</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">queue = []</span><span class="s2">;</span>
+<span class="s2">let </span><span class="s1">queued = </span><span class="s2">false;</span>
+<span class="s2">const </span><span class="s1">scheduler = (fn) =&gt; {</span>
+    <span class="s1">queue.push(fn)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s1">(!queued) {</span>
+        <span class="s1">queued = </span><span class="s2">true;</span>
+        <span class="s1">tick.then(flush)</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">const </span><span class="s1">flush = () =&gt; {</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; queue.length</span><span class="s2">; </span><span class="s1">i++) {</span>
+        <span class="s1">queue[i]()</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">queue.length = </span><span class="s4">0</span><span class="s2">;</span>
+    <span class="s1">queued = </span><span class="s2">false;</span>
+<span class="s1">}</span><span class="s2">;</span>
+<span class="s2">class </span><span class="s1">DeferredComputedRefImpl {</span>
+    <span class="s1">constructor(getter) {</span>
+        <span class="s2">this</span><span class="s1">.dep = undefined</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">._dirty = </span><span class="s2">true;</span>
+        <span class="s2">this</span><span class="s1">.__v_isRef = </span><span class="s2">true;</span>
+        <span class="s2">this</span><span class="s1">[_a] = </span><span class="s2">true;</span>
+        <span class="s2">let </span><span class="s1">compareTarget</span><span class="s2">;</span>
+        <span class="s2">let </span><span class="s1">hasCompareTarget = </span><span class="s2">false;</span>
+        <span class="s2">let </span><span class="s1">scheduled = </span><span class="s2">false;</span>
+        <span class="s2">this</span><span class="s1">.effect = </span><span class="s2">new </span><span class="s1">ReactiveEffect(getter</span><span class="s2">, </span><span class="s1">(computedTrigger) =&gt; {</span>
+            <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.dep) {</span>
+                <span class="s2">if </span><span class="s1">(computedTrigger) {</span>
+                    <span class="s1">compareTarget = </span><span class="s2">this</span><span class="s1">._value</span><span class="s2">;</span>
+                    <span class="s1">hasCompareTarget = </span><span class="s2">true;</span>
+                <span class="s1">}</span>
+                <span class="s2">else if </span><span class="s1">(!scheduled) {</span>
+                    <span class="s2">const </span><span class="s1">valueToCompare = hasCompareTarget ? compareTarget : </span><span class="s2">this</span><span class="s1">._value</span><span class="s2">;</span>
+                    <span class="s1">scheduled = </span><span class="s2">true;</span>
+                    <span class="s1">hasCompareTarget = </span><span class="s2">false;</span>
+                    <span class="s1">scheduler(() =&gt; {</span>
+                        <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.effect.active &amp;&amp; </span><span class="s2">this</span><span class="s1">._get() !== valueToCompare) {</span>
+                            <span class="s1">triggerRefValue(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+                        <span class="s1">}</span>
+                        <span class="s1">scheduled = </span><span class="s2">false;</span>
+                    <span class="s1">})</span><span class="s2">;</span>
+                <span class="s1">}</span>
+                <span class="s5">// chained upstream computeds are notified synchronously to ensure</span>
+                <span class="s5">// value invalidation in case of sync access; normal effects are</span>
+                <span class="s5">// deferred to be triggered in scheduler.</span>
+                <span class="s2">for </span><span class="s1">(</span><span class="s2">const </span><span class="s1">e of </span><span class="s2">this</span><span class="s1">.dep) {</span>
+                    <span class="s2">if </span><span class="s1">(e.computed </span><span class="s2">instanceof </span><span class="s1">DeferredComputedRefImpl) {</span>
+                        <span class="s1">e.scheduler(</span><span class="s2">true </span><span class="s5">/* computedTrigger */</span><span class="s1">)</span><span class="s2">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s2">this</span><span class="s1">._dirty = </span><span class="s2">true;</span>
+        <span class="s1">})</span><span class="s2">;</span>
+        <span class="s2">this</span><span class="s1">.effect.computed = </span><span class="s2">this;</span>
+    <span class="s1">}</span>
+    <span class="s1">_get() {</span>
+        <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">._dirty) {</span>
+            <span class="s2">this</span><span class="s1">._dirty = </span><span class="s2">false;</span>
+            <span class="s2">return </span><span class="s1">(</span><span class="s2">this</span><span class="s1">._value = </span><span class="s2">this</span><span class="s1">.effect.run())</span><span class="s2">;</span>
+        <span class="s1">}</span>
+        <span class="s2">return this</span><span class="s1">._value</span><span class="s2">;</span>
+    <span class="s1">}</span>
+    <span class="s1">get value() {</span>
+        <span class="s1">trackRefValue(</span><span class="s2">this</span><span class="s1">)</span><span class="s2">;</span>
+        <span class="s5">// the computed ref may get wrapped by other proxies e.g. readonly() #3376</span>
+        <span class="s2">return </span><span class="s1">toRaw(</span><span class="s2">this</span><span class="s1">)._get()</span><span class="s2">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s1">_a = </span><span class="s3">&quot;__v_isReadonly&quot; </span><span class="s5">/* ReactiveFlags.IS_READONLY */</span><span class="s2">;</span>
+<span class="s2">function </span><span class="s1">deferredComputed(getter) {</span>
+    <span class="s2">return new </span><span class="s1">DeferredComputedRefImpl(getter)</span><span class="s2">;</span>
+<span class="s1">}</span>
+
+<span class="s2">export </span><span class="s1">{ EffectScope</span><span class="s2">, </span><span class="s1">ITERATE_KEY</span><span class="s2">, </span><span class="s1">ReactiveEffect</span><span class="s2">, </span><span class="s1">computed</span><span class="s2">, </span><span class="s1">customRef</span><span class="s2">, </span><span class="s1">deferredComputed</span><span class="s2">, </span><span class="s1">effect</span><span class="s2">, </span><span class="s1">effectScope</span><span class="s2">, </span><span class="s1">enableTracking</span><span class="s2">, </span><span class="s1">getCurrentScope</span><span class="s2">, </span><span class="s1">isProxy</span><span class="s2">, </span><span class="s1">isReactive</span><span class="s2">, </span><span class="s1">isReadonly</span><span class="s2">, </span><span class="s1">isRef</span><span class="s2">, </span><span class="s1">isShallow</span><span class="s2">, </span><span class="s1">markRaw</span><span class="s2">, </span><span class="s1">onScopeDispose</span><span class="s2">, </span><span class="s1">pauseTracking</span><span class="s2">, </span><span class="s1">proxyRefs</span><span class="s2">, </span><span class="s1">reactive</span><span class="s2">, </span><span class="s1">readonly</span><span class="s2">, </span><span class="s1">ref</span><span class="s2">, </span><span class="s1">resetTracking</span><span class="s2">, </span><span class="s1">shallowReactive</span><span class="s2">, </span><span class="s1">shallowReadonly</span><span class="s2">, </span><span class="s1">shallowRef</span><span class="s2">, </span><span class="s1">stop</span><span class="s2">, </span><span class="s1">toRaw</span><span class="s2">, </span><span class="s1">toRef</span><span class="s2">, </span><span class="s1">toRefs</span><span class="s2">, </span><span class="s1">track</span><span class="s2">, </span><span class="s1">trigger</span><span class="s2">, </span><span class="s1">triggerRef</span><span class="s2">, </span><span class="s1">unref }</span><span class="s2">;</span>
+</pre>
+</body>
+</html>

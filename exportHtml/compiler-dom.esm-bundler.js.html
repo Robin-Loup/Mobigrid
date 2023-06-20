@@ -1,0 +1,504 @@
+<html>
+<head>
+<title>compiler-dom.esm-bundler.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+compiler-dom.esm-bundler.js</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{ registerRuntimeHelpers</span><span class="s0">, </span><span class="s1">isBuiltInType</span><span class="s0">, </span><span class="s1">createSimpleExpression</span><span class="s0">, </span><span class="s1">createCompilerError</span><span class="s0">, </span><span class="s1">createObjectProperty</span><span class="s0">, </span><span class="s1">getConstantType</span><span class="s0">, </span><span class="s1">createCallExpression</span><span class="s0">, </span><span class="s1">TO_DISPLAY_STRING</span><span class="s0">, </span><span class="s1">transformModel as transformModel$1</span><span class="s0">, </span><span class="s1">findProp</span><span class="s0">, </span><span class="s1">hasDynamicKeyVBind</span><span class="s0">, </span><span class="s1">transformOn as transformOn$1</span><span class="s0">, </span><span class="s1">isStaticExp</span><span class="s0">, </span><span class="s1">createCompoundExpression</span><span class="s0">, </span><span class="s1">checkCompatEnabled</span><span class="s0">, </span><span class="s1">noopDirectiveTransform</span><span class="s0">, </span><span class="s1">baseCompile</span><span class="s0">, </span><span class="s1">baseParse } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">* from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ isVoidTag</span><span class="s0">, </span><span class="s1">isHTMLTag</span><span class="s0">, </span><span class="s1">isSVGTag</span><span class="s0">, </span><span class="s1">makeMap</span><span class="s0">, </span><span class="s1">parseStringStyle</span><span class="s0">, </span><span class="s1">capitalize</span><span class="s0">, </span><span class="s1">extend } from </span><span class="s2">'@vue/shared'</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">V_MODEL_RADIO = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vModelRadio` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_MODEL_CHECKBOX = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vModelCheckbox` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_MODEL_TEXT = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vModelText` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_MODEL_SELECT = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vModelSelect` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_MODEL_DYNAMIC = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vModelDynamic` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_ON_WITH_MODIFIERS = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vOnModifiersGuard` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_ON_WITH_KEYS = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vOnKeysGuard` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">V_SHOW = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`vShow` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">TRANSITION = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`Transition` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">TRANSITION_GROUP = Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">`TransitionGroup` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">registerRuntimeHelpers({</span>
+    <span class="s1">[V_MODEL_RADIO]: </span><span class="s2">`vModelRadio`</span><span class="s0">,</span>
+    <span class="s1">[V_MODEL_CHECKBOX]: </span><span class="s2">`vModelCheckbox`</span><span class="s0">,</span>
+    <span class="s1">[V_MODEL_TEXT]: </span><span class="s2">`vModelText`</span><span class="s0">,</span>
+    <span class="s1">[V_MODEL_SELECT]: </span><span class="s2">`vModelSelect`</span><span class="s0">,</span>
+    <span class="s1">[V_MODEL_DYNAMIC]: </span><span class="s2">`vModelDynamic`</span><span class="s0">,</span>
+    <span class="s1">[V_ON_WITH_MODIFIERS]: </span><span class="s2">`withModifiers`</span><span class="s0">,</span>
+    <span class="s1">[V_ON_WITH_KEYS]: </span><span class="s2">`withKeys`</span><span class="s0">,</span>
+    <span class="s1">[V_SHOW]: </span><span class="s2">`vShow`</span><span class="s0">,</span>
+    <span class="s1">[TRANSITION]: </span><span class="s2">`Transition`</span><span class="s0">,</span>
+    <span class="s1">[TRANSITION_GROUP]: </span><span class="s2">`TransitionGroup`</span>
+<span class="s1">})</span><span class="s0">;</span>
+
+<span class="s3">/* eslint-disable no-restricted-globals */</span>
+<span class="s0">let </span><span class="s1">decoder</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">decodeHtmlBrowser(raw</span><span class="s0">, </span><span class="s1">asAttr = </span><span class="s0">false</span><span class="s1">) {</span>
+    <span class="s0">if </span><span class="s1">(!decoder) {</span>
+        <span class="s1">decoder = document.createElement(</span><span class="s2">'div'</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(asAttr) {</span>
+        <span class="s1">decoder.innerHTML = </span><span class="s2">`&lt;div foo=&quot;</span><span class="s1">${raw.replace(</span><span class="s4">/&quot;/g</span><span class="s0">, </span><span class="s2">'&amp;quot;'</span><span class="s1">)}</span><span class="s2">&quot;&gt;`</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">decoder.children[</span><span class="s4">0</span><span class="s1">].getAttribute(</span><span class="s2">'foo'</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">decoder.innerHTML = raw</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">decoder.textContent</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">isRawTextContainer = </span><span class="s3">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s2">'style,iframe,script,noscript'</span><span class="s0">, true</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">parserOptions = {</span>
+    <span class="s1">isVoidTag</span><span class="s0">,</span>
+    <span class="s1">isNativeTag: tag =&gt; isHTMLTag(tag) || isSVGTag(tag)</span><span class="s0">,</span>
+    <span class="s1">isPreTag: tag =&gt; tag === </span><span class="s2">'pre'</span><span class="s0">,</span>
+    <span class="s1">decodeEntities: decodeHtmlBrowser </span><span class="s0">,</span>
+    <span class="s1">isBuiltInComponent: (tag) =&gt; {</span>
+        <span class="s0">if </span><span class="s1">(isBuiltInType(tag</span><span class="s0">, </span><span class="s2">`Transition`</span><span class="s1">)) {</span>
+            <span class="s0">return </span><span class="s1">TRANSITION</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(isBuiltInType(tag</span><span class="s0">, </span><span class="s2">`TransitionGroup`</span><span class="s1">)) {</span>
+            <span class="s0">return </span><span class="s1">TRANSITION_GROUP</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span><span class="s0">,</span>
+    <span class="s3">// https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher</span>
+    <span class="s1">getNamespace(tag</span><span class="s0">, </span><span class="s1">parent) {</span>
+        <span class="s0">let </span><span class="s1">ns = parent ? parent.ns : </span><span class="s4">0 </span><span class="s3">/* DOMNamespaces.HTML */</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(parent &amp;&amp; ns === </span><span class="s4">2 </span><span class="s3">/* DOMNamespaces.MATH_ML */</span><span class="s1">) {</span>
+            <span class="s0">if </span><span class="s1">(parent.tag === </span><span class="s2">'annotation-xml'</span><span class="s1">) {</span>
+                <span class="s0">if </span><span class="s1">(tag === </span><span class="s2">'svg'</span><span class="s1">) {</span>
+                    <span class="s0">return </span><span class="s4">1 </span><span class="s3">/* DOMNamespaces.SVG */</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s0">if </span><span class="s1">(parent.props.some(a =&gt; a.type === </span><span class="s4">6 </span><span class="s3">/* NodeTypes.ATTRIBUTE */ </span><span class="s1">&amp;&amp;</span>
+                    <span class="s1">a.name === </span><span class="s2">'encoding' </span><span class="s1">&amp;&amp;</span>
+                    <span class="s1">a.value != </span><span class="s0">null </span><span class="s1">&amp;&amp;</span>
+                    <span class="s1">(a.value.content === </span><span class="s2">'text/html' </span><span class="s1">||</span>
+                        <span class="s1">a.value.content === </span><span class="s2">'application/xhtml+xml'</span><span class="s1">))) {</span>
+                    <span class="s1">ns = </span><span class="s4">0 </span><span class="s3">/* DOMNamespaces.HTML */</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(</span><span class="s4">/^m(?:[ions]|text)$/</span><span class="s1">.test(parent.tag) &amp;&amp;</span>
+                <span class="s1">tag !== </span><span class="s2">'mglyph' </span><span class="s1">&amp;&amp;</span>
+                <span class="s1">tag !== </span><span class="s2">'malignmark'</span><span class="s1">) {</span>
+                <span class="s1">ns = </span><span class="s4">0 </span><span class="s3">/* DOMNamespaces.HTML */</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(parent &amp;&amp; ns === </span><span class="s4">1 </span><span class="s3">/* DOMNamespaces.SVG */</span><span class="s1">) {</span>
+            <span class="s0">if </span><span class="s1">(parent.tag === </span><span class="s2">'foreignObject' </span><span class="s1">||</span>
+                <span class="s1">parent.tag === </span><span class="s2">'desc' </span><span class="s1">||</span>
+                <span class="s1">parent.tag === </span><span class="s2">'title'</span><span class="s1">) {</span>
+                <span class="s1">ns = </span><span class="s4">0 </span><span class="s3">/* DOMNamespaces.HTML */</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">if </span><span class="s1">(ns === </span><span class="s4">0 </span><span class="s3">/* DOMNamespaces.HTML */</span><span class="s1">) {</span>
+            <span class="s0">if </span><span class="s1">(tag === </span><span class="s2">'svg'</span><span class="s1">) {</span>
+                <span class="s0">return </span><span class="s4">1 </span><span class="s3">/* DOMNamespaces.SVG */</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(tag === </span><span class="s2">'math'</span><span class="s1">) {</span>
+                <span class="s0">return </span><span class="s4">2 </span><span class="s3">/* DOMNamespaces.MATH_ML */</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s1">ns</span><span class="s0">;</span>
+    <span class="s1">}</span><span class="s0">,</span>
+    <span class="s3">// https://html.spec.whatwg.org/multipage/parsing.html#parsing-html-fragments</span>
+    <span class="s1">getTextMode({ tag</span><span class="s0">, </span><span class="s1">ns }) {</span>
+        <span class="s0">if </span><span class="s1">(ns === </span><span class="s4">0 </span><span class="s3">/* DOMNamespaces.HTML */</span><span class="s1">) {</span>
+            <span class="s0">if </span><span class="s1">(tag === </span><span class="s2">'textarea' </span><span class="s1">|| tag === </span><span class="s2">'title'</span><span class="s1">) {</span>
+                <span class="s0">return </span><span class="s4">1 </span><span class="s3">/* TextModes.RCDATA */</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(isRawTextContainer(tag)) {</span>
+                <span class="s0">return </span><span class="s4">2 </span><span class="s3">/* TextModes.RAWTEXT */</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s4">0 </span><span class="s3">/* TextModes.DATA */</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s3">// Parse inline CSS strings for static style attributes into an object.</span>
+<span class="s3">// This is a NodeTransform since it works on the static `style` attribute and</span>
+<span class="s3">// converts it into a dynamic equivalent:</span>
+<span class="s3">// style=&quot;color: red&quot; -&gt; :style='{ &quot;color&quot;: &quot;red&quot; }'</span>
+<span class="s3">// It is then processed by `transformElement` and included in the generated</span>
+<span class="s3">// props.</span>
+<span class="s0">const </span><span class="s1">transformStyle = node =&gt; {</span>
+    <span class="s0">if </span><span class="s1">(node.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s1">) {</span>
+        <span class="s1">node.props.forEach((p</span><span class="s0">, </span><span class="s1">i) =&gt; {</span>
+            <span class="s0">if </span><span class="s1">(p.type === </span><span class="s4">6 </span><span class="s3">/* NodeTypes.ATTRIBUTE */ </span><span class="s1">&amp;&amp; p.name === </span><span class="s2">'style' </span><span class="s1">&amp;&amp; p.value) {</span>
+                <span class="s3">// replace p with an expression node</span>
+                <span class="s1">node.props[i] = {</span>
+                    <span class="s1">type: </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s0">,</span>
+                    <span class="s1">name: </span><span class="s2">`bind`</span><span class="s0">,</span>
+                    <span class="s1">arg: createSimpleExpression(</span><span class="s2">`style`</span><span class="s0">, true, </span><span class="s1">p.loc)</span><span class="s0">,</span>
+                    <span class="s1">exp: parseInlineCSS(p.value.content</span><span class="s0">, </span><span class="s1">p.loc)</span><span class="s0">,</span>
+                    <span class="s1">modifiers: []</span><span class="s0">,</span>
+                    <span class="s1">loc: p.loc</span>
+                <span class="s1">}</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">parseInlineCSS = (cssText</span><span class="s0">, </span><span class="s1">loc) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">normalized = parseStringStyle(cssText)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">createSimpleExpression(JSON.stringify(normalized)</span><span class="s0">, false, </span><span class="s1">loc</span><span class="s0">, </span><span class="s4">3 </span><span class="s3">/* ConstantTypes.CAN_STRINGIFY */</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">createDOMCompilerError(code</span><span class="s0">, </span><span class="s1">loc) {</span>
+    <span class="s0">return </span><span class="s1">createCompilerError(code</span><span class="s0">, </span><span class="s1">loc</span><span class="s0">, </span><span class="s1">(process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) || !</span><span class="s0">true </span><span class="s1">? DOMErrorMessages : undefined)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">const </span><span class="s1">DOMErrorMessages = {</span>
+    <span class="s1">[</span><span class="s4">51 </span><span class="s3">/* DOMErrorCodes.X_V_HTML_NO_EXPRESSION */</span><span class="s1">]: </span><span class="s2">`v-html is missing expression.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">52 </span><span class="s3">/* DOMErrorCodes.X_V_HTML_WITH_CHILDREN */</span><span class="s1">]: </span><span class="s2">`v-html will override element children.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">53 </span><span class="s3">/* DOMErrorCodes.X_V_TEXT_NO_EXPRESSION */</span><span class="s1">]: </span><span class="s2">`v-text is missing expression.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">54 </span><span class="s3">/* DOMErrorCodes.X_V_TEXT_WITH_CHILDREN */</span><span class="s1">]: </span><span class="s2">`v-text will override element children.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">55 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ON_INVALID_ELEMENT */</span><span class="s1">]: </span><span class="s2">`v-model can only be used on &lt;input&gt;, &lt;textarea&gt; and &lt;select&gt; elements.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">56 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ARG_ON_ELEMENT */</span><span class="s1">]: </span><span class="s2">`v-model argument is not supported on plain elements.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">57 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ON_FILE_INPUT_ELEMENT */</span><span class="s1">]: </span><span class="s2">`v-model cannot be used on file inputs since they are read-only. Use a v-on:change listener instead.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">58 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_UNNECESSARY_VALUE */</span><span class="s1">]: </span><span class="s2">`Unnecessary value binding used alongside v-model. It will interfere with v-model's behavior.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">59 </span><span class="s3">/* DOMErrorCodes.X_V_SHOW_NO_EXPRESSION */</span><span class="s1">]: </span><span class="s2">`v-show is missing expression.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">60 </span><span class="s3">/* DOMErrorCodes.X_TRANSITION_INVALID_CHILDREN */</span><span class="s1">]: </span><span class="s2">`&lt;Transition&gt; expects exactly one child element or component.`</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">61 </span><span class="s3">/* DOMErrorCodes.X_IGNORED_SIDE_EFFECT_TAG */</span><span class="s1">]: </span><span class="s2">`Tags with side effect (&lt;script&gt; and &lt;style&gt;) are ignored in client component templates.`</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">transformVHtml = (dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">{ exp</span><span class="s0">, </span><span class="s1">loc } = dir</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!exp) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">51 </span><span class="s3">/* DOMErrorCodes.X_V_HTML_NO_EXPRESSION */</span><span class="s0">, </span><span class="s1">loc))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(node.children.length) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">52 </span><span class="s3">/* DOMErrorCodes.X_V_HTML_WITH_CHILDREN */</span><span class="s0">, </span><span class="s1">loc))</span><span class="s0">;</span>
+        <span class="s1">node.children.length = </span><span class="s4">0</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{</span>
+        <span class="s1">props: [</span>
+            <span class="s1">createObjectProperty(createSimpleExpression(</span><span class="s2">`innerHTML`</span><span class="s0">, true, </span><span class="s1">loc)</span><span class="s0">, </span><span class="s1">exp || createSimpleExpression(</span><span class="s2">''</span><span class="s0">, true</span><span class="s1">))</span>
+        <span class="s1">]</span>
+    <span class="s1">}</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">transformVText = (dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">{ exp</span><span class="s0">, </span><span class="s1">loc } = dir</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!exp) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">53 </span><span class="s3">/* DOMErrorCodes.X_V_TEXT_NO_EXPRESSION */</span><span class="s0">, </span><span class="s1">loc))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(node.children.length) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">54 </span><span class="s3">/* DOMErrorCodes.X_V_TEXT_WITH_CHILDREN */</span><span class="s0">, </span><span class="s1">loc))</span><span class="s0">;</span>
+        <span class="s1">node.children.length = </span><span class="s4">0</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{</span>
+        <span class="s1">props: [</span>
+            <span class="s1">createObjectProperty(createSimpleExpression(</span><span class="s2">`textContent`</span><span class="s0">, true</span><span class="s1">)</span><span class="s0">, </span><span class="s1">exp</span>
+                <span class="s1">? getConstantType(exp</span><span class="s0">, </span><span class="s1">context) &gt; </span><span class="s4">0</span>
+                    <span class="s1">? exp</span>
+                    <span class="s1">: createCallExpression(context.helperString(TO_DISPLAY_STRING)</span><span class="s0">, </span><span class="s1">[exp]</span><span class="s0">, </span><span class="s1">loc)</span>
+                <span class="s1">: createSimpleExpression(</span><span class="s2">''</span><span class="s0">, true</span><span class="s1">))</span>
+        <span class="s1">]</span>
+    <span class="s1">}</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">transformModel = (dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">baseResult = transformModel$1(dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context)</span><span class="s0">;</span>
+    <span class="s3">// base transform has errors OR component v-model (only need props)</span>
+    <span class="s0">if </span><span class="s1">(!baseResult.props.length || node.tagType === </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */</span><span class="s1">) {</span>
+        <span class="s0">return </span><span class="s1">baseResult</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(dir.arg) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">56 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ARG_ON_ELEMENT */</span><span class="s0">, </span><span class="s1">dir.arg.loc))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">function </span><span class="s1">checkDuplicatedValue() {</span>
+        <span class="s0">const </span><span class="s1">value = findProp(node</span><span class="s0">, </span><span class="s2">'value'</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(value) {</span>
+            <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">58 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_UNNECESSARY_VALUE */</span><span class="s0">, </span><span class="s1">value.loc))</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">{ tag } = node</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">isCustomElement = context.isCustomElement(tag)</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(tag === </span><span class="s2">'input' </span><span class="s1">||</span>
+        <span class="s1">tag === </span><span class="s2">'textarea' </span><span class="s1">||</span>
+        <span class="s1">tag === </span><span class="s2">'select' </span><span class="s1">||</span>
+        <span class="s1">isCustomElement) {</span>
+        <span class="s0">let </span><span class="s1">directiveToUse = V_MODEL_TEXT</span><span class="s0">;</span>
+        <span class="s0">let </span><span class="s1">isInvalidType = </span><span class="s0">false;</span>
+        <span class="s0">if </span><span class="s1">(tag === </span><span class="s2">'input' </span><span class="s1">|| isCustomElement) {</span>
+            <span class="s0">const </span><span class="s1">type = findProp(node</span><span class="s0">, </span><span class="s2">`type`</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(type) {</span>
+                <span class="s0">if </span><span class="s1">(type.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s1">) {</span>
+                    <span class="s3">// :type=&quot;foo&quot;</span>
+                    <span class="s1">directiveToUse = V_MODEL_DYNAMIC</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s0">else if </span><span class="s1">(type.value) {</span>
+                    <span class="s0">switch </span><span class="s1">(type.value.content) {</span>
+                        <span class="s0">case </span><span class="s2">'radio'</span><span class="s1">:</span>
+                            <span class="s1">directiveToUse = V_MODEL_RADIO</span><span class="s0">;</span>
+                            <span class="s0">break;</span>
+                        <span class="s0">case </span><span class="s2">'checkbox'</span><span class="s1">:</span>
+                            <span class="s1">directiveToUse = V_MODEL_CHECKBOX</span><span class="s0">;</span>
+                            <span class="s0">break;</span>
+                        <span class="s0">case </span><span class="s2">'file'</span><span class="s1">:</span>
+                            <span class="s1">isInvalidType = </span><span class="s0">true;</span>
+                            <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">57 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ON_FILE_INPUT_ELEMENT */</span><span class="s0">, </span><span class="s1">dir.loc))</span><span class="s0">;</span>
+                            <span class="s0">break;</span>
+                        <span class="s0">default</span><span class="s1">:</span>
+                            <span class="s3">// text type</span>
+                            <span class="s1">(process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) &amp;&amp; checkDuplicatedValue()</span><span class="s0">;</span>
+                            <span class="s0">break;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(hasDynamicKeyVBind(node)) {</span>
+                <span class="s3">// element has bindings with dynamic keys, which can possibly contain</span>
+                <span class="s3">// &quot;type&quot;.</span>
+                <span class="s1">directiveToUse = V_MODEL_DYNAMIC</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s3">// text type</span>
+                <span class="s1">(process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) &amp;&amp; checkDuplicatedValue()</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(tag === </span><span class="s2">'select'</span><span class="s1">) {</span>
+            <span class="s1">directiveToUse = V_MODEL_SELECT</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s3">// textarea</span>
+            <span class="s1">(process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) &amp;&amp; checkDuplicatedValue()</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s3">// inject runtime directive</span>
+        <span class="s3">// by returning the helper symbol via needRuntime</span>
+        <span class="s3">// the import will replaced a resolveDirective call.</span>
+        <span class="s0">if </span><span class="s1">(!isInvalidType) {</span>
+            <span class="s1">baseResult.needRuntime = context.helper(directiveToUse)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">55 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ON_INVALID_ELEMENT */</span><span class="s0">, </span><span class="s1">dir.loc))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s3">// native vmodel doesn't need the `modelValue` props since they are also</span>
+    <span class="s3">// passed to the runtime as `binding.value`. removing it reduces code size.</span>
+    <span class="s1">baseResult.props = baseResult.props.filter(p =&gt; !(p.key.type === </span><span class="s4">4 </span><span class="s3">/* NodeTypes.SIMPLE_EXPRESSION */ </span><span class="s1">&amp;&amp;</span>
+        <span class="s1">p.key.content === </span><span class="s2">'modelValue'</span><span class="s1">))</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">baseResult</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">isEventOptionModifier = </span><span class="s3">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s2">`passive,once,capture`</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">isNonKeyModifier = </span><span class="s3">/*#__PURE__*/ </span><span class="s1">makeMap(</span>
+<span class="s3">// event propagation management</span>
+<span class="s2">`stop,prevent,self,` </span><span class="s1">+</span>
+    <span class="s3">// system modifiers + exact</span>
+    <span class="s2">`ctrl,shift,alt,meta,exact,` </span><span class="s1">+</span>
+    <span class="s3">// mouse</span>
+    <span class="s2">`middle`</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s3">// left &amp; right could be mouse or key modifiers based on event type</span>
+<span class="s0">const </span><span class="s1">maybeKeyModifier = </span><span class="s3">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s2">'left,right'</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">isKeyboardEvent = </span><span class="s3">/*#__PURE__*/ </span><span class="s1">makeMap(</span><span class="s2">`onkeyup,onkeydown,onkeypress`</span><span class="s0">, true</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">resolveModifiers = (key</span><span class="s0">, </span><span class="s1">modifiers</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">loc) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">keyModifiers = []</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">nonKeyModifiers = []</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">eventOptionModifiers = []</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; modifiers.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s0">const </span><span class="s1">modifier = modifiers[i]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(modifier === </span><span class="s2">'native' </span><span class="s1">&amp;&amp;</span>
+            <span class="s1">checkCompatEnabled(</span><span class="s2">&quot;COMPILER_V_ON_NATIVE&quot; </span><span class="s3">/* CompilerDeprecationTypes.COMPILER_V_ON_NATIVE */</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">loc)) {</span>
+            <span class="s1">eventOptionModifiers.push(modifier)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(isEventOptionModifier(modifier)) {</span>
+            <span class="s3">// eventOptionModifiers: modifiers for addEventListener() options,</span>
+            <span class="s3">// e.g. .passive &amp; .capture</span>
+            <span class="s1">eventOptionModifiers.push(modifier)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s3">// runtimeModifiers: modifiers that needs runtime guards</span>
+            <span class="s0">if </span><span class="s1">(maybeKeyModifier(modifier)) {</span>
+                <span class="s0">if </span><span class="s1">(isStaticExp(key)) {</span>
+                    <span class="s0">if </span><span class="s1">(isKeyboardEvent(key.content)) {</span>
+                        <span class="s1">keyModifiers.push(modifier)</span><span class="s0">;</span>
+                    <span class="s1">}</span>
+                    <span class="s0">else </span><span class="s1">{</span>
+                        <span class="s1">nonKeyModifiers.push(modifier)</span><span class="s0">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+                <span class="s0">else </span><span class="s1">{</span>
+                    <span class="s1">keyModifiers.push(modifier)</span><span class="s0">;</span>
+                    <span class="s1">nonKeyModifiers.push(modifier)</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s0">if </span><span class="s1">(isNonKeyModifier(modifier)) {</span>
+                    <span class="s1">nonKeyModifiers.push(modifier)</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s0">else </span><span class="s1">{</span>
+                    <span class="s1">keyModifiers.push(modifier)</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{</span>
+        <span class="s1">keyModifiers</span><span class="s0">,</span>
+        <span class="s1">nonKeyModifiers</span><span class="s0">,</span>
+        <span class="s1">eventOptionModifiers</span>
+    <span class="s1">}</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">transformClick = (key</span><span class="s0">, </span><span class="s1">event) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">isStaticClick = isStaticExp(key) &amp;&amp; key.content.toLowerCase() === </span><span class="s2">'onclick'</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">isStaticClick</span>
+        <span class="s1">? createSimpleExpression(event</span><span class="s0">, true</span><span class="s1">)</span>
+        <span class="s1">: key.type !== </span><span class="s4">4 </span><span class="s3">/* NodeTypes.SIMPLE_EXPRESSION */</span>
+            <span class="s1">? createCompoundExpression([</span>
+                <span class="s2">`(`</span><span class="s0">,</span>
+                <span class="s1">key</span><span class="s0">,</span>
+                <span class="s2">`) === &quot;onClick&quot; ? &quot;</span><span class="s1">${event}</span><span class="s2">&quot; : (`</span><span class="s0">,</span>
+                <span class="s1">key</span><span class="s0">,</span>
+                <span class="s2">`)`</span>
+            <span class="s1">])</span>
+            <span class="s1">: key</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">transformOn = (dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">return </span><span class="s1">transformOn$1(dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">baseResult =&gt; {</span>
+        <span class="s0">const </span><span class="s1">{ modifiers } = dir</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(!modifiers.length)</span>
+            <span class="s0">return </span><span class="s1">baseResult</span><span class="s0">;</span>
+        <span class="s0">let </span><span class="s1">{ key</span><span class="s0">, </span><span class="s1">value: handlerExp } = baseResult.props[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">{ keyModifiers</span><span class="s0">, </span><span class="s1">nonKeyModifiers</span><span class="s0">, </span><span class="s1">eventOptionModifiers } = resolveModifiers(key</span><span class="s0">, </span><span class="s1">modifiers</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">dir.loc)</span><span class="s0">;</span>
+        <span class="s3">// normalize click.right and click.middle since they don't actually fire</span>
+        <span class="s0">if </span><span class="s1">(nonKeyModifiers.includes(</span><span class="s2">'right'</span><span class="s1">)) {</span>
+            <span class="s1">key = transformClick(key</span><span class="s0">, </span><span class="s2">`onContextmenu`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">if </span><span class="s1">(nonKeyModifiers.includes(</span><span class="s2">'middle'</span><span class="s1">)) {</span>
+            <span class="s1">key = transformClick(key</span><span class="s0">, </span><span class="s2">`onMouseup`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">if </span><span class="s1">(nonKeyModifiers.length) {</span>
+            <span class="s1">handlerExp = createCallExpression(context.helper(V_ON_WITH_MODIFIERS)</span><span class="s0">, </span><span class="s1">[</span>
+                <span class="s1">handlerExp</span><span class="s0">,</span>
+                <span class="s1">JSON.stringify(nonKeyModifiers)</span>
+            <span class="s1">])</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">if </span><span class="s1">(keyModifiers.length &amp;&amp;</span>
+            <span class="s3">// if event name is dynamic, always wrap with keys guard</span>
+            <span class="s1">(!isStaticExp(key) || isKeyboardEvent(key.content))) {</span>
+            <span class="s1">handlerExp = createCallExpression(context.helper(V_ON_WITH_KEYS)</span><span class="s0">, </span><span class="s1">[</span>
+                <span class="s1">handlerExp</span><span class="s0">,</span>
+                <span class="s1">JSON.stringify(keyModifiers)</span>
+            <span class="s1">])</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">if </span><span class="s1">(eventOptionModifiers.length) {</span>
+            <span class="s0">const </span><span class="s1">modifierPostfix = eventOptionModifiers.map(capitalize).join(</span><span class="s2">''</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">key = isStaticExp(key)</span>
+                <span class="s1">? createSimpleExpression(</span><span class="s2">`</span><span class="s1">${key.content}${modifierPostfix}</span><span class="s2">`</span><span class="s0">, true</span><span class="s1">)</span>
+                <span class="s1">: createCompoundExpression([</span><span class="s2">`(`</span><span class="s0">, </span><span class="s1">key</span><span class="s0">, </span><span class="s2">`) + &quot;</span><span class="s1">${modifierPostfix}</span><span class="s2">&quot;`</span><span class="s1">])</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s1">{</span>
+            <span class="s1">props: [createObjectProperty(key</span><span class="s0">, </span><span class="s1">handlerExp)]</span>
+        <span class="s1">}</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">transformShow = (dir</span><span class="s0">, </span><span class="s1">node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">const </span><span class="s1">{ exp</span><span class="s0">, </span><span class="s1">loc } = dir</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!exp) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">59 </span><span class="s3">/* DOMErrorCodes.X_V_SHOW_NO_EXPRESSION */</span><span class="s0">, </span><span class="s1">loc))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{</span>
+        <span class="s1">props: []</span><span class="s0">,</span>
+        <span class="s1">needRuntime: context.helper(V_SHOW)</span>
+    <span class="s1">}</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">transformTransition = (node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">if </span><span class="s1">(node.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s1">&amp;&amp;</span>
+        <span class="s1">node.tagType === </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */</span><span class="s1">) {</span>
+        <span class="s0">const </span><span class="s1">component = context.isBuiltInComponent(node.tag)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(component === TRANSITION) {</span>
+            <span class="s0">return </span><span class="s1">() =&gt; {</span>
+                <span class="s0">if </span><span class="s1">(!node.children.length) {</span>
+                    <span class="s0">return;</span>
+                <span class="s1">}</span>
+                <span class="s3">// warn multiple transition children</span>
+                <span class="s0">if </span><span class="s1">(hasMultipleChildren(node)) {</span>
+                    <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">60 </span><span class="s3">/* DOMErrorCodes.X_TRANSITION_INVALID_CHILDREN */</span><span class="s0">, </span><span class="s1">{</span>
+                        <span class="s1">start: node.children[</span><span class="s4">0</span><span class="s1">].loc.start</span><span class="s0">,</span>
+                        <span class="s1">end: node.children[node.children.length - </span><span class="s4">1</span><span class="s1">].loc.end</span><span class="s0">,</span>
+                        <span class="s1">source: </span><span class="s2">''</span>
+                    <span class="s1">}))</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s3">// check if it's s single child w/ v-show</span>
+                <span class="s3">// if yes, inject &quot;persisted: true&quot; to the transition props</span>
+                <span class="s0">const </span><span class="s1">child = node.children[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">;</span>
+                <span class="s0">if </span><span class="s1">(child.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s1">) {</span>
+                    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">p of child.props) {</span>
+                        <span class="s0">if </span><span class="s1">(p.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */ </span><span class="s1">&amp;&amp; p.name === </span><span class="s2">'show'</span><span class="s1">) {</span>
+                            <span class="s1">node.props.push({</span>
+                                <span class="s1">type: </span><span class="s4">6 </span><span class="s3">/* NodeTypes.ATTRIBUTE */</span><span class="s0">,</span>
+                                <span class="s1">name: </span><span class="s2">'persisted'</span><span class="s0">,</span>
+                                <span class="s1">value: undefined</span><span class="s0">,</span>
+                                <span class="s1">loc: node.loc</span>
+                            <span class="s1">})</span><span class="s0">;</span>
+                        <span class="s1">}</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">hasMultipleChildren(node) {</span>
+    <span class="s3">// #1352 filter out potential comment nodes.</span>
+    <span class="s0">const </span><span class="s1">children = (node.children = node.children.filter(c =&gt; c.type !== </span><span class="s4">3 </span><span class="s3">/* NodeTypes.COMMENT */ </span><span class="s1">&amp;&amp;</span>
+        <span class="s1">!(c.type === </span><span class="s4">2 </span><span class="s3">/* NodeTypes.TEXT */ </span><span class="s1">&amp;&amp; !c.content.trim())))</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">child = children[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">(children.length !== </span><span class="s4">1 </span><span class="s1">||</span>
+        <span class="s1">child.type === </span><span class="s4">11 </span><span class="s3">/* NodeTypes.FOR */ </span><span class="s1">||</span>
+        <span class="s1">(child.type === </span><span class="s4">9 </span><span class="s3">/* NodeTypes.IF */ </span><span class="s1">&amp;&amp; child.branches.some(hasMultipleChildren)))</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">ignoreSideEffectTags = (node</span><span class="s0">, </span><span class="s1">context) =&gt; {</span>
+    <span class="s0">if </span><span class="s1">(node.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s1">&amp;&amp;</span>
+        <span class="s1">node.tagType === </span><span class="s4">0 </span><span class="s3">/* ElementTypes.ELEMENT */ </span><span class="s1">&amp;&amp;</span>
+        <span class="s1">(node.tag === </span><span class="s2">'script' </span><span class="s1">|| node.tag === </span><span class="s2">'style'</span><span class="s1">)) {</span>
+        <span class="s1">context.onError(createDOMCompilerError(</span><span class="s4">61 </span><span class="s3">/* DOMErrorCodes.X_IGNORED_SIDE_EFFECT_TAG */</span><span class="s0">, </span><span class="s1">node.loc))</span><span class="s0">;</span>
+        <span class="s1">context.removeNode()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">DOMNodeTransforms = [</span>
+    <span class="s1">transformStyle</span><span class="s0">,</span>
+    <span class="s1">...((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? [transformTransition] : [])</span>
+<span class="s1">]</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">DOMDirectiveTransforms = {</span>
+    <span class="s1">cloak: noopDirectiveTransform</span><span class="s0">,</span>
+    <span class="s1">html: transformVHtml</span><span class="s0">,</span>
+    <span class="s1">text: transformVText</span><span class="s0">,</span>
+    <span class="s1">model: transformModel</span><span class="s0">,</span>
+    <span class="s1">on: transformOn</span><span class="s0">,</span>
+    <span class="s1">show: transformShow</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">compile(template</span><span class="s0">, </span><span class="s1">options = {}) {</span>
+    <span class="s0">return </span><span class="s1">baseCompile(template</span><span class="s0">, </span><span class="s1">extend({}</span><span class="s0">, </span><span class="s1">parserOptions</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">{</span>
+        <span class="s1">nodeTransforms: [</span>
+            <span class="s3">// ignore &lt;script&gt; and &lt;tag&gt;</span>
+            <span class="s3">// this is not put inside DOMNodeTransforms because that list is used</span>
+            <span class="s3">// by compiler-ssr to generate vnode fallback branches</span>
+            <span class="s1">ignoreSideEffectTags</span><span class="s0">,</span>
+            <span class="s1">...DOMNodeTransforms</span><span class="s0">,</span>
+            <span class="s1">...(options.nodeTransforms || [])</span>
+        <span class="s1">]</span><span class="s0">,</span>
+        <span class="s1">directiveTransforms: extend({}</span><span class="s0">, </span><span class="s1">DOMDirectiveTransforms</span><span class="s0">, </span><span class="s1">options.directiveTransforms || {})</span><span class="s0">,</span>
+        <span class="s1">transformHoist: </span><span class="s0">null </span>
+    <span class="s1">}))</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">parse(template</span><span class="s0">, </span><span class="s1">options = {}) {</span>
+    <span class="s0">return </span><span class="s1">baseParse(template</span><span class="s0">, </span><span class="s1">extend({}</span><span class="s0">, </span><span class="s1">parserOptions</span><span class="s0">, </span><span class="s1">options))</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ DOMDirectiveTransforms</span><span class="s0">, </span><span class="s1">DOMNodeTransforms</span><span class="s0">, </span><span class="s1">TRANSITION</span><span class="s0">, </span><span class="s1">TRANSITION_GROUP</span><span class="s0">, </span><span class="s1">V_MODEL_CHECKBOX</span><span class="s0">, </span><span class="s1">V_MODEL_DYNAMIC</span><span class="s0">, </span><span class="s1">V_MODEL_RADIO</span><span class="s0">, </span><span class="s1">V_MODEL_SELECT</span><span class="s0">, </span><span class="s1">V_MODEL_TEXT</span><span class="s0">, </span><span class="s1">V_ON_WITH_KEYS</span><span class="s0">, </span><span class="s1">V_ON_WITH_MODIFIERS</span><span class="s0">, </span><span class="s1">V_SHOW</span><span class="s0">, </span><span class="s1">compile</span><span class="s0">, </span><span class="s1">createDOMCompilerError</span><span class="s0">, </span><span class="s1">parse</span><span class="s0">, </span><span class="s1">parserOptions</span><span class="s0">, </span><span class="s1">transformStyle }</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

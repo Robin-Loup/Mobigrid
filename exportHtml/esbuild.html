@@ -1,0 +1,242 @@
+<html>
+<head>
+<title>esbuild</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #cc7832;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+esbuild</font>
+</center></td></tr></table>
+<pre><span class="s0">#!/usr/bin/env node</span>
+<span class="s2">&quot;use strict&quot;</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__create = Object.create</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__defProp = Object.defineProperty</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__getOwnPropDesc = Object.getOwnPropertyDescriptor</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__getOwnPropNames = Object.getOwnPropertyNames</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__getProtoOf = Object.getPrototypeOf</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__hasOwnProp = Object.prototype.hasOwnProperty</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__copyProps = (to</span><span class="s3">, </span><span class="s1">from</span><span class="s3">, </span><span class="s1">except</span><span class="s3">, </span><span class="s1">desc) =&gt; {</span>
+  <span class="s3">if </span><span class="s1">(from &amp;&amp; </span><span class="s3">typeof </span><span class="s1">from === </span><span class="s2">&quot;object&quot; </span><span class="s1">|| </span><span class="s3">typeof </span><span class="s1">from === </span><span class="s2">&quot;function&quot;</span><span class="s1">) {</span>
+    <span class="s3">for </span><span class="s1">(</span><span class="s3">let </span><span class="s1">key of __getOwnPropNames(from))</span>
+      <span class="s3">if </span><span class="s1">(!__hasOwnProp.call(to</span><span class="s3">, </span><span class="s1">key) &amp;&amp; key !== except)</span>
+        <span class="s1">__defProp(to</span><span class="s3">, </span><span class="s1">key</span><span class="s3">, </span><span class="s1">{ get: () =&gt; from[key]</span><span class="s3">, </span><span class="s1">enumerable: !(desc = __getOwnPropDesc(from</span><span class="s3">, </span><span class="s1">key)) || desc.enumerable })</span><span class="s3">;</span>
+  <span class="s1">}</span>
+  <span class="s3">return </span><span class="s1">to</span><span class="s3">;</span>
+<span class="s1">}</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">__toESM = (mod</span><span class="s3">, </span><span class="s1">isNodeMode</span><span class="s3">, </span><span class="s1">target) =&gt; (target = mod != </span><span class="s3">null </span><span class="s1">? __create(__getProtoOf(mod)) : {}</span><span class="s3">, </span><span class="s1">__copyProps(</span>
+  <span class="s0">// If the importer is in node compatibility mode or this is not an ESM</span>
+  <span class="s0">// file that has been converted to a CommonJS file using a Babel-</span>
+  <span class="s0">// compatible transform (i.e. &quot;__esModule&quot; has not been set), then set</span>
+  <span class="s0">// &quot;default&quot; to the CommonJS &quot;module.exports&quot; for node compatibility.</span>
+  <span class="s1">isNodeMode || !mod || !mod.__esModule ? __defProp(target</span><span class="s3">, </span><span class="s2">&quot;default&quot;</span><span class="s3">, </span><span class="s1">{ value: mod</span><span class="s3">, </span><span class="s1">enumerable: </span><span class="s3">true </span><span class="s1">}) : target</span><span class="s3">,</span>
+  <span class="s1">mod</span>
+<span class="s1">))</span><span class="s3">;</span>
+
+<span class="s0">// lib/npm/node-platform.ts</span>
+<span class="s3">var </span><span class="s1">fs = require(</span><span class="s2">&quot;fs&quot;</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">os = require(</span><span class="s2">&quot;os&quot;</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">path = require(</span><span class="s2">&quot;path&quot;</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">ESBUILD_BINARY_PATH = process.env.ESBUILD_BINARY_PATH || ESBUILD_BINARY_PATH</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">isValidBinaryPath = (x) =&gt; !!x &amp;&amp; x !== </span><span class="s2">&quot;/usr/bin/esbuild&quot;</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">packageDarwin_arm64 = </span><span class="s2">&quot;@esbuild/darwin-arm64&quot;</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">packageDarwin_x64 = </span><span class="s2">&quot;@esbuild/darwin-x64&quot;</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">knownWindowsPackages = {</span>
+  <span class="s2">&quot;win32 arm64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/win32-arm64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;win32 ia32 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/win32-ia32&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;win32 x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/win32-x64&quot;</span>
+<span class="s1">}</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">knownUnixlikePackages = {</span>
+  <span class="s2">&quot;android arm64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/android-arm64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;darwin arm64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/darwin-arm64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;darwin x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/darwin-x64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;freebsd arm64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/freebsd-arm64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;freebsd x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/freebsd-x64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux arm LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-arm&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux arm64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-arm64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux ia32 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-ia32&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux mips64el LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-mips64el&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux ppc64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-ppc64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux riscv64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-riscv64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux s390x BE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-s390x&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-x64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;linux loong64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/linux-loong64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;netbsd x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/netbsd-x64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;openbsd x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/openbsd-x64&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;sunos x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/sunos-x64&quot;</span>
+<span class="s1">}</span><span class="s3">;</span>
+<span class="s3">var </span><span class="s1">knownWebAssemblyFallbackPackages = {</span>
+  <span class="s2">&quot;android arm LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/android-arm&quot;</span><span class="s3">,</span>
+  <span class="s2">&quot;android x64 LE&quot;</span><span class="s1">: </span><span class="s2">&quot;@esbuild/android-x64&quot;</span>
+<span class="s1">}</span><span class="s3">;</span>
+<span class="s3">function </span><span class="s1">pkgAndSubpathForCurrentPlatform() {</span>
+  <span class="s3">let </span><span class="s1">pkg</span><span class="s3">;</span>
+  <span class="s3">let </span><span class="s1">subpath</span><span class="s3">;</span>
+  <span class="s3">let </span><span class="s1">isWASM2 = </span><span class="s3">false;</span>
+  <span class="s3">let </span><span class="s1">platformKey = </span><span class="s2">`</span><span class="s1">${process.platform} ${os.arch()} ${os.endianness()}</span><span class="s2">`</span><span class="s3">;</span>
+  <span class="s3">if </span><span class="s1">(platformKey </span><span class="s3">in </span><span class="s1">knownWindowsPackages) {</span>
+    <span class="s1">pkg = knownWindowsPackages[platformKey]</span><span class="s3">;</span>
+    <span class="s1">subpath = </span><span class="s2">&quot;esbuild.exe&quot;</span><span class="s3">;</span>
+  <span class="s1">} </span><span class="s3">else if </span><span class="s1">(platformKey </span><span class="s3">in </span><span class="s1">knownUnixlikePackages) {</span>
+    <span class="s1">pkg = knownUnixlikePackages[platformKey]</span><span class="s3">;</span>
+    <span class="s1">subpath = </span><span class="s2">&quot;bin/esbuild&quot;</span><span class="s3">;</span>
+  <span class="s1">} </span><span class="s3">else if </span><span class="s1">(platformKey </span><span class="s3">in </span><span class="s1">knownWebAssemblyFallbackPackages) {</span>
+    <span class="s1">pkg = knownWebAssemblyFallbackPackages[platformKey]</span><span class="s3">;</span>
+    <span class="s1">subpath = </span><span class="s2">&quot;bin/esbuild&quot;</span><span class="s3">;</span>
+    <span class="s1">isWASM2 = </span><span class="s3">true;</span>
+  <span class="s1">} </span><span class="s3">else </span><span class="s1">{</span>
+    <span class="s3">throw new </span><span class="s1">Error(</span><span class="s2">`Unsupported platform: </span><span class="s1">${platformKey}</span><span class="s2">`</span><span class="s1">)</span><span class="s3">;</span>
+  <span class="s1">}</span>
+  <span class="s3">return </span><span class="s1">{ pkg</span><span class="s3">, </span><span class="s1">subpath</span><span class="s3">, </span><span class="s1">isWASM: isWASM2 }</span><span class="s3">;</span>
+<span class="s1">}</span>
+<span class="s3">function </span><span class="s1">pkgForSomeOtherPlatform() {</span>
+  <span class="s3">const </span><span class="s1">libMainJS = require.resolve(</span><span class="s2">&quot;esbuild&quot;</span><span class="s1">)</span><span class="s3">;</span>
+  <span class="s3">const </span><span class="s1">nodeModulesDirectory = path.dirname(path.dirname(path.dirname(libMainJS)))</span><span class="s3">;</span>
+  <span class="s3">if </span><span class="s1">(path.basename(nodeModulesDirectory) === </span><span class="s2">&quot;node_modules&quot;</span><span class="s1">) {</span>
+    <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">unixKey </span><span class="s3">in </span><span class="s1">knownUnixlikePackages) {</span>
+      <span class="s3">try </span><span class="s1">{</span>
+        <span class="s3">const </span><span class="s1">pkg = knownUnixlikePackages[unixKey]</span><span class="s3">;</span>
+        <span class="s3">if </span><span class="s1">(fs.existsSync(path.join(nodeModulesDirectory</span><span class="s3">, </span><span class="s1">pkg)))</span>
+          <span class="s3">return </span><span class="s1">pkg</span><span class="s3">;</span>
+      <span class="s1">} </span><span class="s3">catch </span><span class="s1">{</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s3">for </span><span class="s1">(</span><span class="s3">const </span><span class="s1">windowsKey </span><span class="s3">in </span><span class="s1">knownWindowsPackages) {</span>
+      <span class="s3">try </span><span class="s1">{</span>
+        <span class="s3">const </span><span class="s1">pkg = knownWindowsPackages[windowsKey]</span><span class="s3">;</span>
+        <span class="s3">if </span><span class="s1">(fs.existsSync(path.join(nodeModulesDirectory</span><span class="s3">, </span><span class="s1">pkg)))</span>
+          <span class="s3">return </span><span class="s1">pkg</span><span class="s3">;</span>
+      <span class="s1">} </span><span class="s3">catch </span><span class="s1">{</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s3">return null;</span>
+<span class="s1">}</span>
+<span class="s3">function </span><span class="s1">downloadedBinPath(pkg</span><span class="s3">, </span><span class="s1">subpath) {</span>
+  <span class="s3">const </span><span class="s1">esbuildLibDir = path.dirname(require.resolve(</span><span class="s2">&quot;esbuild&quot;</span><span class="s1">))</span><span class="s3">;</span>
+  <span class="s3">return </span><span class="s1">path.join(esbuildLibDir</span><span class="s3">, </span><span class="s2">`downloaded-</span><span class="s1">${pkg.replace(</span><span class="s2">&quot;/&quot;</span><span class="s3">, </span><span class="s2">&quot;-&quot;</span><span class="s1">)}</span><span class="s2">-</span><span class="s1">${path.basename(subpath)}</span><span class="s2">`</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s1">}</span>
+<span class="s3">function </span><span class="s1">generateBinPath() {</span>
+  <span class="s3">if </span><span class="s1">(isValidBinaryPath(ESBUILD_BINARY_PATH)) {</span>
+    <span class="s3">if </span><span class="s1">(!fs.existsSync(ESBUILD_BINARY_PATH)) {</span>
+      <span class="s1">console.warn(</span><span class="s2">`[esbuild] Ignoring bad configuration: ESBUILD_BINARY_PATH=</span><span class="s1">${ESBUILD_BINARY_PATH}</span><span class="s2">`</span><span class="s1">)</span><span class="s3">;</span>
+    <span class="s1">} </span><span class="s3">else </span><span class="s1">{</span>
+      <span class="s3">return </span><span class="s1">{ binPath: ESBUILD_BINARY_PATH</span><span class="s3">, </span><span class="s1">isWASM: </span><span class="s3">false </span><span class="s1">}</span><span class="s3">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s3">const </span><span class="s1">{ pkg</span><span class="s3">, </span><span class="s1">subpath</span><span class="s3">, </span><span class="s1">isWASM: isWASM2 } = pkgAndSubpathForCurrentPlatform()</span><span class="s3">;</span>
+  <span class="s3">let </span><span class="s1">binPath2</span><span class="s3">;</span>
+  <span class="s3">try </span><span class="s1">{</span>
+    <span class="s1">binPath2 = require.resolve(</span><span class="s2">`</span><span class="s1">${pkg}</span><span class="s2">/</span><span class="s1">${subpath}</span><span class="s2">`</span><span class="s1">)</span><span class="s3">;</span>
+  <span class="s1">} </span><span class="s3">catch </span><span class="s1">(e) {</span>
+    <span class="s1">binPath2 = downloadedBinPath(pkg</span><span class="s3">, </span><span class="s1">subpath)</span><span class="s3">;</span>
+    <span class="s3">if </span><span class="s1">(!fs.existsSync(binPath2)) {</span>
+      <span class="s3">try </span><span class="s1">{</span>
+        <span class="s1">require.resolve(pkg)</span><span class="s3">;</span>
+      <span class="s1">} </span><span class="s3">catch </span><span class="s1">{</span>
+        <span class="s3">const </span><span class="s1">otherPkg = pkgForSomeOtherPlatform()</span><span class="s3">;</span>
+        <span class="s3">if </span><span class="s1">(otherPkg) {</span>
+          <span class="s3">let </span><span class="s1">suggestions = </span><span class="s2">`</span>
+<span class="s2">Specifically the &quot;</span><span class="s1">${otherPkg}</span><span class="s2">&quot; package is present but this platform 
+needs the &quot;</span><span class="s1">${pkg}</span><span class="s2">&quot; package instead. People often get into this 
+situation by installing esbuild on Windows or macOS and copying &quot;node_modules&quot; 
+into a Docker image that runs Linux, or by copying &quot;node_modules&quot; between 
+Windows and WSL environments. 
+ 
+If you are installing with npm, you can try not copying the &quot;node_modules&quot; 
+directory when you copy the files over, and running &quot;npm ci&quot; or &quot;npm install&quot; 
+on the destination platform after the copy. Or you could consider using yarn 
+instead of npm which has built-in support for installing a package on multiple 
+platforms simultaneously. 
+ 
+If you are installing with yarn, you can try listing both this platform and the 
+other platform in your &quot;.yarnrc.yml&quot; file using the &quot;supportedArchitectures&quot; 
+feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures 
+Keep in mind that this means multiple copies of esbuild will be present. 
+`</span><span class="s3">;</span>
+          <span class="s3">if </span><span class="s1">(pkg === packageDarwin_x64 &amp;&amp; otherPkg === packageDarwin_arm64 || pkg === packageDarwin_arm64 &amp;&amp; otherPkg === packageDarwin_x64) {</span>
+            <span class="s1">suggestions = </span><span class="s2">`</span>
+<span class="s2">Specifically the &quot;</span><span class="s1">${otherPkg}</span><span class="s2">&quot; package is present but this platform 
+needs the &quot;</span><span class="s1">${pkg}</span><span class="s2">&quot; package instead. People often get into this 
+situation by installing esbuild with npm running inside of Rosetta 2 and then 
+trying to use it with node running outside of Rosetta 2, or vice versa (Rosetta 
+2 is Apple's on-the-fly x86_64-to-arm64 translation service). 
+ 
+If you are installing with npm, you can try ensuring that both npm and node are 
+not running under Rosetta 2 and then reinstalling esbuild. This likely involves 
+changing how you installed npm and/or node. For example, installing node with 
+the universal installer here should work: https://nodejs.org/en/download/. Or 
+you could consider using yarn instead of npm which has built-in support for 
+installing a package on multiple platforms simultaneously. 
+ 
+If you are installing with yarn, you can try listing both &quot;arm64&quot; and &quot;x64&quot; 
+in your &quot;.yarnrc.yml&quot; file using the &quot;supportedArchitectures&quot; feature: 
+https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures 
+Keep in mind that this means multiple copies of esbuild will be present. 
+`</span><span class="s3">;</span>
+          <span class="s1">}</span>
+          <span class="s3">throw new </span><span class="s1">Error(</span><span class="s2">`</span>
+<span class="s2">You installed esbuild for another platform than the one you're currently using. 
+This won't work because esbuild is written with native code and needs to 
+install a platform-specific binary executable. 
+</span><span class="s1">${suggestions}</span>
+<span class="s2">Another alternative is to use the &quot;esbuild-wasm&quot; package instead, which works 
+the same way on all platforms. But it comes with a heavy performance cost and 
+can sometimes be 10x slower than the &quot;esbuild&quot; package, so you may also not 
+want to do that. 
+`</span><span class="s1">)</span><span class="s3">;</span>
+        <span class="s1">}</span>
+        <span class="s3">throw new </span><span class="s1">Error(</span><span class="s2">`The package &quot;</span><span class="s1">${pkg}</span><span class="s2">&quot; could not be found, and is needed by esbuild. 
+ 
+If you are installing esbuild with npm, make sure that you don't specify the 
+&quot;--no-optional&quot; or &quot;--omit=optional&quot; flags. The &quot;optionalDependencies&quot; feature 
+of &quot;package.json&quot; is used by esbuild to install the correct binary executable 
+for your current platform.`</span><span class="s1">)</span><span class="s3">;</span>
+      <span class="s1">}</span>
+      <span class="s3">throw </span><span class="s1">e</span><span class="s3">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s3">if </span><span class="s1">(</span><span class="s4">/\.zip\//</span><span class="s1">.test(binPath2)) {</span>
+    <span class="s3">let </span><span class="s1">pnpapi</span><span class="s3">;</span>
+    <span class="s3">try </span><span class="s1">{</span>
+      <span class="s1">pnpapi = require(</span><span class="s2">&quot;pnpapi&quot;</span><span class="s1">)</span><span class="s3">;</span>
+    <span class="s1">} </span><span class="s3">catch </span><span class="s1">(e) {</span>
+    <span class="s1">}</span>
+    <span class="s3">if </span><span class="s1">(pnpapi) {</span>
+      <span class="s3">const </span><span class="s1">root = pnpapi.getPackageInformation(pnpapi.topLevel).packageLocation</span><span class="s3">;</span>
+      <span class="s3">const </span><span class="s1">binTargetPath = path.join(</span>
+        <span class="s1">root</span><span class="s3">,</span>
+        <span class="s2">&quot;node_modules&quot;</span><span class="s3">,</span>
+        <span class="s2">&quot;.cache&quot;</span><span class="s3">,</span>
+        <span class="s2">&quot;esbuild&quot;</span><span class="s3">,</span>
+        <span class="s2">`pnpapi-</span><span class="s1">${pkg.replace(</span><span class="s2">&quot;/&quot;</span><span class="s3">, </span><span class="s2">&quot;-&quot;</span><span class="s1">)}</span><span class="s2">-</span><span class="s1">${</span><span class="s2">&quot;0.17.18&quot;</span><span class="s1">}</span><span class="s2">-</span><span class="s1">${path.basename(subpath)}</span><span class="s2">`</span>
+      <span class="s1">)</span><span class="s3">;</span>
+      <span class="s3">if </span><span class="s1">(!fs.existsSync(binTargetPath)) {</span>
+        <span class="s1">fs.mkdirSync(path.dirname(binTargetPath)</span><span class="s3">, </span><span class="s1">{ recursive: </span><span class="s3">true </span><span class="s1">})</span><span class="s3">;</span>
+        <span class="s1">fs.copyFileSync(binPath2</span><span class="s3">, </span><span class="s1">binTargetPath)</span><span class="s3">;</span>
+        <span class="s1">fs.chmodSync(binTargetPath</span><span class="s3">, </span><span class="s4">493</span><span class="s1">)</span><span class="s3">;</span>
+      <span class="s1">}</span>
+      <span class="s3">return </span><span class="s1">{ binPath: binTargetPath</span><span class="s3">, </span><span class="s1">isWASM: isWASM2 }</span><span class="s3">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s3">return </span><span class="s1">{ binPath: binPath2</span><span class="s3">, </span><span class="s1">isWASM: isWASM2 }</span><span class="s3">;</span>
+<span class="s1">}</span>
+
+<span class="s0">// lib/npm/node-shim.ts</span>
+<span class="s3">var </span><span class="s1">{ binPath</span><span class="s3">, </span><span class="s1">isWASM } = generateBinPath()</span><span class="s3">;</span>
+<span class="s3">if </span><span class="s1">(isWASM) {</span>
+  <span class="s1">require(</span><span class="s2">&quot;child_process&quot;</span><span class="s1">).execFileSync(</span><span class="s2">&quot;node&quot;</span><span class="s3">, </span><span class="s1">[binPath].concat(process.argv.slice(</span><span class="s4">2</span><span class="s1">))</span><span class="s3">, </span><span class="s1">{ stdio: </span><span class="s2">&quot;inherit&quot; </span><span class="s1">})</span><span class="s3">;</span>
+<span class="s1">} </span><span class="s3">else </span><span class="s1">{</span>
+  <span class="s1">require(</span><span class="s2">&quot;child_process&quot;</span><span class="s1">).execFileSync(binPath</span><span class="s3">, </span><span class="s1">process.argv.slice(</span><span class="s4">2</span><span class="s1">)</span><span class="s3">, </span><span class="s1">{ stdio: </span><span class="s2">&quot;inherit&quot; </span><span class="s1">})</span><span class="s3">;</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

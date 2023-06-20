@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>base.css</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #e8bf6a;}
+.s4 { color: #bababa;}
+.s5 { color: #6897bb;}
+.s6 { color: #cc7832;}
+.s7 { color: #a5c261;}
+.s8 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+base.css</font>
+</center></td></tr></table>
+<pre><span class="s0">/* color palette from &lt;https://github.com/vuejs/theme&gt; */</span>
+<span class="s2">:</span><span class="s3">root </span><span class="s1">{</span>
+  <span class="s4">--vt-c-white</span><span class="s2">: </span><span class="s5">#ffffff</span><span class="s6">;</span>
+  <span class="s4">--vt-c-white-soft</span><span class="s2">: </span><span class="s5">#f8f8f8</span><span class="s6">;</span>
+  <span class="s4">--vt-c-white-mute</span><span class="s2">: </span><span class="s5">#f2f2f2</span><span class="s6">;</span>
+
+  <span class="s4">--vt-c-black</span><span class="s2">: </span><span class="s5">#181818</span><span class="s6">;</span>
+  <span class="s4">--vt-c-black-soft</span><span class="s2">: </span><span class="s5">#222222</span><span class="s6">;</span>
+  <span class="s4">--vt-c-black-mute</span><span class="s2">: </span><span class="s5">#282828</span><span class="s6">;</span>
+
+  <span class="s4">--vt-c-indigo</span><span class="s2">: </span><span class="s5">#2c3e50</span><span class="s6">;</span>
+
+  <span class="s4">--vt-c-divider-light-1</span><span class="s2">: </span><span class="s3">rgba</span><span class="s1">(</span><span class="s5">60</span><span class="s6">, </span><span class="s5">60</span><span class="s6">, </span><span class="s5">60</span><span class="s6">, </span><span class="s5">0.29</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--vt-c-divider-light-2</span><span class="s2">: </span><span class="s3">rgba</span><span class="s1">(</span><span class="s5">60</span><span class="s6">, </span><span class="s5">60</span><span class="s6">, </span><span class="s5">60</span><span class="s6">, </span><span class="s5">0.12</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--vt-c-divider-dark-1</span><span class="s2">: </span><span class="s3">rgba</span><span class="s1">(</span><span class="s5">84</span><span class="s6">, </span><span class="s5">84</span><span class="s6">, </span><span class="s5">84</span><span class="s6">, </span><span class="s5">0.65</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--vt-c-divider-dark-2</span><span class="s2">: </span><span class="s3">rgba</span><span class="s1">(</span><span class="s5">84</span><span class="s6">, </span><span class="s5">84</span><span class="s6">, </span><span class="s5">84</span><span class="s6">, </span><span class="s5">0.48</span><span class="s1">)</span><span class="s6">;</span>
+
+  <span class="s4">--vt-c-text-light-1</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-indigo</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--vt-c-text-light-2</span><span class="s2">: </span><span class="s3">rgba</span><span class="s1">(</span><span class="s5">60</span><span class="s6">, </span><span class="s5">60</span><span class="s6">, </span><span class="s5">60</span><span class="s6">, </span><span class="s5">0.66</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--vt-c-text-dark-1</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-white</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--vt-c-text-dark-2</span><span class="s2">: </span><span class="s3">rgba</span><span class="s1">(</span><span class="s5">235</span><span class="s6">, </span><span class="s5">235</span><span class="s6">, </span><span class="s5">235</span><span class="s6">, </span><span class="s5">0.64</span><span class="s1">)</span><span class="s6">;</span>
+<span class="s1">}</span>
+
+<span class="s0">/* semantic color variables for this project */</span>
+<span class="s2">:</span><span class="s3">root </span><span class="s1">{</span>
+  <span class="s4">--color-background</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-white</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--color-background-soft</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-white-soft</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--color-background-mute</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-white-mute</span><span class="s1">)</span><span class="s6">;</span>
+
+  <span class="s4">--color-border</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-divider-light-2</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--color-border-hover</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-divider-light-1</span><span class="s1">)</span><span class="s6">;</span>
+
+  <span class="s4">--color-heading</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-text-light-1</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">--color-text</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-text-light-1</span><span class="s1">)</span><span class="s6">;</span>
+
+  <span class="s4">--section-gap</span><span class="s2">: </span><span class="s5">160</span><span class="s7">px</span><span class="s6">;</span>
+<span class="s1">}</span>
+
+<span class="s6">@media </span><span class="s1">(</span><span class="s4">prefers-color-scheme</span><span class="s2">: </span><span class="s7">dark</span><span class="s1">) {</span>
+  <span class="s2">:</span><span class="s3">root </span><span class="s1">{</span>
+    <span class="s4">--color-background</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-black</span><span class="s1">)</span><span class="s6">;</span>
+    <span class="s4">--color-background-soft</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-black-soft</span><span class="s1">)</span><span class="s6">;</span>
+    <span class="s4">--color-background-mute</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-black-mute</span><span class="s1">)</span><span class="s6">;</span>
+
+    <span class="s4">--color-border</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-divider-dark-2</span><span class="s1">)</span><span class="s6">;</span>
+    <span class="s4">--color-border-hover</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-divider-dark-1</span><span class="s1">)</span><span class="s6">;</span>
+
+    <span class="s4">--color-heading</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-text-dark-1</span><span class="s1">)</span><span class="s6">;</span>
+    <span class="s4">--color-text</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--vt-c-text-dark-2</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">*</span><span class="s6">,</span>
+<span class="s3">*</span><span class="s2">::</span><span class="s3">before</span><span class="s6">,</span>
+<span class="s3">*</span><span class="s2">::</span><span class="s3">after </span><span class="s1">{</span>
+  <span class="s4">box-sizing</span><span class="s2">: </span><span class="s7">border-box</span><span class="s6">;</span>
+  <span class="s4">margin</span><span class="s2">: </span><span class="s5">0</span><span class="s6">;</span>
+  <span class="s4">position</span><span class="s2">: </span><span class="s7">relative</span><span class="s6">;</span>
+  <span class="s4">font-weight</span><span class="s2">: </span><span class="s7">normal</span><span class="s6">;</span>
+<span class="s1">}</span>
+
+<span class="s3">body </span><span class="s1">{</span>
+  <span class="s4">min-height</span><span class="s2">: </span><span class="s5">100</span><span class="s7">vh</span><span class="s6">;</span>
+  <span class="s4">color</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--color-text</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">background</span><span class="s2">: </span><span class="s3">var</span><span class="s1">(</span><span class="s3">--color-background</span><span class="s1">)</span><span class="s6">;</span>
+  <span class="s4">transition</span><span class="s2">: </span><span class="s7">color </span><span class="s5">0.5</span><span class="s7">s</span><span class="s6">, </span><span class="s7">background-color </span><span class="s5">0.5</span><span class="s7">s</span><span class="s6">;</span>
+  <span class="s4">line-height</span><span class="s2">: </span><span class="s5">1.6</span><span class="s6">;</span>
+  <span class="s4">font-family</span><span class="s2">: </span><span class="s3">Inter</span><span class="s6">, </span><span class="s7">-apple-system</span><span class="s6">, </span><span class="s3">BlinkMacSystemFont</span><span class="s6">, </span><span class="s8">'Segoe UI'</span><span class="s6">, </span><span class="s3">Roboto</span><span class="s6">, </span><span class="s3">Oxygen</span><span class="s6">, </span><span class="s3">Ubuntu</span><span class="s6">,</span>
+    <span class="s3">Cantarell</span><span class="s6">, </span><span class="s8">'Fira Sans'</span><span class="s6">, </span><span class="s8">'Droid Sans'</span><span class="s6">, </span><span class="s8">'Helvetica Neue'</span><span class="s6">, </span><span class="s7">sans-serif</span><span class="s6">;</span>
+  <span class="s4">font-size</span><span class="s2">: </span><span class="s5">15</span><span class="s7">px</span><span class="s6">;</span>
+  <span class="s4">text-rendering</span><span class="s2">: </span><span class="s3">optimizeLegibility</span><span class="s6">;</span>
+  <span class="s4">-webkit-font-smoothing</span><span class="s2">: </span><span class="s7">antialiased</span><span class="s6">;</span>
+  <span class="s4">-moz-osx-font-smoothing</span><span class="s2">: </span><span class="s7">grayscale</span><span class="s6">;</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

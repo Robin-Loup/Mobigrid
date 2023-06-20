@@ -1,0 +1,136 @@
+<html>
+<head>
+<title>at-rule.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+at-rule.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">Container</span><span class="s0">, </span><span class="s1">{ ContainerProps } from </span><span class="s2">'./container.js'</span>
+
+<span class="s1">declare namespace AtRule {</span>
+  <span class="s0">export interface </span><span class="s1">AtRuleRaws </span><span class="s0">extends </span><span class="s1">Record&lt;string</span><span class="s0">, </span><span class="s1">unknown&gt; {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The space symbols before the node. It also stores `*`</span>
+     <span class="s3">* and `_` symbols before the declaration (IE hack).</span>
+     <span class="s3">*/</span>
+    <span class="s1">before?: string</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* The space symbols after the last child of the node to the end of the node.</span>
+     <span class="s3">*/</span>
+    <span class="s1">after?: string</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* The space between the at-rule name and its parameters.</span>
+     <span class="s3">*/</span>
+    <span class="s1">afterName?: string</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* The symbols between the last parameter and `{` for rules.</span>
+     <span class="s3">*/</span>
+    <span class="s1">between?: string</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Contains `true` if the last child has an (optional) semicolon.</span>
+     <span class="s3">*/</span>
+    <span class="s1">semicolon?: boolean</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* The rule’s selector with comments.</span>
+     <span class="s3">*/</span>
+    <span class="s1">params?: {</span>
+      <span class="s1">value: string</span>
+      <span class="s1">raw: string</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+  <span class="s0">export interface </span><span class="s1">AtRuleProps </span><span class="s0">extends </span><span class="s1">ContainerProps {</span>
+    <span class="s3">/** Name of the at-rule. */</span>
+    <span class="s1">name: string</span>
+    <span class="s3">/** Parameters following the name of the at-rule. */</span>
+    <span class="s1">params?: string | number</span>
+    <span class="s3">/** Information used to generate byte-to-byte equal node string as it was in the origin input. */</span>
+    <span class="s1">raws?: AtRuleRaws</span>
+  <span class="s1">}</span>
+
+  <span class="s4">// eslint-disable-next-line @typescript-eslint/no-use-before-define</span>
+  <span class="s0">export </span><span class="s1">{ AtRule_ as </span><span class="s0">default </span><span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Represents an at-rule.</span>
+ <span class="s3">*</span>
+ <span class="s3">* ```js</span>
+ <span class="s3">* Once (root, { AtRule }) {</span>
+ <span class="s3">*   let media = new AtRule({ name: 'media', params: 'print' })</span>
+ <span class="s3">*   media.append(…)</span>
+ <span class="s3">*   root.append(media)</span>
+ <span class="s3">* }</span>
+ <span class="s3">* ```</span>
+ <span class="s3">*</span>
+ <span class="s3">* If it’s followed in the CSS by a `{}` block, this node will have</span>
+ <span class="s3">* a nodes property representing its children.</span>
+ <span class="s3">*</span>
+ <span class="s3">* ```js</span>
+ <span class="s3">* const root = postcss.parse('@charset &quot;UTF-8&quot;; @media print {}')</span>
+ <span class="s3">*</span>
+ <span class="s3">* const charset = root.first</span>
+ <span class="s3">* charset.type  //=&gt; 'atrule'</span>
+ <span class="s3">* charset.nodes //=&gt; undefined</span>
+ <span class="s3">*</span>
+ <span class="s3">* const media = root.last</span>
+ <span class="s3">* media.nodes   //=&gt; []</span>
+ <span class="s3">* ```</span>
+ <span class="s3">*/</span>
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">AtRule_ </span><span class="s0">extends </span><span class="s1">Container {</span>
+  <span class="s1">type: </span><span class="s2">'atrule'</span>
+  <span class="s1">parent: Container | undefined</span>
+  <span class="s1">raws: AtRule.AtRuleRaws</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* The at-rule’s name immediately follows the `@`.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* const root  = postcss.parse('@media print {}')</span>
+   <span class="s3">* media.name //=&gt; 'media'</span>
+   <span class="s3">* const media = root.first</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*/</span>
+  <span class="s1">name: string</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* The at-rule’s parameters, the values that follow the at-rule’s name</span>
+   <span class="s3">* but precede any `{}` block.</span>
+   <span class="s3">*</span>
+   <span class="s3">* ```js</span>
+   <span class="s3">* const root  = postcss.parse('@media print, screen {}')</span>
+   <span class="s3">* const media = root.first</span>
+   <span class="s3">* media.params //=&gt; 'print, screen'</span>
+   <span class="s3">* ```</span>
+   <span class="s3">*/</span>
+  <span class="s1">params: string</span>
+
+  <span class="s1">constructor(defaults?: AtRule.AtRuleProps)</span>
+  <span class="s1">assign(overrides: object | AtRule.AtRuleProps): </span><span class="s0">this</span>
+  <span class="s1">clone(overrides?: Partial&lt;AtRule.AtRuleProps&gt;): </span><span class="s0">this</span>
+  <span class="s1">cloneBefore(overrides?: Partial&lt;AtRule.AtRuleProps&gt;): </span><span class="s0">this</span>
+  <span class="s1">cloneAfter(overrides?: Partial&lt;AtRule.AtRuleProps&gt;): </span><span class="s0">this</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">AtRule </span><span class="s0">extends </span><span class="s1">AtRule_ {}</span>
+
+<span class="s0">export </span><span class="s1">= AtRule</span>
+</pre>
+</body>
+</html>

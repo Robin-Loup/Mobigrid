@@ -1,0 +1,1332 @@
+<html>
+<head>
+<title>magic-string.cjs.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #cc7832;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+magic-string.cjs.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">sourcemapCodec = require(</span><span class="s0">'sourcemap-codec'</span><span class="s2">)</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">BitSet = </span><span class="s1">function </span><span class="s2">BitSet(arg) {</span>
+	<span class="s1">this</span><span class="s2">.bits = arg </span><span class="s1">instanceof </span><span class="s2">BitSet ? arg.bits.slice() : []</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">BitSet.prototype.add = </span><span class="s1">function </span><span class="s2">add (n) {</span>
+	<span class="s1">this</span><span class="s2">.bits[n &gt;&gt; </span><span class="s3">5</span><span class="s2">] |= </span><span class="s3">1 </span><span class="s2">&lt;&lt; (n &amp; </span><span class="s3">31</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">BitSet.prototype.has = </span><span class="s1">function </span><span class="s2">has (n) {</span>
+	<span class="s1">return </span><span class="s2">!!(</span><span class="s1">this</span><span class="s2">.bits[n &gt;&gt; </span><span class="s3">5</span><span class="s2">] &amp; (</span><span class="s3">1 </span><span class="s2">&lt;&lt; (n &amp; </span><span class="s3">31</span><span class="s2">)))</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">Chunk = </span><span class="s1">function </span><span class="s2">Chunk(start</span><span class="s1">, </span><span class="s2">end</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">this</span><span class="s2">.start = start</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.end = end</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.original = content</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.intro = </span><span class="s0">''</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.outro = </span><span class="s0">''</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.content = content</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.storeName = </span><span class="s1">false;</span>
+	<span class="s1">this</span><span class="s2">.edited = </span><span class="s1">false;</span>
+
+	<span class="s4">// we make these non-enumerable, for sanity while debugging</span>
+	<span class="s2">Object.defineProperties(</span><span class="s1">this, </span><span class="s2">{</span>
+		<span class="s2">previous: { writable: </span><span class="s1">true, </span><span class="s2">value: </span><span class="s1">null </span><span class="s2">}</span><span class="s1">,</span>
+		<span class="s2">next: { writable: </span><span class="s1">true, </span><span class="s2">value: </span><span class="s1">null </span><span class="s2">}</span><span class="s1">,</span>
+	<span class="s2">})</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.appendLeft = </span><span class="s1">function </span><span class="s2">appendLeft (content) {</span>
+	<span class="s1">this</span><span class="s2">.outro += content</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.appendRight = </span><span class="s1">function </span><span class="s2">appendRight (content) {</span>
+	<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro + content</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.clone = </span><span class="s1">function </span><span class="s2">clone () {</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">new </span><span class="s2">Chunk(</span><span class="s1">this</span><span class="s2">.start</span><span class="s1">, this</span><span class="s2">.end</span><span class="s1">, this</span><span class="s2">.original)</span><span class="s1">;</span>
+
+	<span class="s2">chunk.intro = </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+	<span class="s2">chunk.outro = </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+	<span class="s2">chunk.content = </span><span class="s1">this</span><span class="s2">.content</span><span class="s1">;</span>
+	<span class="s2">chunk.storeName = </span><span class="s1">this</span><span class="s2">.storeName</span><span class="s1">;</span>
+	<span class="s2">chunk.edited = </span><span class="s1">this</span><span class="s2">.edited</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">chunk</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.contains = </span><span class="s1">function </span><span class="s2">contains (index) {</span>
+	<span class="s1">return this</span><span class="s2">.start &lt; index &amp;&amp; index &lt; </span><span class="s1">this</span><span class="s2">.end</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.eachNext = </span><span class="s1">function </span><span class="s2">eachNext (fn) {</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this;</span>
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s2">fn(chunk)</span><span class="s1">;</span>
+		<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+	<span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.eachPrevious = </span><span class="s1">function </span><span class="s2">eachPrevious (fn) {</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this;</span>
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s2">fn(chunk)</span><span class="s1">;</span>
+		<span class="s2">chunk = chunk.previous</span><span class="s1">;</span>
+	<span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.edit = </span><span class="s1">function </span><span class="s2">edit (content</span><span class="s1">, </span><span class="s2">storeName</span><span class="s1">, </span><span class="s2">contentOnly) {</span>
+	<span class="s1">this</span><span class="s2">.content = content</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(!contentOnly) {</span>
+		<span class="s1">this</span><span class="s2">.intro = </span><span class="s0">''</span><span class="s1">;</span>
+		<span class="s1">this</span><span class="s2">.outro = </span><span class="s0">''</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">this</span><span class="s2">.storeName = storeName</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.edited = </span><span class="s1">true;</span>
+
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.prependLeft = </span><span class="s1">function </span><span class="s2">prependLeft (content) {</span>
+	<span class="s1">this</span><span class="s2">.outro = content + </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.prependRight = </span><span class="s1">function </span><span class="s2">prependRight (content) {</span>
+	<span class="s1">this</span><span class="s2">.intro = content + </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.split = </span><span class="s1">function </span><span class="s2">split (index) {</span>
+	<span class="s1">var </span><span class="s2">sliceIndex = index - </span><span class="s1">this</span><span class="s2">.start</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">originalBefore = </span><span class="s1">this</span><span class="s2">.original.slice(</span><span class="s3">0</span><span class="s1">, </span><span class="s2">sliceIndex)</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">originalAfter = </span><span class="s1">this</span><span class="s2">.original.slice(sliceIndex)</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.original = originalBefore</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">newChunk = </span><span class="s1">new </span><span class="s2">Chunk(index</span><span class="s1">, this</span><span class="s2">.end</span><span class="s1">, </span><span class="s2">originalAfter)</span><span class="s1">;</span>
+	<span class="s2">newChunk.outro = </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.outro = </span><span class="s0">''</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.end = index</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.edited) {</span>
+		<span class="s4">// TODO is this block necessary?...</span>
+		<span class="s2">newChunk.edit(</span><span class="s0">''</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+		<span class="s1">this</span><span class="s2">.content = </span><span class="s0">''</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.content = originalBefore</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s2">newChunk.next = </span><span class="s1">this</span><span class="s2">.next</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(newChunk.next) { newChunk.next.previous = newChunk</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s2">newChunk.previous = </span><span class="s1">this;</span>
+	<span class="s1">this</span><span class="s2">.next = newChunk</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">newChunk</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.toString = </span><span class="s1">function </span><span class="s2">toString () {</span>
+	<span class="s1">return this</span><span class="s2">.intro + </span><span class="s1">this</span><span class="s2">.content + </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.trimEnd = </span><span class="s1">function </span><span class="s2">trimEnd (rx) {</span>
+	<span class="s1">this</span><span class="s2">.outro = </span><span class="s1">this</span><span class="s2">.outro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.outro.length) { </span><span class="s1">return true; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">trimmed = </span><span class="s1">this</span><span class="s2">.content.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(trimmed.length) {</span>
+		<span class="s1">if </span><span class="s2">(trimmed !== </span><span class="s1">this</span><span class="s2">.content) {</span>
+			<span class="s1">this</span><span class="s2">.split(</span><span class="s1">this</span><span class="s2">.start + trimmed.length).edit(</span><span class="s0">''</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+		<span class="s1">return true;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.edit(</span><span class="s0">''</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+
+		<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+		<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro.length) { </span><span class="s1">return true; </span><span class="s2">}</span>
+	<span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Chunk.prototype.trimStart = </span><span class="s1">function </span><span class="s2">trimStart (rx) {</span>
+	<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro.length) { </span><span class="s1">return true; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">trimmed = </span><span class="s1">this</span><span class="s2">.content.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(trimmed.length) {</span>
+		<span class="s1">if </span><span class="s2">(trimmed !== </span><span class="s1">this</span><span class="s2">.content) {</span>
+			<span class="s1">this</span><span class="s2">.split(</span><span class="s1">this</span><span class="s2">.end - trimmed.length)</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.edit(</span><span class="s0">''</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+		<span class="s1">return true;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.edit(</span><span class="s0">''</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+
+		<span class="s1">this</span><span class="s2">.outro = </span><span class="s1">this</span><span class="s2">.outro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+		<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.outro.length) { </span><span class="s1">return true; </span><span class="s2">}</span>
+	<span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">btoa = </span><span class="s1">function </span><span class="s2">() {</span>
+	<span class="s1">throw new </span><span class="s2">Error(</span><span class="s0">'Unsupported environment: `window.btoa` or `Buffer` should be supported.'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">window !== </span><span class="s0">'undefined' </span><span class="s2">&amp;&amp; </span><span class="s1">typeof </span><span class="s2">window.btoa === </span><span class="s0">'function'</span><span class="s2">) {</span>
+	<span class="s2">btoa = </span><span class="s1">function </span><span class="s2">(str) { </span><span class="s1">return </span><span class="s2">window.btoa(unescape(encodeURIComponent(str)))</span><span class="s1">; </span><span class="s2">}</span><span class="s1">;</span>
+<span class="s2">} </span><span class="s1">else if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">Buffer === </span><span class="s0">'function'</span><span class="s2">) {</span>
+	<span class="s2">btoa = </span><span class="s1">function </span><span class="s2">(str) { </span><span class="s1">return </span><span class="s2">Buffer.from(str</span><span class="s1">, </span><span class="s0">'utf-8'</span><span class="s2">).toString(</span><span class="s0">'base64'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">var </span><span class="s2">SourceMap = </span><span class="s1">function </span><span class="s2">SourceMap(properties) {</span>
+	<span class="s1">this</span><span class="s2">.version = </span><span class="s3">3</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.file = properties.file</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.sources = properties.sources</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.sourcesContent = properties.sourcesContent</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.names = properties.names</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.mappings = sourcemapCodec.encode(properties.mappings)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">SourceMap.prototype.toString = </span><span class="s1">function </span><span class="s2">toString () {</span>
+	<span class="s1">return </span><span class="s2">JSON.stringify(</span><span class="s1">this</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">SourceMap.prototype.toUrl = </span><span class="s1">function </span><span class="s2">toUrl () {</span>
+	<span class="s1">return </span><span class="s0">'data:application/json;charset=utf-8;base64,' </span><span class="s2">+ btoa(</span><span class="s1">this</span><span class="s2">.toString())</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">function </span><span class="s2">guessIndent(code) {</span>
+	<span class="s1">var </span><span class="s2">lines = code.split(</span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">tabbed = lines.filter(</span><span class="s1">function </span><span class="s2">(line) { </span><span class="s1">return </span><span class="s3">/^\t+/</span><span class="s2">.test(line)</span><span class="s1">; </span><span class="s2">})</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">spaced = lines.filter(</span><span class="s1">function </span><span class="s2">(line) { </span><span class="s1">return </span><span class="s3">/^ {2,}/</span><span class="s2">.test(line)</span><span class="s1">; </span><span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(tabbed.length === </span><span class="s3">0 </span><span class="s2">&amp;&amp; spaced.length === </span><span class="s3">0</span><span class="s2">) {</span>
+		<span class="s1">return null;</span>
+	<span class="s2">}</span>
+
+	<span class="s4">// More lines tabbed than spaced? Assume tabs, and</span>
+	<span class="s4">// default to tabs in the case of a tie (or nothing</span>
+	<span class="s4">// to go on)</span>
+	<span class="s1">if </span><span class="s2">(tabbed.length &gt;= spaced.length) {</span>
+		<span class="s1">return </span><span class="s0">'</span><span class="s1">\t</span><span class="s0">'</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s4">// Otherwise, we need to guess the multiple</span>
+	<span class="s1">var </span><span class="s2">min = spaced.reduce(</span><span class="s1">function </span><span class="s2">(previous</span><span class="s1">, </span><span class="s2">current) {</span>
+		<span class="s1">var </span><span class="s2">numSpaces = </span><span class="s3">/^ +/</span><span class="s2">.exec(current)[</span><span class="s3">0</span><span class="s2">].length</span><span class="s1">;</span>
+		<span class="s1">return </span><span class="s2">Math.min(numSpaces</span><span class="s1">, </span><span class="s2">previous)</span><span class="s1">;</span>
+	<span class="s2">}</span><span class="s1">, </span><span class="s2">Infinity)</span><span class="s1">;</span>
+
+	<span class="s1">return new </span><span class="s2">Array(min + </span><span class="s3">1</span><span class="s2">).join(</span><span class="s0">' '</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">getRelativePath(from</span><span class="s1">, </span><span class="s2">to) {</span>
+	<span class="s1">var </span><span class="s2">fromParts = from.split(</span><span class="s3">/[/\\]/</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">toParts = to.split(</span><span class="s3">/[/\\]/</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s2">fromParts.pop()</span><span class="s1">; </span><span class="s4">// get dirname</span>
+
+	<span class="s1">while </span><span class="s2">(fromParts[</span><span class="s3">0</span><span class="s2">] === toParts[</span><span class="s3">0</span><span class="s2">]) {</span>
+		<span class="s2">fromParts.shift()</span><span class="s1">;</span>
+		<span class="s2">toParts.shift()</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(fromParts.length) {</span>
+		<span class="s1">var </span><span class="s2">i = fromParts.length</span><span class="s1">;</span>
+		<span class="s1">while </span><span class="s2">(i--) { fromParts[i] = </span><span class="s0">'..'</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return </span><span class="s2">fromParts.concat(toParts).join(</span><span class="s0">'/'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">var </span><span class="s2">toString = Object.prototype.toString</span><span class="s1">;</span>
+
+<span class="s1">function </span><span class="s2">isObject(thing) {</span>
+	<span class="s1">return </span><span class="s2">toString.call(thing) === </span><span class="s0">'[object Object]'</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">getLocator(source) {</span>
+	<span class="s1">var </span><span class="s2">originalLines = source.split(</span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">lineOffsets = []</span><span class="s1">;</span>
+
+	<span class="s1">for </span><span class="s2">(</span><span class="s1">var </span><span class="s2">i = </span><span class="s3">0</span><span class="s1">, </span><span class="s2">pos = </span><span class="s3">0</span><span class="s1">; </span><span class="s2">i &lt; originalLines.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+		<span class="s2">lineOffsets.push(pos)</span><span class="s1">;</span>
+		<span class="s2">pos += originalLines[i].length + </span><span class="s3">1</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return function </span><span class="s2">locate(index) {</span>
+		<span class="s1">var </span><span class="s2">i = </span><span class="s3">0</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">j = lineOffsets.length</span><span class="s1">;</span>
+		<span class="s1">while </span><span class="s2">(i &lt; j) {</span>
+			<span class="s1">var </span><span class="s2">m = (i + j) &gt;&gt; </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s1">if </span><span class="s2">(index &lt; lineOffsets[m]) {</span>
+				<span class="s2">j = m</span><span class="s1">;</span>
+			<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+				<span class="s2">i = m + </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s2">}</span>
+		<span class="s2">}</span>
+		<span class="s1">var </span><span class="s2">line = i - </span><span class="s3">1</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">column = index - lineOffsets[line]</span><span class="s1">;</span>
+		<span class="s1">return </span><span class="s2">{ line: line</span><span class="s1">, </span><span class="s2">column: column }</span><span class="s1">;</span>
+	<span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">var </span><span class="s2">Mappings = </span><span class="s1">function </span><span class="s2">Mappings(hires) {</span>
+	<span class="s1">this</span><span class="s2">.hires = hires</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.generatedCodeLine = </span><span class="s3">0</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.generatedCodeColumn = </span><span class="s3">0</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.raw = []</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.rawSegments = </span><span class="s1">this</span><span class="s2">.raw[</span><span class="s1">this</span><span class="s2">.generatedCodeLine] = []</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.pending = </span><span class="s1">null;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Mappings.prototype.addEdit = </span><span class="s1">function </span><span class="s2">addEdit (sourceIndex</span><span class="s1">, </span><span class="s2">content</span><span class="s1">, </span><span class="s2">loc</span><span class="s1">, </span><span class="s2">nameIndex) {</span>
+	<span class="s1">if </span><span class="s2">(content.length) {</span>
+		<span class="s1">var </span><span class="s2">segment = [</span><span class="s1">this</span><span class="s2">.generatedCodeColumn</span><span class="s1">, </span><span class="s2">sourceIndex</span><span class="s1">, </span><span class="s2">loc.line</span><span class="s1">, </span><span class="s2">loc.column]</span><span class="s1">;</span>
+		<span class="s1">if </span><span class="s2">(nameIndex &gt;= </span><span class="s3">0</span><span class="s2">) {</span>
+			<span class="s2">segment.push(nameIndex)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+		<span class="s1">this</span><span class="s2">.rawSegments.push(segment)</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.pending) {</span>
+		<span class="s1">this</span><span class="s2">.rawSegments.push(</span><span class="s1">this</span><span class="s2">.pending)</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.advance(content)</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.pending = </span><span class="s1">null;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Mappings.prototype.addUneditedChunk = </span><span class="s1">function </span><span class="s2">addUneditedChunk (sourceIndex</span><span class="s1">, </span><span class="s2">chunk</span><span class="s1">, </span><span class="s2">original</span><span class="s1">, </span><span class="s2">loc</span><span class="s1">, </span><span class="s2">sourcemapLocations) {</span>
+	<span class="s1">var </span><span class="s2">originalCharIndex = chunk.start</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">first = </span><span class="s1">true;</span>
+
+	<span class="s1">while </span><span class="s2">(originalCharIndex &lt; chunk.end) {</span>
+		<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.hires || first || sourcemapLocations.has(originalCharIndex)) {</span>
+			<span class="s1">this</span><span class="s2">.rawSegments.push([</span><span class="s1">this</span><span class="s2">.generatedCodeColumn</span><span class="s1">, </span><span class="s2">sourceIndex</span><span class="s1">, </span><span class="s2">loc.line</span><span class="s1">, </span><span class="s2">loc.column])</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(original[originalCharIndex] === </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s2">) {</span>
+			<span class="s2">loc.line += </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s2">loc.column = </span><span class="s3">0</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.generatedCodeLine += </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.raw[</span><span class="s1">this</span><span class="s2">.generatedCodeLine] = </span><span class="s1">this</span><span class="s2">.rawSegments = []</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.generatedCodeColumn = </span><span class="s3">0</span><span class="s1">;</span>
+			<span class="s2">first = </span><span class="s1">true;</span>
+		<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+			<span class="s2">loc.column += </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.generatedCodeColumn += </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s2">first = </span><span class="s1">false;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">originalCharIndex += </span><span class="s3">1</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.pending = </span><span class="s1">null;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Mappings.prototype.advance = </span><span class="s1">function </span><span class="s2">advance (str) {</span>
+	<span class="s1">if </span><span class="s2">(!str) { </span><span class="s1">return; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">lines = str.split(</span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(lines.length &gt; </span><span class="s3">1</span><span class="s2">) {</span>
+		<span class="s1">for </span><span class="s2">(</span><span class="s1">var </span><span class="s2">i = </span><span class="s3">0</span><span class="s1">; </span><span class="s2">i &lt; lines.length - </span><span class="s3">1</span><span class="s1">; </span><span class="s2">i++) {</span>
+			<span class="s1">this</span><span class="s2">.generatedCodeLine++</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.raw[</span><span class="s1">this</span><span class="s2">.generatedCodeLine] = </span><span class="s1">this</span><span class="s2">.rawSegments = []</span><span class="s1">;</span>
+		<span class="s2">}</span>
+		<span class="s1">this</span><span class="s2">.generatedCodeColumn = </span><span class="s3">0</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.generatedCodeColumn += lines[lines.length - </span><span class="s3">1</span><span class="s2">].length</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">n = </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">warned = {</span>
+	<span class="s2">insertLeft: </span><span class="s1">false,</span>
+	<span class="s2">insertRight: </span><span class="s1">false,</span>
+	<span class="s2">storeName: </span><span class="s1">false,</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">MagicString = </span><span class="s1">function </span><span class="s2">MagicString(string</span><span class="s1">, </span><span class="s2">options) {</span>
+	<span class="s1">if </span><span class="s2">( options === </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">) options = {}</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">new </span><span class="s2">Chunk(</span><span class="s3">0</span><span class="s1">, </span><span class="s2">string.length</span><span class="s1">, </span><span class="s2">string)</span><span class="s1">;</span>
+
+	<span class="s2">Object.defineProperties(</span><span class="s1">this, </span><span class="s2">{</span>
+		<span class="s2">original: { writable: </span><span class="s1">true, </span><span class="s2">value: string }</span><span class="s1">,</span>
+		<span class="s2">outro: { writable: </span><span class="s1">true, </span><span class="s2">value: </span><span class="s0">'' </span><span class="s2">}</span><span class="s1">,</span>
+		<span class="s2">intro: { writable: </span><span class="s1">true, </span><span class="s2">value: </span><span class="s0">'' </span><span class="s2">}</span><span class="s1">,</span>
+		<span class="s2">firstChunk: { writable: </span><span class="s1">true, </span><span class="s2">value: chunk }</span><span class="s1">,</span>
+		<span class="s2">lastChunk: { writable: </span><span class="s1">true, </span><span class="s2">value: chunk }</span><span class="s1">,</span>
+		<span class="s2">lastSearchedChunk: { writable: </span><span class="s1">true, </span><span class="s2">value: chunk }</span><span class="s1">,</span>
+		<span class="s2">byStart: { writable: </span><span class="s1">true, </span><span class="s2">value: {} }</span><span class="s1">,</span>
+		<span class="s2">byEnd: { writable: </span><span class="s1">true, </span><span class="s2">value: {} }</span><span class="s1">,</span>
+		<span class="s2">filename: { writable: </span><span class="s1">true, </span><span class="s2">value: options.filename }</span><span class="s1">,</span>
+		<span class="s2">indentExclusionRanges: { writable: </span><span class="s1">true, </span><span class="s2">value: options.indentExclusionRanges }</span><span class="s1">,</span>
+		<span class="s2">sourcemapLocations: { writable: </span><span class="s1">true, </span><span class="s2">value: </span><span class="s1">new </span><span class="s2">BitSet() }</span><span class="s1">,</span>
+		<span class="s2">storedNames: { writable: </span><span class="s1">true, </span><span class="s2">value: {} }</span><span class="s1">,</span>
+		<span class="s2">indentStr: { writable: </span><span class="s1">true, </span><span class="s2">value: guessIndent(string) }</span><span class="s1">,</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.byStart[</span><span class="s3">0</span><span class="s2">] = chunk</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.byEnd[string.length] = chunk</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.addSourcemapLocation = </span><span class="s1">function </span><span class="s2">addSourcemapLocation (char) {</span>
+	<span class="s1">this</span><span class="s2">.sourcemapLocations.add(char)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.append = </span><span class="s1">function </span><span class="s2">append (content) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'outro content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.outro += content</span><span class="s1">;</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.appendLeft = </span><span class="s1">function </span><span class="s2">appendLeft (index</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'inserted content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(index)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.byEnd[index]</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(chunk) {</span>
+		<span class="s2">chunk.appendLeft(content)</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.intro += content</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.appendRight = </span><span class="s1">function </span><span class="s2">appendRight (index</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'inserted content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(index)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.byStart[index]</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(chunk) {</span>
+		<span class="s2">chunk.appendRight(content)</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.outro += content</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.clone = </span><span class="s1">function </span><span class="s2">clone () {</span>
+	<span class="s1">var </span><span class="s2">cloned = </span><span class="s1">new </span><span class="s2">MagicString(</span><span class="s1">this</span><span class="s2">.original</span><span class="s1">, </span><span class="s2">{ filename: </span><span class="s1">this</span><span class="s2">.filename })</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">originalChunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">clonedChunk = (cloned.firstChunk = cloned.lastSearchedChunk = originalChunk.clone())</span><span class="s1">;</span>
+
+	<span class="s1">while </span><span class="s2">(originalChunk) {</span>
+		<span class="s2">cloned.byStart[clonedChunk.start] = clonedChunk</span><span class="s1">;</span>
+		<span class="s2">cloned.byEnd[clonedChunk.end] = clonedChunk</span><span class="s1">;</span>
+
+		<span class="s1">var </span><span class="s2">nextOriginalChunk = originalChunk.next</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">nextClonedChunk = nextOriginalChunk &amp;&amp; nextOriginalChunk.clone()</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(nextClonedChunk) {</span>
+			<span class="s2">clonedChunk.next = nextClonedChunk</span><span class="s1">;</span>
+			<span class="s2">nextClonedChunk.previous = clonedChunk</span><span class="s1">;</span>
+
+			<span class="s2">clonedChunk = nextClonedChunk</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">originalChunk = nextOriginalChunk</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s2">cloned.lastChunk = clonedChunk</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.indentExclusionRanges) {</span>
+		<span class="s2">cloned.indentExclusionRanges = </span><span class="s1">this</span><span class="s2">.indentExclusionRanges.slice()</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s2">cloned.sourcemapLocations = </span><span class="s1">new </span><span class="s2">BitSet(</span><span class="s1">this</span><span class="s2">.sourcemapLocations)</span><span class="s1">;</span>
+
+	<span class="s2">cloned.intro = </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+	<span class="s2">cloned.outro = </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">cloned</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.generateDecodedMap = </span><span class="s1">function </span><span class="s2">generateDecodedMap (options) {</span>
+		<span class="s1">var </span><span class="s2">this$1$1 = </span><span class="s1">this;</span>
+
+	<span class="s2">options = options || {}</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">sourceIndex = </span><span class="s3">0</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">names = Object.keys(</span><span class="s1">this</span><span class="s2">.storedNames)</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">mappings = </span><span class="s1">new </span><span class="s2">Mappings(options.hires)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">locate = getLocator(</span><span class="s1">this</span><span class="s2">.original)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro) {</span>
+		<span class="s2">mappings.advance(</span><span class="s1">this</span><span class="s2">.intro)</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.firstChunk.eachNext(</span><span class="s1">function </span><span class="s2">(chunk) {</span>
+		<span class="s1">var </span><span class="s2">loc = locate(chunk.start)</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.intro.length) { mappings.advance(chunk.intro)</span><span class="s1">; </span><span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.edited) {</span>
+			<span class="s2">mappings.addEdit(</span>
+				<span class="s2">sourceIndex</span><span class="s1">,</span>
+				<span class="s2">chunk.content</span><span class="s1">,</span>
+				<span class="s2">loc</span><span class="s1">,</span>
+				<span class="s2">chunk.storeName ? names.indexOf(chunk.original) : -</span><span class="s3">1</span>
+			<span class="s2">)</span><span class="s1">;</span>
+		<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+			<span class="s2">mappings.addUneditedChunk(sourceIndex</span><span class="s1">, </span><span class="s2">chunk</span><span class="s1">, </span><span class="s2">this$1$1.original</span><span class="s1">, </span><span class="s2">loc</span><span class="s1">, </span><span class="s2">this$1$1.sourcemapLocations)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.outro.length) { mappings.advance(chunk.outro)</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">{</span>
+		<span class="s2">file: options.file ? options.file.split(</span><span class="s3">/[/\\]/</span><span class="s2">).pop() : </span><span class="s1">null,</span>
+		<span class="s2">sources: [options.source ? getRelativePath(options.file || </span><span class="s0">''</span><span class="s1">, </span><span class="s2">options.source) : </span><span class="s1">null</span><span class="s2">]</span><span class="s1">,</span>
+		<span class="s2">sourcesContent: options.includeContent ? [</span><span class="s1">this</span><span class="s2">.original] : [</span><span class="s1">null</span><span class="s2">]</span><span class="s1">,</span>
+		<span class="s2">names: names</span><span class="s1">,</span>
+		<span class="s2">mappings: mappings.raw</span><span class="s1">,</span>
+	<span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.generateMap = </span><span class="s1">function </span><span class="s2">generateMap (options) {</span>
+	<span class="s1">return new </span><span class="s2">SourceMap(</span><span class="s1">this</span><span class="s2">.generateDecodedMap(options))</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.getIndentString = </span><span class="s1">function </span><span class="s2">getIndentString () {</span>
+	<span class="s1">return this</span><span class="s2">.indentStr === </span><span class="s1">null </span><span class="s2">? </span><span class="s0">'</span><span class="s1">\t</span><span class="s0">' </span><span class="s2">: </span><span class="s1">this</span><span class="s2">.indentStr</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.indent = </span><span class="s1">function </span><span class="s2">indent (indentStr</span><span class="s1">, </span><span class="s2">options) {</span>
+	<span class="s1">var </span><span class="s2">pattern = </span><span class="s3">/^[^\r\n]/gm</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(isObject(indentStr)) {</span>
+		<span class="s2">options = indentStr</span><span class="s1">;</span>
+		<span class="s2">indentStr = undefined</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s2">indentStr = indentStr !== undefined ? indentStr : </span><span class="s1">this</span><span class="s2">.indentStr || </span><span class="s0">'</span><span class="s1">\t</span><span class="s0">'</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(indentStr === </span><span class="s0">''</span><span class="s2">) { </span><span class="s1">return this; </span><span class="s2">} </span><span class="s4">// noop</span>
+
+	<span class="s2">options = options || {}</span><span class="s1">;</span>
+
+	<span class="s4">// Process exclusion ranges</span>
+	<span class="s1">var </span><span class="s2">isExcluded = {}</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(options.exclude) {</span>
+		<span class="s1">var </span><span class="s2">exclusions =</span>
+			<span class="s1">typeof </span><span class="s2">options.exclude[</span><span class="s3">0</span><span class="s2">] === </span><span class="s0">'number' </span><span class="s2">? [options.exclude] : options.exclude</span><span class="s1">;</span>
+		<span class="s2">exclusions.forEach(</span><span class="s1">function </span><span class="s2">(exclusion) {</span>
+			<span class="s1">for </span><span class="s2">(</span><span class="s1">var </span><span class="s2">i = exclusion[</span><span class="s3">0</span><span class="s2">]</span><span class="s1">; </span><span class="s2">i &lt; exclusion[</span><span class="s3">1</span><span class="s2">]</span><span class="s1">; </span><span class="s2">i += </span><span class="s3">1</span><span class="s2">) {</span>
+				<span class="s2">isExcluded[i] = </span><span class="s1">true;</span>
+			<span class="s2">}</span>
+		<span class="s2">})</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">shouldIndentNextCharacter = options.indentStart !== </span><span class="s1">false;</span>
+	<span class="s1">var </span><span class="s2">replacer = </span><span class="s1">function </span><span class="s2">(match) {</span>
+		<span class="s1">if </span><span class="s2">(shouldIndentNextCharacter) { </span><span class="s1">return </span><span class="s2">(</span><span class="s0">&quot;&quot; </span><span class="s2">+ indentStr + match)</span><span class="s1">; </span><span class="s2">}</span>
+		<span class="s2">shouldIndentNextCharacter = </span><span class="s1">true;</span>
+		<span class="s1">return </span><span class="s2">match</span><span class="s1">;</span>
+	<span class="s2">}</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro.replace(pattern</span><span class="s1">, </span><span class="s2">replacer)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">charIndex = </span><span class="s3">0</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s1">var </span><span class="s2">end = chunk.end</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.edited) {</span>
+			<span class="s1">if </span><span class="s2">(!isExcluded[charIndex]) {</span>
+				<span class="s2">chunk.content = chunk.content.replace(pattern</span><span class="s1">, </span><span class="s2">replacer)</span><span class="s1">;</span>
+
+				<span class="s1">if </span><span class="s2">(chunk.content.length) {</span>
+					<span class="s2">shouldIndentNextCharacter = chunk.content[chunk.content.length - </span><span class="s3">1</span><span class="s2">] === </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s1">;</span>
+				<span class="s2">}</span>
+			<span class="s2">}</span>
+		<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+			<span class="s2">charIndex = chunk.start</span><span class="s1">;</span>
+
+			<span class="s1">while </span><span class="s2">(charIndex &lt; end) {</span>
+				<span class="s1">if </span><span class="s2">(!isExcluded[charIndex]) {</span>
+					<span class="s1">var </span><span class="s2">char = </span><span class="s1">this</span><span class="s2">.original[charIndex]</span><span class="s1">;</span>
+
+					<span class="s1">if </span><span class="s2">(char === </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s2">) {</span>
+						<span class="s2">shouldIndentNextCharacter = </span><span class="s1">true;</span>
+					<span class="s2">} </span><span class="s1">else if </span><span class="s2">(char !== </span><span class="s0">'</span><span class="s1">\r</span><span class="s0">' </span><span class="s2">&amp;&amp; shouldIndentNextCharacter) {</span>
+						<span class="s2">shouldIndentNextCharacter = </span><span class="s1">false;</span>
+
+						<span class="s1">if </span><span class="s2">(charIndex === chunk.start) {</span>
+							<span class="s2">chunk.prependRight(indentStr)</span><span class="s1">;</span>
+						<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+							<span class="s1">this</span><span class="s2">._splitChunk(chunk</span><span class="s1">, </span><span class="s2">charIndex)</span><span class="s1">;</span>
+							<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+							<span class="s2">chunk.prependRight(indentStr)</span><span class="s1">;</span>
+						<span class="s2">}</span>
+					<span class="s2">}</span>
+				<span class="s2">}</span>
+
+				<span class="s2">charIndex += </span><span class="s3">1</span><span class="s1">;</span>
+			<span class="s2">}</span>
+		<span class="s2">}</span>
+
+		<span class="s2">charIndex = chunk.end</span><span class="s1">;</span>
+		<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.outro = </span><span class="s1">this</span><span class="s2">.outro.replace(pattern</span><span class="s1">, </span><span class="s2">replacer)</span><span class="s1">;</span>
+
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.insert = </span><span class="s1">function </span><span class="s2">insert () {</span>
+	<span class="s1">throw new </span><span class="s2">Error(</span>
+		<span class="s0">'magicString.insert(...) is deprecated. Use prependRight(...) or appendLeft(...)'</span>
+	<span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.insertLeft = </span><span class="s1">function </span><span class="s2">insertLeft (index</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">if </span><span class="s2">(!warned.insertLeft) {</span>
+		<span class="s2">console.warn(</span>
+			<span class="s0">'magicString.insertLeft(...) is deprecated. Use magicString.appendLeft(...) instead'</span>
+		<span class="s2">)</span><span class="s1">; </span><span class="s4">// eslint-disable-line no-console</span>
+		<span class="s2">warned.insertLeft = </span><span class="s1">true;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return this</span><span class="s2">.appendLeft(index</span><span class="s1">, </span><span class="s2">content)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.insertRight = </span><span class="s1">function </span><span class="s2">insertRight (index</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">if </span><span class="s2">(!warned.insertRight) {</span>
+		<span class="s2">console.warn(</span>
+			<span class="s0">'magicString.insertRight(...) is deprecated. Use magicString.prependRight(...) instead'</span>
+		<span class="s2">)</span><span class="s1">; </span><span class="s4">// eslint-disable-line no-console</span>
+		<span class="s2">warned.insertRight = </span><span class="s1">true;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return this</span><span class="s2">.prependRight(index</span><span class="s1">, </span><span class="s2">content)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.move = </span><span class="s1">function </span><span class="s2">move (start</span><span class="s1">, </span><span class="s2">end</span><span class="s1">, </span><span class="s2">index) {</span>
+	<span class="s1">if </span><span class="s2">(index &gt;= start &amp;&amp; index &lt;= end) { </span><span class="s1">throw new </span><span class="s2">Error(</span><span class="s0">'Cannot move a selection inside itself'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(start)</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">._split(end)</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">._split(index)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">first = </span><span class="s1">this</span><span class="s2">.byStart[start]</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">last = </span><span class="s1">this</span><span class="s2">.byEnd[end]</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">oldLeft = first.previous</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">oldRight = last.next</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">newRight = </span><span class="s1">this</span><span class="s2">.byStart[index]</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(!newRight &amp;&amp; last === </span><span class="s1">this</span><span class="s2">.lastChunk) { </span><span class="s1">return this; </span><span class="s2">}</span>
+	<span class="s1">var </span><span class="s2">newLeft = newRight ? newRight.previous : </span><span class="s1">this</span><span class="s2">.lastChunk</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(oldLeft) { oldLeft.next = oldRight</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(oldRight) { oldRight.previous = oldLeft</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(newLeft) { newLeft.next = first</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(newRight) { newRight.previous = last</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(!first.previous) { </span><span class="s1">this</span><span class="s2">.firstChunk = last.next</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(!last.next) {</span>
+		<span class="s1">this</span><span class="s2">.lastChunk = first.previous</span><span class="s1">;</span>
+		<span class="s1">this</span><span class="s2">.lastChunk.next = </span><span class="s1">null;</span>
+	<span class="s2">}</span>
+
+	<span class="s2">first.previous = newLeft</span><span class="s1">;</span>
+	<span class="s2">last.next = newRight || </span><span class="s1">null;</span>
+
+	<span class="s1">if </span><span class="s2">(!newLeft) { </span><span class="s1">this</span><span class="s2">.firstChunk = first</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(!newRight) { </span><span class="s1">this</span><span class="s2">.lastChunk = last</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.overwrite = </span><span class="s1">function </span><span class="s2">overwrite (start</span><span class="s1">, </span><span class="s2">end</span><span class="s1">, </span><span class="s2">content</span><span class="s1">, </span><span class="s2">options) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'replacement content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">while </span><span class="s2">(start &lt; </span><span class="s3">0</span><span class="s2">) { start += </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">while </span><span class="s2">(end &lt; </span><span class="s3">0</span><span class="s2">) { end += </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(end &gt; </span><span class="s1">this</span><span class="s2">.original.length) { </span><span class="s1">throw new </span><span class="s2">Error(</span><span class="s0">'end is out of bounds'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(start === end)</span>
+		<span class="s2">{ </span><span class="s1">throw new </span><span class="s2">Error(</span>
+			<span class="s0">'Cannot overwrite a zero-length range – use appendLeft or prependRight instead'</span>
+		<span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(start)</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">._split(end)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(options === </span><span class="s1">true</span><span class="s2">) {</span>
+		<span class="s1">if </span><span class="s2">(!warned.storeName) {</span>
+			<span class="s2">console.warn(</span>
+				<span class="s0">'The final argument to magicString.overwrite(...) should be an options object. See https://github.com/rich-harris/magic-string'</span>
+			<span class="s2">)</span><span class="s1">; </span><span class="s4">// eslint-disable-line no-console</span>
+			<span class="s2">warned.storeName = </span><span class="s1">true;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">options = { storeName: </span><span class="s1">true </span><span class="s2">}</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">var </span><span class="s2">storeName = options !== undefined ? options.storeName : </span><span class="s1">false;</span>
+	<span class="s1">var </span><span class="s2">contentOnly = options !== undefined ? options.contentOnly : </span><span class="s1">false;</span>
+
+	<span class="s1">if </span><span class="s2">(storeName) {</span>
+		<span class="s1">var </span><span class="s2">original = </span><span class="s1">this</span><span class="s2">.original.slice(start</span><span class="s1">, </span><span class="s2">end)</span><span class="s1">;</span>
+		<span class="s2">Object.defineProperty(</span><span class="s1">this</span><span class="s2">.storedNames</span><span class="s1">, </span><span class="s2">original</span><span class="s1">, </span><span class="s2">{ writable: </span><span class="s1">true, </span><span class="s2">value: </span><span class="s1">true, </span><span class="s2">enumerable: </span><span class="s1">true </span><span class="s2">})</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">first = </span><span class="s1">this</span><span class="s2">.byStart[start]</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">last = </span><span class="s1">this</span><span class="s2">.byEnd[end]</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(first) {</span>
+		<span class="s1">var </span><span class="s2">chunk = first</span><span class="s1">;</span>
+		<span class="s1">while </span><span class="s2">(chunk !== last) {</span>
+			<span class="s1">if </span><span class="s2">(chunk.next !== </span><span class="s1">this</span><span class="s2">.byStart[chunk.end]) {</span>
+				<span class="s1">throw new </span><span class="s2">Error(</span><span class="s0">'Cannot overwrite across a split point'</span><span class="s2">)</span><span class="s1">;</span>
+			<span class="s2">}</span>
+			<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+			<span class="s2">chunk.edit(</span><span class="s0">''</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">first.edit(content</span><span class="s1">, </span><span class="s2">storeName</span><span class="s1">, </span><span class="s2">contentOnly)</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s4">// must be inserting at the end</span>
+		<span class="s1">var </span><span class="s2">newChunk = </span><span class="s1">new </span><span class="s2">Chunk(start</span><span class="s1">, </span><span class="s2">end</span><span class="s1">, </span><span class="s0">''</span><span class="s2">).edit(content</span><span class="s1">, </span><span class="s2">storeName)</span><span class="s1">;</span>
+
+		<span class="s4">// TODO last chunk in the array may not be the last chunk, if it's moved...</span>
+		<span class="s2">last.next = newChunk</span><span class="s1">;</span>
+		<span class="s2">newChunk.previous = last</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.prepend = </span><span class="s1">function </span><span class="s2">prepend (content) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'outro content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.intro = content + </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.prependLeft = </span><span class="s1">function </span><span class="s2">prependLeft (index</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'inserted content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(index)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.byEnd[index]</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(chunk) {</span>
+		<span class="s2">chunk.prependLeft(content)</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.intro = content + </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.prependRight = </span><span class="s1">function </span><span class="s2">prependRight (index</span><span class="s1">, </span><span class="s2">content) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">content !== </span><span class="s0">'string'</span><span class="s2">) { </span><span class="s1">throw new </span><span class="s2">TypeError(</span><span class="s0">'inserted content must be a string'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(index)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.byStart[index]</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(chunk) {</span>
+		<span class="s2">chunk.prependRight(content)</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+		<span class="s1">this</span><span class="s2">.outro = content + </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+	<span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.remove = </span><span class="s1">function </span><span class="s2">remove (start</span><span class="s1">, </span><span class="s2">end) {</span>
+	<span class="s1">while </span><span class="s2">(start &lt; </span><span class="s3">0</span><span class="s2">) { start += </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">while </span><span class="s2">(end &lt; </span><span class="s3">0</span><span class="s2">) { end += </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(start === end) { </span><span class="s1">return this; </span><span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(start &lt; </span><span class="s3">0 </span><span class="s2">|| end &gt; </span><span class="s1">this</span><span class="s2">.original.length) { </span><span class="s1">throw new </span><span class="s2">Error(</span><span class="s0">'Character is out of bounds'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(start &gt; end) { </span><span class="s1">throw new </span><span class="s2">Error(</span><span class="s0">'end must be greater than start'</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">._split(start)</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">._split(end)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.byStart[start]</span><span class="s1">;</span>
+
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s2">chunk.intro = </span><span class="s0">''</span><span class="s1">;</span>
+		<span class="s2">chunk.outro = </span><span class="s0">''</span><span class="s1">;</span>
+		<span class="s2">chunk.edit(</span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+
+		<span class="s2">chunk = end &gt; chunk.end ? </span><span class="s1">this</span><span class="s2">.byStart[chunk.end] : </span><span class="s1">null;</span>
+	<span class="s2">}</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.lastChar = </span><span class="s1">function </span><span class="s2">lastChar () {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.outro.length) { </span><span class="s1">return this</span><span class="s2">.outro[</span><span class="s1">this</span><span class="s2">.outro.length - </span><span class="s3">1</span><span class="s2">]</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.lastChunk</span><span class="s1">;</span>
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s1">if </span><span class="s2">(chunk.outro.length) { </span><span class="s1">return </span><span class="s2">chunk.outro[chunk.outro.length - </span><span class="s3">1</span><span class="s2">]</span><span class="s1">; </span><span class="s2">}</span>
+		<span class="s1">if </span><span class="s2">(chunk.content.length) { </span><span class="s1">return </span><span class="s2">chunk.content[chunk.content.length - </span><span class="s3">1</span><span class="s2">]</span><span class="s1">; </span><span class="s2">}</span>
+		<span class="s1">if </span><span class="s2">(chunk.intro.length) { </span><span class="s1">return </span><span class="s2">chunk.intro[chunk.intro.length - </span><span class="s3">1</span><span class="s2">]</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">((chunk = chunk.previous))</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro.length) { </span><span class="s1">return this</span><span class="s2">.intro[</span><span class="s1">this</span><span class="s2">.intro.length - </span><span class="s3">1</span><span class="s2">]</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">return </span><span class="s0">''</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.lastLine = </span><span class="s1">function </span><span class="s2">lastLine () {</span>
+	<span class="s1">var </span><span class="s2">lineIndex = </span><span class="s1">this</span><span class="s2">.outro.lastIndexOf(n)</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(lineIndex !== -</span><span class="s3">1</span><span class="s2">) { </span><span class="s1">return this</span><span class="s2">.outro.substr(lineIndex + </span><span class="s3">1</span><span class="s2">)</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">var </span><span class="s2">lineStr = </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.lastChunk</span><span class="s1">;</span>
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s1">if </span><span class="s2">(chunk.outro.length &gt; </span><span class="s3">0</span><span class="s2">) {</span>
+			<span class="s2">lineIndex = chunk.outro.lastIndexOf(n)</span><span class="s1">;</span>
+			<span class="s1">if </span><span class="s2">(lineIndex !== -</span><span class="s3">1</span><span class="s2">) { </span><span class="s1">return </span><span class="s2">chunk.outro.substr(lineIndex + </span><span class="s3">1</span><span class="s2">) + lineStr</span><span class="s1">; </span><span class="s2">}</span>
+			<span class="s2">lineStr = chunk.outro + lineStr</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.content.length &gt; </span><span class="s3">0</span><span class="s2">) {</span>
+			<span class="s2">lineIndex = chunk.content.lastIndexOf(n)</span><span class="s1">;</span>
+			<span class="s1">if </span><span class="s2">(lineIndex !== -</span><span class="s3">1</span><span class="s2">) { </span><span class="s1">return </span><span class="s2">chunk.content.substr(lineIndex + </span><span class="s3">1</span><span class="s2">) + lineStr</span><span class="s1">; </span><span class="s2">}</span>
+			<span class="s2">lineStr = chunk.content + lineStr</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.intro.length &gt; </span><span class="s3">0</span><span class="s2">) {</span>
+			<span class="s2">lineIndex = chunk.intro.lastIndexOf(n)</span><span class="s1">;</span>
+			<span class="s1">if </span><span class="s2">(lineIndex !== -</span><span class="s3">1</span><span class="s2">) { </span><span class="s1">return </span><span class="s2">chunk.intro.substr(lineIndex + </span><span class="s3">1</span><span class="s2">) + lineStr</span><span class="s1">; </span><span class="s2">}</span>
+			<span class="s2">lineStr = chunk.intro + lineStr</span><span class="s1">;</span>
+		<span class="s2">}</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">((chunk = chunk.previous))</span><span class="s1">;</span>
+	<span class="s2">lineIndex = </span><span class="s1">this</span><span class="s2">.intro.lastIndexOf(n)</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(lineIndex !== -</span><span class="s3">1</span><span class="s2">) { </span><span class="s1">return this</span><span class="s2">.intro.substr(lineIndex + </span><span class="s3">1</span><span class="s2">) + lineStr</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">return this</span><span class="s2">.intro + lineStr</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.slice = </span><span class="s1">function </span><span class="s2">slice (start</span><span class="s1">, </span><span class="s2">end) {</span>
+		<span class="s1">if </span><span class="s2">( start === </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">) start = </span><span class="s3">0</span><span class="s1">;</span>
+		<span class="s1">if </span><span class="s2">( end === </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">) end = </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">;</span>
+
+	<span class="s1">while </span><span class="s2">(start &lt; </span><span class="s3">0</span><span class="s2">) { start += </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s1">while </span><span class="s2">(end &lt; </span><span class="s3">0</span><span class="s2">) { end += </span><span class="s1">this</span><span class="s2">.original.length</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">result = </span><span class="s0">''</span><span class="s1">;</span>
+
+	<span class="s4">// find start chunk</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+	<span class="s1">while </span><span class="s2">(chunk &amp;&amp; (chunk.start &gt; start || chunk.end &lt;= start)) {</span>
+		<span class="s4">// found end chunk before start</span>
+		<span class="s1">if </span><span class="s2">(chunk.start &lt; end &amp;&amp; chunk.end &gt;= end) {</span>
+			<span class="s1">return </span><span class="s2">result</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(chunk &amp;&amp; chunk.edited &amp;&amp; chunk.start !== start)</span>
+		<span class="s2">{ </span><span class="s1">throw new </span><span class="s2">Error((</span><span class="s0">&quot;Cannot use replaced character &quot; </span><span class="s2">+ start + </span><span class="s0">&quot; as slice start anchor.&quot;</span><span class="s2">))</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">startChunk = chunk</span><span class="s1">;</span>
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s1">if </span><span class="s2">(chunk.intro &amp;&amp; (startChunk !== chunk || chunk.start === start)) {</span>
+			<span class="s2">result += chunk.intro</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">var </span><span class="s2">containsEnd = chunk.start &lt; end &amp;&amp; chunk.end &gt;= end</span><span class="s1">;</span>
+		<span class="s1">if </span><span class="s2">(containsEnd &amp;&amp; chunk.edited &amp;&amp; chunk.end !== end)</span>
+			<span class="s2">{ </span><span class="s1">throw new </span><span class="s2">Error((</span><span class="s0">&quot;Cannot use replaced character &quot; </span><span class="s2">+ end + </span><span class="s0">&quot; as slice end anchor.&quot;</span><span class="s2">))</span><span class="s1">; </span><span class="s2">}</span>
+
+		<span class="s1">var </span><span class="s2">sliceStart = startChunk === chunk ? start - chunk.start : </span><span class="s3">0</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">sliceEnd = containsEnd ? chunk.content.length + end - chunk.end : chunk.content.length</span><span class="s1">;</span>
+
+		<span class="s2">result += chunk.content.slice(sliceStart</span><span class="s1">, </span><span class="s2">sliceEnd)</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.outro &amp;&amp; (!containsEnd || chunk.end === end)) {</span>
+			<span class="s2">result += chunk.outro</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(containsEnd) {</span>
+			<span class="s1">break;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return </span><span class="s2">result</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s4">// TODO deprecate this? not really very useful</span>
+<span class="s2">MagicString.prototype.snip = </span><span class="s1">function </span><span class="s2">snip (start</span><span class="s1">, </span><span class="s2">end) {</span>
+	<span class="s1">var </span><span class="s2">clone = </span><span class="s1">this</span><span class="s2">.clone()</span><span class="s1">;</span>
+	<span class="s2">clone.remove(</span><span class="s3">0</span><span class="s1">, </span><span class="s2">start)</span><span class="s1">;</span>
+	<span class="s2">clone.remove(end</span><span class="s1">, </span><span class="s2">clone.original.length)</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">clone</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype._split = </span><span class="s1">function </span><span class="s2">_split (index) {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.byStart[index] || </span><span class="s1">this</span><span class="s2">.byEnd[index]) { </span><span class="s1">return; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.lastSearchedChunk</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">searchForward = index &gt; chunk.end</span><span class="s1">;</span>
+
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s1">if </span><span class="s2">(chunk.contains(index)) { </span><span class="s1">return this</span><span class="s2">._splitChunk(chunk</span><span class="s1">, </span><span class="s2">index)</span><span class="s1">; </span><span class="s2">}</span>
+
+		<span class="s2">chunk = searchForward ? </span><span class="s1">this</span><span class="s2">.byStart[chunk.end] : </span><span class="s1">this</span><span class="s2">.byEnd[chunk.start]</span><span class="s1">;</span>
+	<span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype._splitChunk = </span><span class="s1">function </span><span class="s2">_splitChunk (chunk</span><span class="s1">, </span><span class="s2">index) {</span>
+	<span class="s1">if </span><span class="s2">(chunk.edited &amp;&amp; chunk.content.length) {</span>
+		<span class="s4">// zero-length edited chunks are a special case (overlapping replacements)</span>
+		<span class="s1">var </span><span class="s2">loc = getLocator(</span><span class="s1">this</span><span class="s2">.original)(index)</span><span class="s1">;</span>
+		<span class="s1">throw new </span><span class="s2">Error(</span>
+			<span class="s2">(</span><span class="s0">&quot;Cannot split a chunk that has already been edited (&quot; </span><span class="s2">+ (loc.line) + </span><span class="s0">&quot;:&quot; </span><span class="s2">+ (loc.column) + </span><span class="s0">&quot; – </span><span class="s1">\&quot;</span><span class="s0">&quot; </span><span class="s2">+ (chunk.original) + </span><span class="s0">&quot;</span><span class="s1">\&quot;</span><span class="s0">)&quot;</span><span class="s2">)</span>
+		<span class="s2">)</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">newChunk = chunk.split(index)</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.byEnd[index] = chunk</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.byStart[index] = newChunk</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.byEnd[newChunk.end] = newChunk</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(chunk === </span><span class="s1">this</span><span class="s2">.lastChunk) { </span><span class="s1">this</span><span class="s2">.lastChunk = newChunk</span><span class="s1">; </span><span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.lastSearchedChunk = chunk</span><span class="s1">;</span>
+	<span class="s1">return true;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.toString = </span><span class="s1">function </span><span class="s2">toString () {</span>
+	<span class="s1">var </span><span class="s2">str = </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+	<span class="s1">while </span><span class="s2">(chunk) {</span>
+		<span class="s2">str += chunk.toString()</span><span class="s1">;</span>
+		<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return </span><span class="s2">str + </span><span class="s1">this</span><span class="s2">.outro</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.isEmpty = </span><span class="s1">function </span><span class="s2">isEmpty () {</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s1">if </span><span class="s2">(</span>
+			<span class="s2">(chunk.intro.length &amp;&amp; chunk.intro.trim()) ||</span>
+			<span class="s2">(chunk.content.length &amp;&amp; chunk.content.trim()) ||</span>
+			<span class="s2">(chunk.outro.length &amp;&amp; chunk.outro.trim())</span>
+		<span class="s2">)</span>
+			<span class="s2">{ </span><span class="s1">return false; </span><span class="s2">}</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">((chunk = chunk.next))</span><span class="s1">;</span>
+	<span class="s1">return true;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.length = </span><span class="s1">function </span><span class="s2">length () {</span>
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">length = </span><span class="s3">0</span><span class="s1">;</span>
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s2">length += chunk.intro.length + chunk.content.length + chunk.outro.length</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">((chunk = chunk.next))</span><span class="s1">;</span>
+	<span class="s1">return </span><span class="s2">length</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.trimLines = </span><span class="s1">function </span><span class="s2">trimLines () {</span>
+	<span class="s1">return this</span><span class="s2">.trim(</span><span class="s0">'[</span><span class="s1">\\</span><span class="s0">r</span><span class="s1">\\</span><span class="s0">n]'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.trim = </span><span class="s1">function </span><span class="s2">trim (charType) {</span>
+	<span class="s1">return this</span><span class="s2">.trimStart(charType).trimEnd(charType)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.trimEndAborted = </span><span class="s1">function </span><span class="s2">trimEndAborted (charType) {</span>
+	<span class="s1">var </span><span class="s2">rx = </span><span class="s1">new </span><span class="s2">RegExp((charType || </span><span class="s0">'</span><span class="s1">\\</span><span class="s0">s'</span><span class="s2">) + </span><span class="s0">'+$'</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.outro = </span><span class="s1">this</span><span class="s2">.outro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.outro.length) { </span><span class="s1">return true; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.lastChunk</span><span class="s1">;</span>
+
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s1">var </span><span class="s2">end = chunk.end</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">aborted = chunk.trimEnd(rx)</span><span class="s1">;</span>
+
+		<span class="s4">// if chunk was trimmed, we have a new lastChunk</span>
+		<span class="s1">if </span><span class="s2">(chunk.end !== end) {</span>
+			<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.lastChunk === chunk) {</span>
+				<span class="s1">this</span><span class="s2">.lastChunk = chunk.next</span><span class="s1">;</span>
+			<span class="s2">}</span>
+
+			<span class="s1">this</span><span class="s2">.byEnd[chunk.end] = chunk</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.byStart[chunk.next.start] = chunk.next</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.byEnd[chunk.next.end] = chunk.next</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(aborted) { </span><span class="s1">return true; </span><span class="s2">}</span>
+		<span class="s2">chunk = chunk.previous</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">(chunk)</span><span class="s1">;</span>
+
+	<span class="s1">return false;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.trimEnd = </span><span class="s1">function </span><span class="s2">trimEnd (charType) {</span>
+	<span class="s1">this</span><span class="s2">.trimEndAborted(charType)</span><span class="s1">;</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s2">MagicString.prototype.trimStartAborted = </span><span class="s1">function </span><span class="s2">trimStartAborted (charType) {</span>
+	<span class="s1">var </span><span class="s2">rx = </span><span class="s1">new </span><span class="s2">RegExp(</span><span class="s0">'^' </span><span class="s2">+ (charType || </span><span class="s0">'</span><span class="s1">\\</span><span class="s0">s'</span><span class="s2">) + </span><span class="s0">'+'</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro.length) { </span><span class="s1">return true; </span><span class="s2">}</span>
+
+	<span class="s1">var </span><span class="s2">chunk = </span><span class="s1">this</span><span class="s2">.firstChunk</span><span class="s1">;</span>
+
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s1">var </span><span class="s2">end = chunk.end</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">aborted = chunk.trimStart(rx)</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(chunk.end !== end) {</span>
+			<span class="s4">// special case...</span>
+			<span class="s1">if </span><span class="s2">(chunk === </span><span class="s1">this</span><span class="s2">.lastChunk) { </span><span class="s1">this</span><span class="s2">.lastChunk = chunk.next</span><span class="s1">; </span><span class="s2">}</span>
+
+			<span class="s1">this</span><span class="s2">.byEnd[chunk.end] = chunk</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.byStart[chunk.next.start] = chunk.next</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.byEnd[chunk.next.end] = chunk.next</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(aborted) { </span><span class="s1">return true; </span><span class="s2">}</span>
+		<span class="s2">chunk = chunk.next</span><span class="s1">;</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">(chunk)</span><span class="s1">;</span>
+
+	<span class="s1">return false;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.prototype.trimStart = </span><span class="s1">function </span><span class="s2">trimStart (charType) {</span>
+	<span class="s1">this</span><span class="s2">.trimStartAborted(charType)</span><span class="s1">;</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">hasOwnProp = Object.prototype.hasOwnProperty</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">Bundle = </span><span class="s1">function </span><span class="s2">Bundle(options) {</span>
+	<span class="s1">if </span><span class="s2">( options === </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">) options = {}</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.intro = options.intro || </span><span class="s0">''</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.separator = options.separator !== undefined ? options.separator : </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.sources = []</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.uniqueSources = []</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.uniqueSourceIndexByFilename = {}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.addSource = </span><span class="s1">function </span><span class="s2">addSource (source) {</span>
+	<span class="s1">if </span><span class="s2">(source </span><span class="s1">instanceof </span><span class="s2">MagicString) {</span>
+		<span class="s1">return this</span><span class="s2">.addSource({</span>
+			<span class="s2">content: source</span><span class="s1">,</span>
+			<span class="s2">filename: source.filename</span><span class="s1">,</span>
+			<span class="s2">separator: </span><span class="s1">this</span><span class="s2">.separator</span><span class="s1">,</span>
+		<span class="s2">})</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(!isObject(source) || !source.content) {</span>
+		<span class="s1">throw new </span><span class="s2">Error(</span>
+			<span class="s0">'bundle.addSource() takes an object with a `content` property, which should be an instance of MagicString, and an optional `filename`'</span>
+		<span class="s2">)</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s2">[</span><span class="s0">'filename'</span><span class="s1">, </span><span class="s0">'indentExclusionRanges'</span><span class="s1">, </span><span class="s0">'separator'</span><span class="s2">].forEach(</span><span class="s1">function </span><span class="s2">(option) {</span>
+		<span class="s1">if </span><span class="s2">(!hasOwnProp.call(source</span><span class="s1">, </span><span class="s2">option)) { source[option] = source.content[option]</span><span class="s1">; </span><span class="s2">}</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(source.separator === undefined) {</span>
+		<span class="s4">// TODO there's a bunch of this sort of thing, needs cleaning up</span>
+		<span class="s2">source.separator = </span><span class="s1">this</span><span class="s2">.separator</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(source.filename) {</span>
+		<span class="s1">if </span><span class="s2">(!hasOwnProp.call(</span><span class="s1">this</span><span class="s2">.uniqueSourceIndexByFilename</span><span class="s1">, </span><span class="s2">source.filename)) {</span>
+			<span class="s1">this</span><span class="s2">.uniqueSourceIndexByFilename[source.filename] = </span><span class="s1">this</span><span class="s2">.uniqueSources.length</span><span class="s1">;</span>
+			<span class="s1">this</span><span class="s2">.uniqueSources.push({ filename: source.filename</span><span class="s1">, </span><span class="s2">content: source.content.original })</span><span class="s1">;</span>
+		<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+			<span class="s1">var </span><span class="s2">uniqueSource = </span><span class="s1">this</span><span class="s2">.uniqueSources[</span><span class="s1">this</span><span class="s2">.uniqueSourceIndexByFilename[source.filename]]</span><span class="s1">;</span>
+			<span class="s1">if </span><span class="s2">(source.content.original !== uniqueSource.content) {</span>
+				<span class="s1">throw new </span><span class="s2">Error((</span><span class="s0">&quot;Illegal source: same filename (&quot; </span><span class="s2">+ (source.filename) + </span><span class="s0">&quot;), different contents&quot;</span><span class="s2">))</span><span class="s1">;</span>
+			<span class="s2">}</span>
+		<span class="s2">}</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.sources.push(source)</span><span class="s1">;</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.append = </span><span class="s1">function </span><span class="s2">append (str</span><span class="s1">, </span><span class="s2">options) {</span>
+	<span class="s1">this</span><span class="s2">.addSource({</span>
+		<span class="s2">content: </span><span class="s1">new </span><span class="s2">MagicString(str)</span><span class="s1">,</span>
+		<span class="s2">separator: (options &amp;&amp; options.separator) || </span><span class="s0">''</span><span class="s1">,</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.clone = </span><span class="s1">function </span><span class="s2">clone () {</span>
+	<span class="s1">var </span><span class="s2">bundle = </span><span class="s1">new </span><span class="s2">Bundle({</span>
+		<span class="s2">intro: </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">,</span>
+		<span class="s2">separator: </span><span class="s1">this</span><span class="s2">.separator</span><span class="s1">,</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.sources.forEach(</span><span class="s1">function </span><span class="s2">(source) {</span>
+		<span class="s2">bundle.addSource({</span>
+			<span class="s2">filename: source.filename</span><span class="s1">,</span>
+			<span class="s2">content: source.content.clone()</span><span class="s1">,</span>
+			<span class="s2">separator: source.separator</span><span class="s1">,</span>
+		<span class="s2">})</span><span class="s1">;</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">bundle</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.generateDecodedMap = </span><span class="s1">function </span><span class="s2">generateDecodedMap (options) {</span>
+		<span class="s1">var </span><span class="s2">this$1$1 = </span><span class="s1">this;</span>
+		<span class="s1">if </span><span class="s2">( options === </span><span class="s1">void </span><span class="s3">0 </span><span class="s2">) options = {}</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">names = []</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.sources.forEach(</span><span class="s1">function </span><span class="s2">(source) {</span>
+		<span class="s2">Object.keys(source.content.storedNames).forEach(</span><span class="s1">function </span><span class="s2">(name) {</span>
+			<span class="s1">if </span><span class="s2">(!~names.indexOf(name)) { names.push(name)</span><span class="s1">; </span><span class="s2">}</span>
+		<span class="s2">})</span><span class="s1">;</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">mappings = </span><span class="s1">new </span><span class="s2">Mappings(options.hires)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro) {</span>
+		<span class="s2">mappings.advance(</span><span class="s1">this</span><span class="s2">.intro)</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">this</span><span class="s2">.sources.forEach(</span><span class="s1">function </span><span class="s2">(source</span><span class="s1">, </span><span class="s2">i) {</span>
+		<span class="s1">if </span><span class="s2">(i &gt; </span><span class="s3">0</span><span class="s2">) {</span>
+			<span class="s2">mappings.advance(this$1$1.separator)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s1">var </span><span class="s2">sourceIndex = source.filename ? this$1$1.uniqueSourceIndexByFilename[source.filename] : -</span><span class="s3">1</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">magicString = source.content</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">locate = getLocator(magicString.original)</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(magicString.intro) {</span>
+			<span class="s2">mappings.advance(magicString.intro)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+
+		<span class="s2">magicString.firstChunk.eachNext(</span><span class="s1">function </span><span class="s2">(chunk) {</span>
+			<span class="s1">var </span><span class="s2">loc = locate(chunk.start)</span><span class="s1">;</span>
+
+			<span class="s1">if </span><span class="s2">(chunk.intro.length) { mappings.advance(chunk.intro)</span><span class="s1">; </span><span class="s2">}</span>
+
+			<span class="s1">if </span><span class="s2">(source.filename) {</span>
+				<span class="s1">if </span><span class="s2">(chunk.edited) {</span>
+					<span class="s2">mappings.addEdit(</span>
+						<span class="s2">sourceIndex</span><span class="s1">,</span>
+						<span class="s2">chunk.content</span><span class="s1">,</span>
+						<span class="s2">loc</span><span class="s1">,</span>
+						<span class="s2">chunk.storeName ? names.indexOf(chunk.original) : -</span><span class="s3">1</span>
+					<span class="s2">)</span><span class="s1">;</span>
+				<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+					<span class="s2">mappings.addUneditedChunk(</span>
+						<span class="s2">sourceIndex</span><span class="s1">,</span>
+						<span class="s2">chunk</span><span class="s1">,</span>
+						<span class="s2">magicString.original</span><span class="s1">,</span>
+						<span class="s2">loc</span><span class="s1">,</span>
+						<span class="s2">magicString.sourcemapLocations</span>
+					<span class="s2">)</span><span class="s1">;</span>
+				<span class="s2">}</span>
+			<span class="s2">} </span><span class="s1">else </span><span class="s2">{</span>
+				<span class="s2">mappings.advance(chunk.content)</span><span class="s1">;</span>
+			<span class="s2">}</span>
+
+			<span class="s1">if </span><span class="s2">(chunk.outro.length) { mappings.advance(chunk.outro)</span><span class="s1">; </span><span class="s2">}</span>
+		<span class="s2">})</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(magicString.outro) {</span>
+			<span class="s2">mappings.advance(magicString.outro)</span><span class="s1">;</span>
+		<span class="s2">}</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">{</span>
+		<span class="s2">file: options.file ? options.file.split(</span><span class="s3">/[/\\]/</span><span class="s2">).pop() : </span><span class="s1">null,</span>
+		<span class="s2">sources: </span><span class="s1">this</span><span class="s2">.uniqueSources.map(</span><span class="s1">function </span><span class="s2">(source) {</span>
+			<span class="s1">return </span><span class="s2">options.file ? getRelativePath(options.file</span><span class="s1">, </span><span class="s2">source.filename) : source.filename</span><span class="s1">;</span>
+		<span class="s2">})</span><span class="s1">,</span>
+		<span class="s2">sourcesContent: </span><span class="s1">this</span><span class="s2">.uniqueSources.map(</span><span class="s1">function </span><span class="s2">(source) {</span>
+			<span class="s1">return </span><span class="s2">options.includeContent ? source.content : </span><span class="s1">null;</span>
+		<span class="s2">})</span><span class="s1">,</span>
+		<span class="s2">names: names</span><span class="s1">,</span>
+		<span class="s2">mappings: mappings.raw</span><span class="s1">,</span>
+	<span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.generateMap = </span><span class="s1">function </span><span class="s2">generateMap (options) {</span>
+	<span class="s1">return new </span><span class="s2">SourceMap(</span><span class="s1">this</span><span class="s2">.generateDecodedMap(options))</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.getIndentString = </span><span class="s1">function </span><span class="s2">getIndentString () {</span>
+	<span class="s1">var </span><span class="s2">indentStringCounts = {}</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.sources.forEach(</span><span class="s1">function </span><span class="s2">(source) {</span>
+		<span class="s1">var </span><span class="s2">indentStr = source.content.indentStr</span><span class="s1">;</span>
+
+		<span class="s1">if </span><span class="s2">(indentStr === </span><span class="s1">null</span><span class="s2">) { </span><span class="s1">return; </span><span class="s2">}</span>
+
+		<span class="s1">if </span><span class="s2">(!indentStringCounts[indentStr]) { indentStringCounts[indentStr] = </span><span class="s3">0</span><span class="s1">; </span><span class="s2">}</span>
+		<span class="s2">indentStringCounts[indentStr] += </span><span class="s3">1</span><span class="s1">;</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">return </span><span class="s2">(</span>
+		<span class="s2">Object.keys(indentStringCounts).sort(</span><span class="s1">function </span><span class="s2">(a</span><span class="s1">, </span><span class="s2">b) {</span>
+			<span class="s1">return </span><span class="s2">indentStringCounts[a] - indentStringCounts[b]</span><span class="s1">;</span>
+		<span class="s2">})[</span><span class="s3">0</span><span class="s2">] || </span><span class="s0">'</span><span class="s1">\t</span><span class="s0">'</span>
+	<span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.indent = </span><span class="s1">function </span><span class="s2">indent (indentStr) {</span>
+		<span class="s1">var </span><span class="s2">this$1$1 = </span><span class="s1">this;</span>
+
+	<span class="s1">if </span><span class="s2">(!arguments.length) {</span>
+		<span class="s2">indentStr = </span><span class="s1">this</span><span class="s2">.getIndentString()</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">if </span><span class="s2">(indentStr === </span><span class="s0">''</span><span class="s2">) { </span><span class="s1">return this; </span><span class="s2">} </span><span class="s4">// noop</span>
+
+	<span class="s1">var </span><span class="s2">trailingNewline = !</span><span class="s1">this</span><span class="s2">.intro || </span><span class="s1">this</span><span class="s2">.intro.slice(-</span><span class="s3">1</span><span class="s2">) === </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s1">;</span>
+
+	<span class="s1">this</span><span class="s2">.sources.forEach(</span><span class="s1">function </span><span class="s2">(source</span><span class="s1">, </span><span class="s2">i) {</span>
+		<span class="s1">var </span><span class="s2">separator = source.separator !== undefined ? source.separator : this$1$1.separator</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">indentStart = trailingNewline || (i &gt; </span><span class="s3">0 </span><span class="s2">&amp;&amp; </span><span class="s3">/\r?\n$/</span><span class="s2">.test(separator))</span><span class="s1">;</span>
+
+		<span class="s2">source.content.indent(indentStr</span><span class="s1">, </span><span class="s2">{</span>
+			<span class="s2">exclude: source.indentExclusionRanges</span><span class="s1">,</span>
+			<span class="s2">indentStart: indentStart</span><span class="s1">, </span><span class="s4">//: trailingNewline || /\r?\n$/.test( separator )  //true///\r?\n/.test( separator )</span>
+		<span class="s2">})</span><span class="s1">;</span>
+
+		<span class="s2">trailingNewline = source.content.lastChar() === </span><span class="s0">'</span><span class="s1">\n</span><span class="s0">'</span><span class="s1">;</span>
+	<span class="s2">})</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro) {</span>
+		<span class="s1">this</span><span class="s2">.intro =</span>
+			<span class="s2">indentStr +</span>
+			<span class="s1">this</span><span class="s2">.intro.replace(</span><span class="s3">/^[^\n]/gm</span><span class="s1">, function </span><span class="s2">(match</span><span class="s1">, </span><span class="s2">index) {</span>
+				<span class="s1">return </span><span class="s2">index &gt; </span><span class="s3">0 </span><span class="s2">? indentStr + match : match</span><span class="s1">;</span>
+			<span class="s2">})</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.prepend = </span><span class="s1">function </span><span class="s2">prepend (str) {</span>
+	<span class="s1">this</span><span class="s2">.intro = str + </span><span class="s1">this</span><span class="s2">.intro</span><span class="s1">;</span>
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.toString = </span><span class="s1">function </span><span class="s2">toString () {</span>
+		<span class="s1">var </span><span class="s2">this$1$1 = </span><span class="s1">this;</span>
+
+	<span class="s1">var </span><span class="s2">body = </span><span class="s1">this</span><span class="s2">.sources</span>
+		<span class="s2">.map(</span><span class="s1">function </span><span class="s2">(source</span><span class="s1">, </span><span class="s2">i) {</span>
+			<span class="s1">var </span><span class="s2">separator = source.separator !== undefined ? source.separator : this$1$1.separator</span><span class="s1">;</span>
+			<span class="s1">var </span><span class="s2">str = (i &gt; </span><span class="s3">0 </span><span class="s2">? separator : </span><span class="s0">''</span><span class="s2">) + source.content.toString()</span><span class="s1">;</span>
+
+			<span class="s1">return </span><span class="s2">str</span><span class="s1">;</span>
+		<span class="s2">})</span>
+		<span class="s2">.join(</span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">return this</span><span class="s2">.intro + body</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.isEmpty = </span><span class="s1">function </span><span class="s2">isEmpty () {</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.intro.length &amp;&amp; </span><span class="s1">this</span><span class="s2">.intro.trim()) { </span><span class="s1">return false; </span><span class="s2">}</span>
+	<span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.sources.some(</span><span class="s1">function </span><span class="s2">(source) { </span><span class="s1">return </span><span class="s2">!source.content.isEmpty()</span><span class="s1">; </span><span class="s2">})) { </span><span class="s1">return false; </span><span class="s2">}</span>
+	<span class="s1">return true;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.length = </span><span class="s1">function </span><span class="s2">length () {</span>
+	<span class="s1">return this</span><span class="s2">.sources.reduce(</span>
+		<span class="s1">function </span><span class="s2">(length</span><span class="s1">, </span><span class="s2">source) { </span><span class="s1">return </span><span class="s2">length + source.content.length()</span><span class="s1">; </span><span class="s2">}</span><span class="s1">,</span>
+		<span class="s1">this</span><span class="s2">.intro.length</span>
+	<span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.trimLines = </span><span class="s1">function </span><span class="s2">trimLines () {</span>
+	<span class="s1">return this</span><span class="s2">.trim(</span><span class="s0">'[</span><span class="s1">\\</span><span class="s0">r</span><span class="s1">\\</span><span class="s0">n]'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.trim = </span><span class="s1">function </span><span class="s2">trim (charType) {</span>
+	<span class="s1">return this</span><span class="s2">.trimStart(charType).trimEnd(charType)</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.trimStart = </span><span class="s1">function </span><span class="s2">trimStart (charType) {</span>
+	<span class="s1">var </span><span class="s2">rx = </span><span class="s1">new </span><span class="s2">RegExp(</span><span class="s0">'^' </span><span class="s2">+ (charType || </span><span class="s0">'</span><span class="s1">\\</span><span class="s0">s'</span><span class="s2">) + </span><span class="s0">'+'</span><span class="s2">)</span><span class="s1">;</span>
+	<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">if </span><span class="s2">(!</span><span class="s1">this</span><span class="s2">.intro) {</span>
+		<span class="s1">var </span><span class="s2">source</span><span class="s1">;</span>
+		<span class="s1">var </span><span class="s2">i = </span><span class="s3">0</span><span class="s1">;</span>
+
+		<span class="s1">do </span><span class="s2">{</span>
+			<span class="s2">source = </span><span class="s1">this</span><span class="s2">.sources[i++]</span><span class="s1">;</span>
+			<span class="s1">if </span><span class="s2">(!source) {</span>
+				<span class="s1">break;</span>
+			<span class="s2">}</span>
+		<span class="s2">} </span><span class="s1">while </span><span class="s2">(!source.content.trimStartAborted(charType))</span><span class="s1">;</span>
+	<span class="s2">}</span>
+
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">Bundle.prototype.trimEnd = </span><span class="s1">function </span><span class="s2">trimEnd (charType) {</span>
+	<span class="s1">var </span><span class="s2">rx = </span><span class="s1">new </span><span class="s2">RegExp((charType || </span><span class="s0">'</span><span class="s1">\\</span><span class="s0">s'</span><span class="s2">) + </span><span class="s0">'+$'</span><span class="s2">)</span><span class="s1">;</span>
+
+	<span class="s1">var </span><span class="s2">source</span><span class="s1">;</span>
+	<span class="s1">var </span><span class="s2">i = </span><span class="s1">this</span><span class="s2">.sources.length - </span><span class="s3">1</span><span class="s1">;</span>
+
+	<span class="s1">do </span><span class="s2">{</span>
+		<span class="s2">source = </span><span class="s1">this</span><span class="s2">.sources[i--]</span><span class="s1">;</span>
+		<span class="s1">if </span><span class="s2">(!source) {</span>
+			<span class="s1">this</span><span class="s2">.intro = </span><span class="s1">this</span><span class="s2">.intro.replace(rx</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+			<span class="s1">break;</span>
+		<span class="s2">}</span>
+	<span class="s2">} </span><span class="s1">while </span><span class="s2">(!source.content.trimEndAborted(charType))</span><span class="s1">;</span>
+
+	<span class="s1">return this;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s2">MagicString.Bundle = Bundle</span><span class="s1">;</span>
+<span class="s2">MagicString.SourceMap = SourceMap</span><span class="s1">;</span>
+<span class="s2">MagicString.default = MagicString</span><span class="s1">; </span><span class="s4">// work around TypeScript bug https://github.com/Rich-Harris/magic-string/pull/121</span>
+
+<span class="s2">module.exports = MagicString</span><span class="s1">;</span>
+<span class="s4">//# sourceMappingURL=magic-string.cjs.js.map</span>
+</pre>
+</body>
+</html>

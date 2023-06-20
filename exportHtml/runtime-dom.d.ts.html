@@ -1,0 +1,1565 @@
+<html>
+<head>
+<title>runtime-dom.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #629755; font-style: italic;}
+.s5 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+runtime-dom.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{ BaseTransitionProps } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentInjectOptions } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentInternalInstance } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentOptionsMixin } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentOptionsWithArrayProps } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentOptionsWithObjectProps } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentOptionsWithoutProps } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentPropsOptions } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComponentPublicInstance } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ComputedOptions } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ConcreteComponent } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ CreateAppFunction } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ EmitsOptions } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ExtractPropTypes } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ FunctionalComponent } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ MethodOptions } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ObjectDirective } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RenderFunction } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RootHydrateFunction } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RootRenderFunction } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ SetupContext } from </span><span class="s2">'@vue/runtime-core'</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">ANIMATION = </span><span class="s2">&quot;animation&quot;</span><span class="s0">;</span>
+
+<span class="s1">declare type AnimationTypes = </span><span class="s0">typeof </span><span class="s1">TRANSITION | </span><span class="s0">typeof </span><span class="s1">ANIMATION</span><span class="s0">;</span>
+
+<span class="s1">declare type AssignerFn = (value: any) =&gt; </span><span class="s0">void;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">BaseClass: {</span>
+    <span class="s0">new </span><span class="s1">(): HTMLElement</span><span class="s0">;</span>
+    <span class="s1">prototype: HTMLElement</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">createApp: CreateAppFunction&lt;Element&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">createSSRApp: CreateAppFunction&lt;Element&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">defineCustomElement&lt;Props</span><span class="s0">, </span><span class="s1">RawBindings = object&gt;(setup: (props: Readonly&lt;Props&gt;</span><span class="s0">, </span><span class="s1">ctx: SetupContext) =&gt; RawBindings | RenderFunction): VueElementConstructor&lt;Props&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">defineCustomElement&lt;Props = {}</span><span class="s0">, </span><span class="s1">RawBindings = {}</span><span class="s0">, </span><span class="s1">D = {}</span><span class="s0">, </span><span class="s1">C </span><span class="s0">extends </span><span class="s1">ComputedOptions = {}</span><span class="s0">, </span><span class="s1">M </span><span class="s0">extends </span><span class="s1">MethodOptions = {}</span><span class="s0">, </span><span class="s1">Mixin </span><span class="s0">extends </span><span class="s1">ComponentOptionsMixin = ComponentOptionsMixin</span><span class="s0">, </span><span class="s1">Extends </span><span class="s0">extends </span><span class="s1">ComponentOptionsMixin = ComponentOptionsMixin</span><span class="s0">, </span><span class="s1">E </span><span class="s0">extends </span><span class="s1">EmitsOptions = EmitsOptions</span><span class="s0">, </span><span class="s1">EE </span><span class="s0">extends </span><span class="s1">string = string</span><span class="s0">, </span><span class="s1">I </span><span class="s0">extends </span><span class="s1">ComponentInjectOptions = {}</span><span class="s0">, </span><span class="s1">II </span><span class="s0">extends </span><span class="s1">string = string&gt;(options: ComponentOptionsWithoutProps&lt;Props</span><span class="s0">, </span><span class="s1">RawBindings</span><span class="s0">, </span><span class="s1">D</span><span class="s0">, </span><span class="s1">C</span><span class="s0">, </span><span class="s1">M</span><span class="s0">, </span><span class="s1">Mixin</span><span class="s0">, </span><span class="s1">Extends</span><span class="s0">, </span><span class="s1">E</span><span class="s0">, </span><span class="s1">EE</span><span class="s0">, </span><span class="s1">I</span><span class="s0">, </span><span class="s1">II&gt; &amp; {</span>
+    <span class="s1">styles?: string[]</span><span class="s0">;</span>
+<span class="s1">}): VueElementConstructor&lt;Props&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">defineCustomElement&lt;PropNames </span><span class="s0">extends </span><span class="s1">string</span><span class="s0">, </span><span class="s1">RawBindings</span><span class="s0">, </span><span class="s1">D</span><span class="s0">, </span><span class="s1">C </span><span class="s0">extends </span><span class="s1">ComputedOptions = {}</span><span class="s0">, </span><span class="s1">M </span><span class="s0">extends </span><span class="s1">MethodOptions = {}</span><span class="s0">, </span><span class="s1">Mixin </span><span class="s0">extends </span><span class="s1">ComponentOptionsMixin = ComponentOptionsMixin</span><span class="s0">, </span><span class="s1">Extends </span><span class="s0">extends </span><span class="s1">ComponentOptionsMixin = ComponentOptionsMixin</span><span class="s0">, </span><span class="s1">E </span><span class="s0">extends </span><span class="s1">EmitsOptions = Record&lt;string</span><span class="s0">, </span><span class="s1">any&gt;</span><span class="s0">, </span><span class="s1">EE </span><span class="s0">extends </span><span class="s1">string = string</span><span class="s0">, </span><span class="s1">I </span><span class="s0">extends </span><span class="s1">ComponentInjectOptions = {}</span><span class="s0">, </span><span class="s1">II </span><span class="s0">extends </span><span class="s1">string = string&gt;(options: ComponentOptionsWithArrayProps&lt;PropNames</span><span class="s0">, </span><span class="s1">RawBindings</span><span class="s0">, </span><span class="s1">D</span><span class="s0">, </span><span class="s1">C</span><span class="s0">, </span><span class="s1">M</span><span class="s0">, </span><span class="s1">Mixin</span><span class="s0">, </span><span class="s1">Extends</span><span class="s0">, </span><span class="s1">E</span><span class="s0">, </span><span class="s1">EE</span><span class="s0">, </span><span class="s1">I</span><span class="s0">, </span><span class="s1">II&gt; &amp; {</span>
+    <span class="s1">styles?: string[]</span><span class="s0">;</span>
+<span class="s1">}): VueElementConstructor&lt;{</span>
+    <span class="s1">[K </span><span class="s0">in </span><span class="s1">PropNames]: any</span><span class="s0">;</span>
+<span class="s1">}&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">defineCustomElement&lt;PropsOptions </span><span class="s0">extends </span><span class="s1">Readonly&lt;ComponentPropsOptions&gt;</span><span class="s0">, </span><span class="s1">RawBindings</span><span class="s0">, </span><span class="s1">D</span><span class="s0">, </span><span class="s1">C </span><span class="s0">extends </span><span class="s1">ComputedOptions = {}</span><span class="s0">, </span><span class="s1">M </span><span class="s0">extends </span><span class="s1">MethodOptions = {}</span><span class="s0">, </span><span class="s1">Mixin </span><span class="s0">extends </span><span class="s1">ComponentOptionsMixin = ComponentOptionsMixin</span><span class="s0">, </span><span class="s1">Extends </span><span class="s0">extends </span><span class="s1">ComponentOptionsMixin = ComponentOptionsMixin</span><span class="s0">, </span><span class="s1">E </span><span class="s0">extends </span><span class="s1">EmitsOptions = Record&lt;string</span><span class="s0">, </span><span class="s1">any&gt;</span><span class="s0">, </span><span class="s1">EE </span><span class="s0">extends </span><span class="s1">string = string</span><span class="s0">, </span><span class="s1">I </span><span class="s0">extends </span><span class="s1">ComponentInjectOptions = {}</span><span class="s0">, </span><span class="s1">II </span><span class="s0">extends </span><span class="s1">string = string&gt;(options: ComponentOptionsWithObjectProps&lt;PropsOptions</span><span class="s0">, </span><span class="s1">RawBindings</span><span class="s0">, </span><span class="s1">D</span><span class="s0">, </span><span class="s1">C</span><span class="s0">, </span><span class="s1">M</span><span class="s0">, </span><span class="s1">Mixin</span><span class="s0">, </span><span class="s1">Extends</span><span class="s0">, </span><span class="s1">E</span><span class="s0">, </span><span class="s1">EE</span><span class="s0">, </span><span class="s1">I</span><span class="s0">, </span><span class="s1">II&gt; &amp; {</span>
+    <span class="s1">styles?: string[]</span><span class="s0">;</span>
+<span class="s1">}): VueElementConstructor&lt;ExtractPropTypes&lt;PropsOptions&gt;&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">defineCustomElement(options: {</span>
+    <span class="s0">new </span><span class="s1">(...args: any[]): ComponentPublicInstance</span><span class="s0">;</span>
+<span class="s1">}): VueElementConstructor</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">defineSSRCustomElement: </span><span class="s0">typeof </span><span class="s1">defineCustomElement</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">hydrate: RootHydrateFunction</span><span class="s0">;</span>
+
+<span class="s3">/* Excluded from this release type: initDirectivesForSSR */</span>
+
+<span class="s1">declare type InnerComponentDef = ConcreteComponent &amp; {</span>
+    <span class="s1">styles?: string[]</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">declare type ModelDirective&lt;T&gt; = ObjectDirective&lt;T &amp; {</span>
+    <span class="s1">_assign: AssignerFn</span><span class="s0">;</span>
+<span class="s1">}&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">render: RootRenderFunction&lt;Element | ShadowRoot&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">const </span><span class="s1">TRANSITION = </span><span class="s2">&quot;transition&quot;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">Transition: FunctionalComponent&lt;TransitionProps&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TransitionGroup: </span><span class="s0">new </span><span class="s1">() =&gt; {</span>
+    <span class="s1">$props: TransitionGroupProps</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type TransitionGroupProps = Omit&lt;TransitionProps</span><span class="s0">, </span><span class="s2">'mode'</span><span class="s1">&gt; &amp; {</span>
+    <span class="s1">tag?: string</span><span class="s0">;</span>
+    <span class="s1">moveClass?: string</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TransitionProps </span><span class="s0">extends </span><span class="s1">BaseTransitionProps&lt;Element&gt; {</span>
+    <span class="s1">name?: string</span><span class="s0">;</span>
+    <span class="s1">type?: AnimationTypes</span><span class="s0">;</span>
+    <span class="s1">css?: boolean</span><span class="s0">;</span>
+    <span class="s1">duration?: number | {</span>
+        <span class="s1">enter: number</span><span class="s0">;</span>
+        <span class="s1">leave: number</span><span class="s0">;</span>
+    <span class="s1">}</span><span class="s0">;</span>
+    <span class="s1">enterFromClass?: string</span><span class="s0">;</span>
+    <span class="s1">enterActiveClass?: string</span><span class="s0">;</span>
+    <span class="s1">enterToClass?: string</span><span class="s0">;</span>
+    <span class="s1">appearFromClass?: string</span><span class="s0">;</span>
+    <span class="s1">appearActiveClass?: string</span><span class="s0">;</span>
+    <span class="s1">appearToClass?: string</span><span class="s0">;</span>
+    <span class="s1">leaveFromClass?: string</span><span class="s0">;</span>
+    <span class="s1">leaveActiveClass?: string</span><span class="s0">;</span>
+    <span class="s1">leaveToClass?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">useCssModule(name?: string): Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* Runtime helper for SFC's CSS variable injection feature.</span>
+ <span class="s4">* </span><span class="s5">@private</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">useCssVars(getter: (ctx: any) =&gt; Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">vModelCheckbox: ModelDirective&lt;HTMLInputElement&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">vModelDynamic: ObjectDirective&lt;HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">vModelRadio: ModelDirective&lt;HTMLInputElement&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">vModelSelect: ModelDirective&lt;HTMLSelectElement&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">vModelText: ModelDirective&lt;HTMLInputElement | HTMLTextAreaElement&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">vShow: ObjectDirective&lt;VShowElement&gt;</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">VShowElement </span><span class="s0">extends </span><span class="s1">HTMLElement {</span>
+    <span class="s1">_vod: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">class </span><span class="s1">VueElement </span><span class="s0">extends </span><span class="s1">BaseClass {</span>
+    <span class="s0">private </span><span class="s1">_def</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_props</span><span class="s0">;</span>
+    <span class="s3">/* Excluded from this release type: _instance */</span>
+    <span class="s0">private </span><span class="s1">_connected</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_resolved</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_numberProps</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_styles?</span><span class="s0">;</span>
+    <span class="s1">constructor(_def: InnerComponentDef</span><span class="s0">, </span><span class="s1">_props?: Record&lt;string</span><span class="s0">, </span><span class="s1">any&gt;</span><span class="s0">, </span><span class="s1">hydrate?: RootHydrateFunction)</span><span class="s0">;</span>
+    <span class="s1">connectedCallback(): </span><span class="s0">void;</span>
+    <span class="s1">disconnectedCallback(): </span><span class="s0">void;</span>
+    <span class="s4">/**</span>
+     <span class="s4">* resolve inner component definition (handle possible async component)</span>
+     <span class="s4">*/</span>
+    <span class="s0">private </span><span class="s1">_resolveDef</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_resolveProps</span><span class="s0">;</span>
+    <span class="s0">protected </span><span class="s1">_setAttr(key: string): </span><span class="s0">void;</span>
+    <span class="s3">/* Excluded from this release type: _getProp */</span>
+    <span class="s3">/* Excluded from this release type: _setProp */</span>
+    <span class="s0">private </span><span class="s1">_update</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_createVNode</span><span class="s0">;</span>
+    <span class="s0">private </span><span class="s1">_applyStyles</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type VueElementConstructor&lt;P = {}&gt; = {</span>
+    <span class="s0">new </span><span class="s1">(initialProps?: Record&lt;string</span><span class="s0">, </span><span class="s1">any&gt;): VueElement &amp; P</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* </span><span class="s5">@private</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">withKeys: (fn: Function</span><span class="s0">, </span><span class="s1">modifiers: string[]) =&gt; (event: KeyboardEvent) =&gt; any</span><span class="s0">;</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* </span><span class="s5">@private</span>
+ <span class="s4">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">withModifiers: (fn: Function</span><span class="s0">, </span><span class="s1">modifiers: string[]) =&gt; (event: Event</span><span class="s0">, </span><span class="s1">...args: unknown[]) =&gt; any</span><span class="s0">;</span>
+
+
+<span class="s0">export </span><span class="s1">* from </span><span class="s2">&quot;@vue/runtime-core&quot;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ }</span>
+
+<span class="s3">// Note: this file is auto concatenated to the end of the bundled d.ts during</span>
+<span class="s3">// build.</span>
+
+<span class="s3">// This code is based on react definition in DefinitelyTyped published under the MIT license.</span>
+<span class="s3">//      Repository: https://github.com/DefinitelyTyped/DefinitelyTyped</span>
+<span class="s3">//      Path in the repository: types/react/index.d.ts</span>
+<span class="s3">//</span>
+<span class="s3">// Copyrights of original definition are:</span>
+<span class="s3">//      AssureSign &lt;http://www.assuresign.com&gt;</span>
+<span class="s3">//      Microsoft &lt;https://microsoft.com&gt;</span>
+<span class="s3">//                 John Reilly &lt;https://github.com/johnnyreilly&gt;</span>
+<span class="s3">//      Benoit Benezech &lt;https://github.com/bbenezech&gt;</span>
+<span class="s3">//      Patricio Zavolinsky &lt;https://github.com/pzavolinsky&gt;</span>
+<span class="s3">//      Digiguru &lt;https://github.com/digiguru&gt;</span>
+<span class="s3">//      Eric Anderson &lt;https://github.com/ericanderson&gt;</span>
+<span class="s3">//      Dovydas Navickas &lt;https://github.com/DovydasNavickas&gt;</span>
+<span class="s3">//                 Josh Rutherford &lt;https://github.com/theruther4d&gt;</span>
+<span class="s3">//                 Guilherme Hübner &lt;https://github.com/guilhermehubner&gt;</span>
+<span class="s3">//                 Ferdy Budhidharma &lt;https://github.com/ferdaber&gt;</span>
+<span class="s3">//                 Johann Rakotoharisoa &lt;https://github.com/jrakotoharisoa&gt;</span>
+<span class="s3">//                 Olivier Pascal &lt;https://github.com/pascaloliv&gt;</span>
+<span class="s3">//                 Martin Hochel &lt;https://github.com/hotell&gt;</span>
+<span class="s3">//                 Frank Li &lt;https://github.com/franklixuefei&gt;</span>
+<span class="s3">//                 Jessica Franco &lt;https://github.com/Jessidhia&gt;</span>
+<span class="s3">//                 Saransh Kataria &lt;https://github.com/saranshkataria&gt;</span>
+<span class="s3">//                 Kanitkorn Sujautra &lt;https://github.com/lukyth&gt;</span>
+<span class="s3">//                 Sebastian Silbermann &lt;https://github.com/eps1lon&gt;</span>
+
+<span class="s0">import </span><span class="s1">{ VNode } from </span><span class="s2">'@vue/runtime-core'</span>
+<span class="s0">import </span><span class="s1">* as CSS from </span><span class="s2">'csstype'</span>
+
+<span class="s0">export interface </span><span class="s1">CSSProperties</span>
+  <span class="s0">extends </span><span class="s1">CSS.Properties&lt;string | number&gt;</span><span class="s0">,</span>
+    <span class="s1">CSS.PropertiesHyphen&lt;string | number&gt; {</span>
+  <span class="s4">/**</span>
+   <span class="s4">* The index signature was removed to enable closed typing for style</span>
+   <span class="s4">* using CSSType. You're able to use type assertion or module augmentation</span>
+   <span class="s4">* to add properties or an index signature of your own.</span>
+   <span class="s4">*</span>
+   <span class="s4">* For examples and more information, visit:</span>
+   <span class="s4">* https://github.com/frenic/csstype#what-should-i-do-when-i-get-type-errors</span>
+   <span class="s4">*/</span>
+  <span class="s1">[v: </span><span class="s2">`--</span><span class="s1">${string}</span><span class="s2">`</span><span class="s1">]: string | number | undefined</span>
+<span class="s1">}</span>
+
+<span class="s1">type Booleanish = boolean | </span><span class="s2">'true' </span><span class="s1">| </span><span class="s2">'false'</span>
+<span class="s1">type Numberish = number | string</span>
+
+<span class="s3">// All the WAI-ARIA 1.1 attributes from https://www.w3.org/TR/wai-aria-1.1/</span>
+<span class="s0">interface </span><span class="s1">AriaAttributes {</span>
+  <span class="s4">/** Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application. */</span>
+  <span class="s2">'aria-activedescendant'</span><span class="s1">?: string</span>
+  <span class="s4">/** Indicates whether assistive technologies will present all, or only parts of, the changed region based on the change notifications defined by the aria-relevant attribute. */</span>
+  <span class="s2">'aria-atomic'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be</span>
+   <span class="s4">* presented if they are made.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-autocomplete'</span><span class="s1">?: </span><span class="s2">'none' </span><span class="s1">| </span><span class="s2">'inline' </span><span class="s1">| </span><span class="s2">'list' </span><span class="s1">| </span><span class="s2">'both'</span>
+  <span class="s4">/** Indicates an element is being modified and that assistive technologies MAY want to wait until the modifications are complete before exposing them to the user. */</span>
+  <span class="s2">'aria-busy'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates the current &quot;checked&quot; state of checkboxes, radio buttons, and other widgets.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-pressed @see aria-selected.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-checked'</span><span class="s1">?: Booleanish | </span><span class="s2">'mixed'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines the total number of columns in a table, grid, or treegrid.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-colindex.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-colcount'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines an element's column index or position with respect to the total number of columns within a table, grid, or treegrid.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-colcount @see aria-colspan.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-colindex'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines the number of columns spanned by a cell or gridcell within a table, grid, or treegrid.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-colindex @see aria-rowspan.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-colspan'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies the element (or elements) whose contents or presence are controlled by the current element.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-owns.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-controls'</span><span class="s1">?: string</span>
+  <span class="s4">/** Indicates the element that represents the current item within a container or set of related elements. */</span>
+  <span class="s2">'aria-current'</span><span class="s1">?: Booleanish | </span><span class="s2">'page' </span><span class="s1">| </span><span class="s2">'step' </span><span class="s1">| </span><span class="s2">'location' </span><span class="s1">| </span><span class="s2">'date' </span><span class="s1">| </span><span class="s2">'time'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies the element (or elements) that describes the object.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-labelledby</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-describedby'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies the element that provides a detailed, extended description for the object.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-describedby.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-details'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates that the element is perceivable but disabled, so it is not editable or otherwise operable.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-hidden @see aria-readonly.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-disabled'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates what functions can be performed when a dragged object is released on the drop target.</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">in ARIA 1.1</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-dropeffect'</span><span class="s1">?: </span><span class="s2">'none' </span><span class="s1">| </span><span class="s2">'copy' </span><span class="s1">| </span><span class="s2">'execute' </span><span class="s1">| </span><span class="s2">'link' </span><span class="s1">| </span><span class="s2">'move' </span><span class="s1">| </span><span class="s2">'popup'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies the element that provides an error message for the object.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-invalid @see aria-describedby.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-errormessage'</span><span class="s1">?: string</span>
+  <span class="s4">/** Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed. */</span>
+  <span class="s2">'aria-expanded'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies the next element (or elements) in an alternate reading order of content which, at the user's discretion,</span>
+   <span class="s4">* allows assistive technology to override the general default of reading in document source order.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-flowto'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates an element's &quot;grabbed&quot; state in a drag-and-drop operation.</span>
+   <span class="s4">* </span><span class="s5">@deprecated </span><span class="s4">in ARIA 1.1</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-grabbed'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/** Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element. */</span>
+  <span class="s2">'aria-haspopup'</span><span class="s1">?: Booleanish | </span><span class="s2">'menu' </span><span class="s1">| </span><span class="s2">'listbox' </span><span class="s1">| </span><span class="s2">'tree' </span><span class="s1">| </span><span class="s2">'grid' </span><span class="s1">| </span><span class="s2">'dialog'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates whether the element is exposed to an accessibility API.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-disabled.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-hidden'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates the entered value does not conform to the format expected by the application.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-errormessage.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-invalid'</span><span class="s1">?: Booleanish | </span><span class="s2">'grammar' </span><span class="s1">| </span><span class="s2">'spelling'</span>
+  <span class="s4">/** Indicates keyboard shortcuts that an author has implemented to activate or give focus to an element. */</span>
+  <span class="s2">'aria-keyshortcuts'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines a string value that labels the current element.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-labelledby.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-label'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies the element (or elements) that labels the current element.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-describedby.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-labelledby'</span><span class="s1">?: string</span>
+  <span class="s4">/** Defines the hierarchical level of an element within a structure. */</span>
+  <span class="s2">'aria-level'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/** Indicates that an element will be updated, and describes the types of updates the user agents, assistive technologies, and user can expect from the live region. */</span>
+  <span class="s2">'aria-live'</span><span class="s1">?: </span><span class="s2">'off' </span><span class="s1">| </span><span class="s2">'assertive' </span><span class="s1">| </span><span class="s2">'polite'</span>
+  <span class="s4">/** Indicates whether an element is modal when displayed. */</span>
+  <span class="s2">'aria-modal'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/** Indicates whether a text box accepts multiple lines of input or only a single line. */</span>
+  <span class="s2">'aria-multiline'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/** Indicates that the user may select more than one item from the current selectable descendants. */</span>
+  <span class="s2">'aria-multiselectable'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/** Indicates whether the element's orientation is horizontal, vertical, or unknown/ambiguous. */</span>
+  <span class="s2">'aria-orientation'</span><span class="s1">?: </span><span class="s2">'horizontal' </span><span class="s1">| </span><span class="s2">'vertical'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Identifies an element (or elements) in order to define a visual, functional, or contextual parent/child relationship</span>
+   <span class="s4">* between DOM elements where the DOM hierarchy cannot be used to represent the relationship.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-controls.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-owns'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines a short hint (a word or short phrase) intended to aid the user with data entry when the control has no value.</span>
+   <span class="s4">* A hint could be a sample value or a brief description of the expected format.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-placeholder'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines an element's number or position in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-setsize.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-posinset'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates the current &quot;pressed&quot; state of toggle buttons.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-checked @see aria-selected.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-pressed'</span><span class="s1">?: Booleanish | </span><span class="s2">'mixed'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates that the element is not editable, but is otherwise operable.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-disabled.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-readonly'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates what notifications the user agent will trigger when the accessibility tree within a live region is modified.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-atomic.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-relevant'</span><span class="s1">?: </span><span class="s2">'additions' </span><span class="s1">| </span><span class="s2">'additions text' </span><span class="s1">| </span><span class="s2">'all' </span><span class="s1">| </span><span class="s2">'removals' </span><span class="s1">| </span><span class="s2">'text'</span>
+  <span class="s4">/** Indicates that user input is required on the element before a form may be submitted. */</span>
+  <span class="s2">'aria-required'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/** Defines a human-readable, author-localized description for the role of an element. */</span>
+  <span class="s2">'aria-roledescription'</span><span class="s1">?: string</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines the total number of rows in a table, grid, or treegrid.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-rowindex.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-rowcount'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines an element's row index or position with respect to the total number of rows within a table, grid, or treegrid.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-rowcount @see aria-rowspan.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-rowindex'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines the number of rows spanned by a cell or gridcell within a table, grid, or treegrid.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-rowindex @see aria-colspan.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-rowspan'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Indicates the current &quot;selected&quot; state of various widgets.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-checked @see aria-pressed.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-selected'</span><span class="s1">?: Booleanish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines the number of items in the current set of listitems or treeitems. Not required if all elements in the set are present in the DOM.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-posinset.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-setsize'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/** Indicates if items in a table or grid are sorted in ascending or descending order. */</span>
+  <span class="s2">'aria-sort'</span><span class="s1">?: </span><span class="s2">'none' </span><span class="s1">| </span><span class="s2">'ascending' </span><span class="s1">| </span><span class="s2">'descending' </span><span class="s1">| </span><span class="s2">'other'</span>
+  <span class="s4">/** Defines the maximum allowed value for a range widget. */</span>
+  <span class="s2">'aria-valuemax'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/** Defines the minimum allowed value for a range widget. */</span>
+  <span class="s2">'aria-valuemin'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Defines the current value for a range widget.</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">aria-valuetext.</span>
+   <span class="s4">*/</span>
+  <span class="s2">'aria-valuenow'</span><span class="s1">?: Numberish</span>
+  <span class="s4">/** Defines the human readable text alternative of aria-valuenow for a range widget. */</span>
+  <span class="s2">'aria-valuetext'</span><span class="s1">?: string</span>
+<span class="s1">}</span>
+
+<span class="s3">// Vue's style normalization supports nested arrays</span>
+<span class="s0">export </span><span class="s1">type StyleValue = string | CSSProperties | Array&lt;StyleValue&gt;</span>
+
+<span class="s0">export interface </span><span class="s1">HTMLAttributes </span><span class="s0">extends </span><span class="s1">AriaAttributes</span><span class="s0">, </span><span class="s1">EventHandlers&lt;Events&gt; {</span>
+  <span class="s1">innerHTML?: string</span>
+
+  <span class="s0">class</span><span class="s1">?: any</span>
+  <span class="s1">style?: StyleValue</span>
+
+  <span class="s3">// Standard HTML Attributes</span>
+  <span class="s1">accesskey?: string</span>
+  <span class="s1">contenteditable?: Booleanish | </span><span class="s2">'inherit'</span>
+  <span class="s1">contextmenu?: string</span>
+  <span class="s1">dir?: string</span>
+  <span class="s1">draggable?: Booleanish</span>
+  <span class="s1">hidden?: Booleanish</span>
+  <span class="s1">id?: string</span>
+  <span class="s1">lang?: string</span>
+  <span class="s1">placeholder?: string</span>
+  <span class="s1">spellcheck?: Booleanish</span>
+  <span class="s1">tabindex?: Numberish</span>
+  <span class="s1">title?: string</span>
+  <span class="s1">translate?: </span><span class="s2">'yes' </span><span class="s1">| </span><span class="s2">'no'</span>
+
+  <span class="s3">// Unknown</span>
+  <span class="s1">radiogroup?: string </span><span class="s3">// &lt;command&gt;, &lt;menuitem&gt;</span>
+
+  <span class="s3">// WAI-ARIA</span>
+  <span class="s1">role?: string</span>
+
+  <span class="s3">// RDFa Attributes</span>
+  <span class="s1">about?: string</span>
+  <span class="s1">datatype?: string</span>
+  <span class="s1">inlist?: any</span>
+  <span class="s1">prefix?: string</span>
+  <span class="s1">property?: string</span>
+  <span class="s1">resource?: string</span>
+  <span class="s0">typeof</span><span class="s1">?: string</span>
+  <span class="s1">vocab?: string</span>
+
+  <span class="s3">// Non-standard Attributes</span>
+  <span class="s1">autocapitalize?: string</span>
+  <span class="s1">autocorrect?: string</span>
+  <span class="s1">autosave?: string</span>
+  <span class="s1">color?: string</span>
+  <span class="s1">itemprop?: string</span>
+  <span class="s1">itemscope?: Booleanish</span>
+  <span class="s1">itemtype?: string</span>
+  <span class="s1">itemid?: string</span>
+  <span class="s1">itemref?: string</span>
+  <span class="s1">results?: Numberish</span>
+  <span class="s1">security?: string</span>
+  <span class="s1">unselectable?: </span><span class="s2">'on' </span><span class="s1">| </span><span class="s2">'off'</span>
+
+  <span class="s3">// Living Standard</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Hints at the type of data that might be entered by the user while editing the element or its contents</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">https://html.spec.whatwg.org/multipage/interaction.html#input-modalities:-the-inputmode-attribute</span>
+   <span class="s4">*/</span>
+  <span class="s1">inputmode?:</span>
+    <span class="s1">| </span><span class="s2">'none'</span>
+    <span class="s1">| </span><span class="s2">'text'</span>
+    <span class="s1">| </span><span class="s2">'tel'</span>
+    <span class="s1">| </span><span class="s2">'url'</span>
+    <span class="s1">| </span><span class="s2">'email'</span>
+    <span class="s1">| </span><span class="s2">'numeric'</span>
+    <span class="s1">| </span><span class="s2">'decimal'</span>
+    <span class="s1">| </span><span class="s2">'search'</span>
+  <span class="s4">/**</span>
+   <span class="s4">* Specify that a standard HTML element should behave like a defined custom built-in element</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">https://html.spec.whatwg.org/multipage/custom-elements.html#attr-is</span>
+   <span class="s4">*/</span>
+  <span class="s1">is?: string</span>
+<span class="s1">}</span>
+
+<span class="s1">type HTMLAttributeReferrerPolicy =</span>
+  <span class="s1">| </span><span class="s2">''</span>
+  <span class="s1">| </span><span class="s2">'no-referrer'</span>
+  <span class="s1">| </span><span class="s2">'no-referrer-when-downgrade'</span>
+  <span class="s1">| </span><span class="s2">'origin'</span>
+  <span class="s1">| </span><span class="s2">'origin-when-cross-origin'</span>
+  <span class="s1">| </span><span class="s2">'same-origin'</span>
+  <span class="s1">| </span><span class="s2">'strict-origin'</span>
+  <span class="s1">| </span><span class="s2">'strict-origin-when-cross-origin'</span>
+  <span class="s1">| </span><span class="s2">'unsafe-url'</span>
+
+<span class="s0">export interface </span><span class="s1">AnchorHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">download?: any</span>
+  <span class="s1">href?: string</span>
+  <span class="s1">hreflang?: string</span>
+  <span class="s1">media?: string</span>
+  <span class="s1">ping?: string</span>
+  <span class="s1">rel?: string</span>
+  <span class="s1">target?: string</span>
+  <span class="s1">type?: string</span>
+  <span class="s1">referrerpolicy?: HTMLAttributeReferrerPolicy</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">AreaHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">alt?: string</span>
+  <span class="s1">coords?: string</span>
+  <span class="s1">download?: any</span>
+  <span class="s1">href?: string</span>
+  <span class="s1">hreflang?: string</span>
+  <span class="s1">media?: string</span>
+  <span class="s1">referrerpolicy?: HTMLAttributeReferrerPolicy</span>
+  <span class="s1">rel?: string</span>
+  <span class="s1">shape?: string</span>
+  <span class="s1">target?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">AudioHTMLAttributes </span><span class="s0">extends </span><span class="s1">MediaHTMLAttributes {}</span>
+
+<span class="s0">export interface </span><span class="s1">BaseHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">href?: string</span>
+  <span class="s1">target?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">BlockquoteHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">cite?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ButtonHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">autofocus?: Booleanish</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">formaction?: string</span>
+  <span class="s1">formenctype?: string</span>
+  <span class="s1">formmethod?: string</span>
+  <span class="s1">formnovalidate?: Booleanish</span>
+  <span class="s1">formtarget?: string</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">type?: </span><span class="s2">'submit' </span><span class="s1">| </span><span class="s2">'reset' </span><span class="s1">| </span><span class="s2">'button'</span>
+  <span class="s1">value?: string | string[] | number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">CanvasHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">width?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ColHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">span?: Numberish</span>
+  <span class="s1">width?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ColgroupHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">span?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">DataHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">value?: string | string[] | number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">DetailsHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">open?: Booleanish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">DelHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">cite?: string</span>
+  <span class="s1">datetime?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">DialogHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">open?: Booleanish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">EmbedHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">type?: string</span>
+  <span class="s1">width?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">FieldsetHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">name?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">FormHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">acceptcharset?: string</span>
+  <span class="s1">action?: string</span>
+  <span class="s1">autocomplete?: string</span>
+  <span class="s1">enctype?: string</span>
+  <span class="s1">method?: string</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">novalidate?: Booleanish</span>
+  <span class="s1">target?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">HtmlHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">manifest?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">IframeHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">allow?: string</span>
+  <span class="s1">allowfullscreen?: Booleanish</span>
+  <span class="s1">allowtransparency?: Booleanish</span>
+  <span class="s1">frameborder?: Numberish</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">marginheight?: Numberish</span>
+  <span class="s1">marginwidth?: Numberish</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">referrerpolicy?: HTMLAttributeReferrerPolicy</span>
+  <span class="s1">sandbox?: string</span>
+  <span class="s1">scrolling?: string</span>
+  <span class="s1">seamless?: Booleanish</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">srcdoc?: string</span>
+  <span class="s1">width?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ImgHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">alt?: string</span>
+  <span class="s1">crossorigin?: </span><span class="s2">'anonymous' </span><span class="s1">| </span><span class="s2">'use-credentials' </span><span class="s1">| </span><span class="s2">''</span>
+  <span class="s1">decoding?: </span><span class="s2">'async' </span><span class="s1">| </span><span class="s2">'auto' </span><span class="s1">| </span><span class="s2">'sync'</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">referrerpolicy?: HTMLAttributeReferrerPolicy</span>
+  <span class="s1">sizes?: string</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">srcset?: string</span>
+  <span class="s1">usemap?: string</span>
+  <span class="s1">width?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">InsHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">cite?: string</span>
+  <span class="s1">datetime?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">InputHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">accept?: string</span>
+  <span class="s1">alt?: string</span>
+  <span class="s1">autocomplete?: string</span>
+  <span class="s1">autofocus?: Booleanish</span>
+  <span class="s1">capture?: boolean | </span><span class="s2">'user' </span><span class="s1">| </span><span class="s2">'environment' </span><span class="s3">// https://www.w3.org/tr/html-media-capture/#the-capture-attribute</span>
+  <span class="s1">checked?: Booleanish | any[] | Set&lt;any&gt; </span><span class="s3">// for IDE v-model multi-checkbox support</span>
+  <span class="s1">crossorigin?: string</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">formaction?: string</span>
+  <span class="s1">formenctype?: string</span>
+  <span class="s1">formmethod?: string</span>
+  <span class="s1">formnovalidate?: Booleanish</span>
+  <span class="s1">formtarget?: string</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">indeterminate?: boolean</span>
+  <span class="s1">list?: string</span>
+  <span class="s1">max?: Numberish</span>
+  <span class="s1">maxlength?: Numberish</span>
+  <span class="s1">min?: Numberish</span>
+  <span class="s1">minlength?: Numberish</span>
+  <span class="s1">multiple?: Booleanish</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">pattern?: string</span>
+  <span class="s1">placeholder?: string</span>
+  <span class="s1">readonly?: Booleanish</span>
+  <span class="s1">required?: Booleanish</span>
+  <span class="s1">size?: Numberish</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">step?: Numberish</span>
+  <span class="s1">type?: string</span>
+  <span class="s1">value?: any </span><span class="s3">// we support :value to be bound to anything w/ v-model</span>
+  <span class="s1">width?: Numberish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">KeygenHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">autofocus?: Booleanish</span>
+  <span class="s1">challenge?: string</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">keytype?: string</span>
+  <span class="s1">keyparams?: string</span>
+  <span class="s1">name?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">LabelHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s0">for</span><span class="s1">?: string</span>
+  <span class="s1">form?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">LiHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">value?: string | string[] | number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">LinkHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">as?: string</span>
+  <span class="s1">crossorigin?: string</span>
+  <span class="s1">href?: string</span>
+  <span class="s1">hreflang?: string</span>
+  <span class="s1">integrity?: string</span>
+  <span class="s1">media?: string</span>
+  <span class="s1">referrerpolicy?: HTMLAttributeReferrerPolicy</span>
+  <span class="s1">rel?: string</span>
+  <span class="s1">sizes?: string</span>
+  <span class="s1">type?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MapHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">name?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MenuHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">type?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MediaHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">autoplay?: Booleanish</span>
+  <span class="s1">controls?: Booleanish</span>
+  <span class="s1">controlslist?: string</span>
+  <span class="s1">crossorigin?: string</span>
+  <span class="s1">loop?: Booleanish</span>
+  <span class="s1">mediagroup?: string</span>
+  <span class="s1">muted?: Booleanish</span>
+  <span class="s1">playsinline?: Booleanish</span>
+  <span class="s1">preload?: string</span>
+  <span class="s1">src?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MetaHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">charset?: string</span>
+  <span class="s1">content?: string</span>
+  <span class="s1">httpequiv?: string</span>
+  <span class="s1">name?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">MeterHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">high?: Numberish</span>
+  <span class="s1">low?: Numberish</span>
+  <span class="s1">max?: Numberish</span>
+  <span class="s1">min?: Numberish</span>
+  <span class="s1">optimum?: Numberish</span>
+  <span class="s1">value?: string | string[] | number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">QuoteHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">cite?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ObjectHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">classid?: string</span>
+  <span class="s1">data?: string</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">type?: string</span>
+  <span class="s1">usemap?: string</span>
+  <span class="s1">width?: Numberish</span>
+  <span class="s1">wmode?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OlHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">reversed?: Booleanish</span>
+  <span class="s1">start?: Numberish</span>
+  <span class="s1">type?: </span><span class="s2">'1' </span><span class="s1">| </span><span class="s2">'a' </span><span class="s1">| </span><span class="s2">'A' </span><span class="s1">| </span><span class="s2">'i' </span><span class="s1">| </span><span class="s2">'I'</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OptgroupHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">label?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OptionHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">label?: string</span>
+  <span class="s1">selected?: Booleanish</span>
+  <span class="s1">value?: any </span><span class="s3">// we support :value to be bound to anything w/ v-model</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">OutputHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s0">for</span><span class="s1">?: string</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">name?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ParamHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">value?: string | string[] | number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ProgressHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">max?: Numberish</span>
+  <span class="s1">value?: string | string[] | number</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ScriptHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">async?: Booleanish</span>
+  <span class="s1">charset?: string</span>
+  <span class="s1">crossorigin?: string</span>
+  <span class="s1">defer?: Booleanish</span>
+  <span class="s1">integrity?: string</span>
+  <span class="s1">nomodule?: Booleanish</span>
+  <span class="s1">referrerpolicy?: HTMLAttributeReferrerPolicy</span>
+  <span class="s1">nonce?: string</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">type?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">SelectHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">autocomplete?: string</span>
+  <span class="s1">autofocus?: Booleanish</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">multiple?: Booleanish</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">required?: Booleanish</span>
+  <span class="s1">size?: Numberish</span>
+  <span class="s1">value?: any </span><span class="s3">// we support :value to be bound to anything w/ v-model</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">SourceHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">media?: string</span>
+  <span class="s1">sizes?: string</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">srcset?: string</span>
+  <span class="s1">type?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">StyleHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">media?: string</span>
+  <span class="s1">nonce?: string</span>
+  <span class="s1">scoped?: Booleanish</span>
+  <span class="s1">type?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TableHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">cellpadding?: Numberish</span>
+  <span class="s1">cellspacing?: Numberish</span>
+  <span class="s1">summary?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TextareaHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">autocomplete?: string</span>
+  <span class="s1">autofocus?: Booleanish</span>
+  <span class="s1">cols?: Numberish</span>
+  <span class="s1">dirname?: string</span>
+  <span class="s1">disabled?: Booleanish</span>
+  <span class="s1">form?: string</span>
+  <span class="s1">maxlength?: Numberish</span>
+  <span class="s1">minlength?: Numberish</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">placeholder?: string</span>
+  <span class="s1">readonly?: boolean</span>
+  <span class="s1">required?: Booleanish</span>
+  <span class="s1">rows?: Numberish</span>
+  <span class="s1">value?: string | string[] | number</span>
+  <span class="s1">wrap?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TdHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">align?: </span><span class="s2">'left' </span><span class="s1">| </span><span class="s2">'center' </span><span class="s1">| </span><span class="s2">'right' </span><span class="s1">| </span><span class="s2">'justify' </span><span class="s1">| </span><span class="s2">'char'</span>
+  <span class="s1">colspan?: Numberish</span>
+  <span class="s1">headers?: string</span>
+  <span class="s1">rowspan?: Numberish</span>
+  <span class="s1">scope?: string</span>
+  <span class="s1">valign?: </span><span class="s2">'top' </span><span class="s1">| </span><span class="s2">'middle' </span><span class="s1">| </span><span class="s2">'bottom' </span><span class="s1">| </span><span class="s2">'baseline'</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ThHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">align?: </span><span class="s2">'left' </span><span class="s1">| </span><span class="s2">'center' </span><span class="s1">| </span><span class="s2">'right' </span><span class="s1">| </span><span class="s2">'justify' </span><span class="s1">| </span><span class="s2">'char'</span>
+  <span class="s1">colspan?: Numberish</span>
+  <span class="s1">headers?: string</span>
+  <span class="s1">rowspan?: Numberish</span>
+  <span class="s1">scope?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TimeHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">datetime?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">TrackHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s0">default</span><span class="s1">?: Booleanish</span>
+  <span class="s1">kind?: string</span>
+  <span class="s1">label?: string</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">srclang?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">VideoHTMLAttributes </span><span class="s0">extends </span><span class="s1">MediaHTMLAttributes {</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">playsinline?: Booleanish</span>
+  <span class="s1">poster?: string</span>
+  <span class="s1">width?: Numberish</span>
+  <span class="s1">disablePictureInPicture?: Booleanish</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">WebViewHTMLAttributes </span><span class="s0">extends </span><span class="s1">HTMLAttributes {</span>
+  <span class="s1">allowfullscreen?: Booleanish</span>
+  <span class="s1">allowpopups?: Booleanish</span>
+  <span class="s1">autoFocus?: Booleanish</span>
+  <span class="s1">autosize?: Booleanish</span>
+  <span class="s1">blinkfeatures?: string</span>
+  <span class="s1">disableblinkfeatures?: string</span>
+  <span class="s1">disableguestresize?: Booleanish</span>
+  <span class="s1">disablewebsecurity?: Booleanish</span>
+  <span class="s1">guestinstance?: string</span>
+  <span class="s1">httpreferrer?: string</span>
+  <span class="s1">nodeintegration?: Booleanish</span>
+  <span class="s1">partition?: string</span>
+  <span class="s1">plugins?: Booleanish</span>
+  <span class="s1">preload?: string</span>
+  <span class="s1">src?: string</span>
+  <span class="s1">useragent?: string</span>
+  <span class="s1">webpreferences?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">SVGAttributes </span><span class="s0">extends </span><span class="s1">AriaAttributes</span><span class="s0">, </span><span class="s1">EventHandlers&lt;Events&gt; {</span>
+  <span class="s1">innerHTML?: string</span>
+
+  <span class="s4">/**</span>
+   <span class="s4">* SVG Styling Attributes</span>
+   <span class="s4">* </span><span class="s5">@see </span><span class="s4">https://www.w3.org/TR/SVG/styling.html#ElementSpecificStyling</span>
+   <span class="s4">*/</span>
+  <span class="s0">class</span><span class="s1">?: any</span>
+  <span class="s1">style?: string | CSSProperties</span>
+
+  <span class="s1">color?: string</span>
+  <span class="s1">height?: Numberish</span>
+  <span class="s1">id?: string</span>
+  <span class="s1">lang?: string</span>
+  <span class="s1">max?: Numberish</span>
+  <span class="s1">media?: string</span>
+  <span class="s1">method?: string</span>
+  <span class="s1">min?: Numberish</span>
+  <span class="s1">name?: string</span>
+  <span class="s1">target?: string</span>
+  <span class="s1">type?: string</span>
+  <span class="s1">width?: Numberish</span>
+
+  <span class="s3">// Other HTML properties supported by SVG elements in browsers</span>
+  <span class="s1">role?: string</span>
+  <span class="s1">tabindex?: Numberish</span>
+
+  <span class="s3">// SVG Specific attributes</span>
+  <span class="s2">'accent-height'</span><span class="s1">?: Numberish</span>
+  <span class="s1">accumulate?: </span><span class="s2">'none' </span><span class="s1">| </span><span class="s2">'sum'</span>
+  <span class="s1">additive?: </span><span class="s2">'replace' </span><span class="s1">| </span><span class="s2">'sum'</span>
+  <span class="s2">'alignment-baseline'</span><span class="s1">?:</span>
+    <span class="s1">| </span><span class="s2">'auto'</span>
+    <span class="s1">| </span><span class="s2">'baseline'</span>
+    <span class="s1">| </span><span class="s2">'before-edge'</span>
+    <span class="s1">| </span><span class="s2">'text-before-edge'</span>
+    <span class="s1">| </span><span class="s2">'middle'</span>
+    <span class="s1">| </span><span class="s2">'central'</span>
+    <span class="s1">| </span><span class="s2">'after-edge'</span>
+    <span class="s1">| </span><span class="s2">'text-after-edge'</span>
+    <span class="s1">| </span><span class="s2">'ideographic'</span>
+    <span class="s1">| </span><span class="s2">'alphabetic'</span>
+    <span class="s1">| </span><span class="s2">'hanging'</span>
+    <span class="s1">| </span><span class="s2">'mathematical'</span>
+    <span class="s1">| </span><span class="s2">'inherit'</span>
+  <span class="s1">allowReorder?: </span><span class="s2">'no' </span><span class="s1">| </span><span class="s2">'yes'</span>
+  <span class="s1">alphabetic?: Numberish</span>
+  <span class="s1">amplitude?: Numberish</span>
+  <span class="s2">'arabic-form'</span><span class="s1">?: </span><span class="s2">'initial' </span><span class="s1">| </span><span class="s2">'medial' </span><span class="s1">| </span><span class="s2">'terminal' </span><span class="s1">| </span><span class="s2">'isolated'</span>
+  <span class="s1">ascent?: Numberish</span>
+  <span class="s1">attributeName?: string</span>
+  <span class="s1">attributeType?: string</span>
+  <span class="s1">autoReverse?: Numberish</span>
+  <span class="s1">azimuth?: Numberish</span>
+  <span class="s1">baseFrequency?: Numberish</span>
+  <span class="s2">'baseline-shift'</span><span class="s1">?: Numberish</span>
+  <span class="s1">baseProfile?: Numberish</span>
+  <span class="s1">bbox?: Numberish</span>
+  <span class="s1">begin?: Numberish</span>
+  <span class="s1">bias?: Numberish</span>
+  <span class="s1">by?: Numberish</span>
+  <span class="s1">calcMode?: Numberish</span>
+  <span class="s2">'cap-height'</span><span class="s1">?: Numberish</span>
+  <span class="s1">clip?: Numberish</span>
+  <span class="s2">'clip-path'</span><span class="s1">?: string</span>
+  <span class="s1">clipPathUnits?: Numberish</span>
+  <span class="s2">'clip-rule'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'color-interpolation'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'color-interpolation-filters'</span><span class="s1">?: </span><span class="s2">'auto' </span><span class="s1">| </span><span class="s2">'sRGB' </span><span class="s1">| </span><span class="s2">'linearRGB' </span><span class="s1">| </span><span class="s2">'inherit'</span>
+  <span class="s2">'color-profile'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'color-rendering'</span><span class="s1">?: Numberish</span>
+  <span class="s1">contentScriptType?: Numberish</span>
+  <span class="s1">contentStyleType?: Numberish</span>
+  <span class="s1">cursor?: Numberish</span>
+  <span class="s1">cx?: Numberish</span>
+  <span class="s1">cy?: Numberish</span>
+  <span class="s1">d?: string</span>
+  <span class="s1">decelerate?: Numberish</span>
+  <span class="s1">descent?: Numberish</span>
+  <span class="s1">diffuseConstant?: Numberish</span>
+  <span class="s1">direction?: Numberish</span>
+  <span class="s1">display?: Numberish</span>
+  <span class="s1">divisor?: Numberish</span>
+  <span class="s2">'dominant-baseline'</span><span class="s1">?: Numberish</span>
+  <span class="s1">dur?: Numberish</span>
+  <span class="s1">dx?: Numberish</span>
+  <span class="s1">dy?: Numberish</span>
+  <span class="s1">edgeMode?: Numberish</span>
+  <span class="s1">elevation?: Numberish</span>
+  <span class="s2">'enable-background'</span><span class="s1">?: Numberish</span>
+  <span class="s1">end?: Numberish</span>
+  <span class="s1">exponent?: Numberish</span>
+  <span class="s1">externalResourcesRequired?: Numberish</span>
+  <span class="s1">fill?: string</span>
+  <span class="s2">'fill-opacity'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'fill-rule'</span><span class="s1">?: </span><span class="s2">'nonzero' </span><span class="s1">| </span><span class="s2">'evenodd' </span><span class="s1">| </span><span class="s2">'inherit'</span>
+  <span class="s1">filter?: string</span>
+  <span class="s1">filterRes?: Numberish</span>
+  <span class="s1">filterUnits?: Numberish</span>
+  <span class="s2">'flood-color'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'flood-opacity'</span><span class="s1">?: Numberish</span>
+  <span class="s1">focusable?: Numberish</span>
+  <span class="s2">'font-family'</span><span class="s1">?: string</span>
+  <span class="s2">'font-size'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'font-size-adjust'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'font-stretch'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'font-style'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'font-variant'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'font-weight'</span><span class="s1">?: Numberish</span>
+  <span class="s1">format?: Numberish</span>
+  <span class="s1">from?: Numberish</span>
+  <span class="s1">fx?: Numberish</span>
+  <span class="s1">fy?: Numberish</span>
+  <span class="s1">g1?: Numberish</span>
+  <span class="s1">g2?: Numberish</span>
+  <span class="s2">'glyph-name'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'glyph-orientation-horizontal'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'glyph-orientation-vertical'</span><span class="s1">?: Numberish</span>
+  <span class="s1">glyphRef?: Numberish</span>
+  <span class="s1">gradientTransform?: string</span>
+  <span class="s1">gradientUnits?: string</span>
+  <span class="s1">hanging?: Numberish</span>
+  <span class="s2">'horiz-adv-x'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'horiz-origin-x'</span><span class="s1">?: Numberish</span>
+  <span class="s1">href?: string</span>
+  <span class="s1">ideographic?: Numberish</span>
+  <span class="s2">'image-rendering'</span><span class="s1">?: Numberish</span>
+  <span class="s1">in2?: Numberish</span>
+  <span class="s0">in</span><span class="s1">?: string</span>
+  <span class="s1">intercept?: Numberish</span>
+  <span class="s1">k1?: Numberish</span>
+  <span class="s1">k2?: Numberish</span>
+  <span class="s1">k3?: Numberish</span>
+  <span class="s1">k4?: Numberish</span>
+  <span class="s1">k?: Numberish</span>
+  <span class="s1">kernelMatrix?: Numberish</span>
+  <span class="s1">kernelUnitLength?: Numberish</span>
+  <span class="s1">kerning?: Numberish</span>
+  <span class="s1">keyPoints?: Numberish</span>
+  <span class="s1">keySplines?: Numberish</span>
+  <span class="s1">keyTimes?: Numberish</span>
+  <span class="s1">lengthAdjust?: Numberish</span>
+  <span class="s2">'letter-spacing'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'lighting-color'</span><span class="s1">?: Numberish</span>
+  <span class="s1">limitingConeAngle?: Numberish</span>
+  <span class="s1">local?: Numberish</span>
+  <span class="s2">'marker-end'</span><span class="s1">?: string</span>
+  <span class="s1">markerHeight?: Numberish</span>
+  <span class="s2">'marker-mid'</span><span class="s1">?: string</span>
+  <span class="s2">'marker-start'</span><span class="s1">?: string</span>
+  <span class="s1">markerUnits?: Numberish</span>
+  <span class="s1">markerWidth?: Numberish</span>
+  <span class="s1">mask?: string</span>
+  <span class="s1">maskContentUnits?: Numberish</span>
+  <span class="s1">maskUnits?: Numberish</span>
+  <span class="s1">mathematical?: Numberish</span>
+  <span class="s1">mode?: Numberish</span>
+  <span class="s1">numOctaves?: Numberish</span>
+  <span class="s1">offset?: Numberish</span>
+  <span class="s1">opacity?: Numberish</span>
+  <span class="s1">operator?: Numberish</span>
+  <span class="s1">order?: Numberish</span>
+  <span class="s1">orient?: Numberish</span>
+  <span class="s1">orientation?: Numberish</span>
+  <span class="s1">origin?: Numberish</span>
+  <span class="s1">overflow?: Numberish</span>
+  <span class="s2">'overline-position'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'overline-thickness'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'paint-order'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'panose-1'</span><span class="s1">?: Numberish</span>
+  <span class="s1">pathLength?: Numberish</span>
+  <span class="s1">patternContentUnits?: string</span>
+  <span class="s1">patternTransform?: Numberish</span>
+  <span class="s1">patternUnits?: string</span>
+  <span class="s2">'pointer-events'</span><span class="s1">?: Numberish</span>
+  <span class="s1">points?: string</span>
+  <span class="s1">pointsAtX?: Numberish</span>
+  <span class="s1">pointsAtY?: Numberish</span>
+  <span class="s1">pointsAtZ?: Numberish</span>
+  <span class="s1">preserveAlpha?: Numberish</span>
+  <span class="s1">preserveAspectRatio?: string</span>
+  <span class="s1">primitiveUnits?: Numberish</span>
+  <span class="s1">r?: Numberish</span>
+  <span class="s1">radius?: Numberish</span>
+  <span class="s1">refX?: Numberish</span>
+  <span class="s1">refY?: Numberish</span>
+  <span class="s1">renderingIntent?: Numberish</span>
+  <span class="s1">repeatCount?: Numberish</span>
+  <span class="s1">repeatDur?: Numberish</span>
+  <span class="s1">requiredExtensions?: Numberish</span>
+  <span class="s1">requiredFeatures?: Numberish</span>
+  <span class="s1">restart?: Numberish</span>
+  <span class="s1">result?: string</span>
+  <span class="s1">rotate?: Numberish</span>
+  <span class="s1">rx?: Numberish</span>
+  <span class="s1">ry?: Numberish</span>
+  <span class="s1">scale?: Numberish</span>
+  <span class="s1">seed?: Numberish</span>
+  <span class="s2">'shape-rendering'</span><span class="s1">?: Numberish</span>
+  <span class="s1">slope?: Numberish</span>
+  <span class="s1">spacing?: Numberish</span>
+  <span class="s1">specularConstant?: Numberish</span>
+  <span class="s1">specularExponent?: Numberish</span>
+  <span class="s1">speed?: Numberish</span>
+  <span class="s1">spreadMethod?: string</span>
+  <span class="s1">startOffset?: Numberish</span>
+  <span class="s1">stdDeviation?: Numberish</span>
+  <span class="s1">stemh?: Numberish</span>
+  <span class="s1">stemv?: Numberish</span>
+  <span class="s1">stitchTiles?: Numberish</span>
+  <span class="s2">'stop-color'</span><span class="s1">?: string</span>
+  <span class="s2">'stop-opacity'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'strikethrough-position'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'strikethrough-thickness'</span><span class="s1">?: Numberish</span>
+  <span class="s1">string?: Numberish</span>
+  <span class="s1">stroke?: string</span>
+  <span class="s2">'stroke-dasharray'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'stroke-dashoffset'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'stroke-linecap'</span><span class="s1">?: </span><span class="s2">'butt' </span><span class="s1">| </span><span class="s2">'round' </span><span class="s1">| </span><span class="s2">'square' </span><span class="s1">| </span><span class="s2">'inherit'</span>
+  <span class="s2">'stroke-linejoin'</span><span class="s1">?: </span><span class="s2">'miter' </span><span class="s1">| </span><span class="s2">'round' </span><span class="s1">| </span><span class="s2">'bevel' </span><span class="s1">| </span><span class="s2">'inherit'</span>
+  <span class="s2">'stroke-miterlimit'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'stroke-opacity'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'stroke-width'</span><span class="s1">?: Numberish</span>
+  <span class="s1">surfaceScale?: Numberish</span>
+  <span class="s1">systemLanguage?: Numberish</span>
+  <span class="s1">tableValues?: Numberish</span>
+  <span class="s1">targetX?: Numberish</span>
+  <span class="s1">targetY?: Numberish</span>
+  <span class="s2">'text-anchor'</span><span class="s1">?: string</span>
+  <span class="s2">'text-decoration'</span><span class="s1">?: Numberish</span>
+  <span class="s1">textLength?: Numberish</span>
+  <span class="s2">'text-rendering'</span><span class="s1">?: Numberish</span>
+  <span class="s1">to?: Numberish</span>
+  <span class="s1">transform?: string</span>
+  <span class="s1">u1?: Numberish</span>
+  <span class="s1">u2?: Numberish</span>
+  <span class="s2">'underline-position'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'underline-thickness'</span><span class="s1">?: Numberish</span>
+  <span class="s1">unicode?: Numberish</span>
+  <span class="s2">'unicode-bidi'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'unicode-range'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'unitsPer-em'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'v-alphabetic'</span><span class="s1">?: Numberish</span>
+  <span class="s1">values?: string</span>
+  <span class="s2">'vector-effect'</span><span class="s1">?: Numberish</span>
+  <span class="s1">version?: string</span>
+  <span class="s2">'vert-adv-y'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'vert-origin-x'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'vert-origin-y'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'v-hanging'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'v-ideographic'</span><span class="s1">?: Numberish</span>
+  <span class="s1">viewBox?: string</span>
+  <span class="s1">viewTarget?: Numberish</span>
+  <span class="s1">visibility?: Numberish</span>
+  <span class="s2">'v-mathematical'</span><span class="s1">?: Numberish</span>
+  <span class="s1">widths?: Numberish</span>
+  <span class="s2">'word-spacing'</span><span class="s1">?: Numberish</span>
+  <span class="s2">'writing-mode'</span><span class="s1">?: Numberish</span>
+  <span class="s1">x1?: Numberish</span>
+  <span class="s1">x2?: Numberish</span>
+  <span class="s1">x?: Numberish</span>
+  <span class="s1">xChannelSelector?: string</span>
+  <span class="s2">'x-height'</span><span class="s1">?: Numberish</span>
+  <span class="s1">xlinkActuate?: string</span>
+  <span class="s1">xlinkArcrole?: string</span>
+  <span class="s1">xlinkHref?: string</span>
+  <span class="s1">xlinkRole?: string</span>
+  <span class="s1">xlinkShow?: string</span>
+  <span class="s1">xlinkTitle?: string</span>
+  <span class="s1">xlinkType?: string</span>
+  <span class="s1">xmlns?: string</span>
+  <span class="s1">y1?: Numberish</span>
+  <span class="s1">y2?: Numberish</span>
+  <span class="s1">y?: Numberish</span>
+  <span class="s1">yChannelSelector?: string</span>
+  <span class="s1">z?: Numberish</span>
+  <span class="s1">zoomAndPan?: string</span>
+<span class="s1">}</span>
+
+<span class="s0">interface </span><span class="s1">IntrinsicElementAttributes {</span>
+  <span class="s1">a: AnchorHTMLAttributes</span>
+  <span class="s1">abbr: HTMLAttributes</span>
+  <span class="s1">address: HTMLAttributes</span>
+  <span class="s1">area: AreaHTMLAttributes</span>
+  <span class="s1">article: HTMLAttributes</span>
+  <span class="s1">aside: HTMLAttributes</span>
+  <span class="s1">audio: AudioHTMLAttributes</span>
+  <span class="s1">b: HTMLAttributes</span>
+  <span class="s1">base: BaseHTMLAttributes</span>
+  <span class="s1">bdi: HTMLAttributes</span>
+  <span class="s1">bdo: HTMLAttributes</span>
+  <span class="s1">blockquote: BlockquoteHTMLAttributes</span>
+  <span class="s1">body: HTMLAttributes</span>
+  <span class="s1">br: HTMLAttributes</span>
+  <span class="s1">button: ButtonHTMLAttributes</span>
+  <span class="s1">canvas: CanvasHTMLAttributes</span>
+  <span class="s1">caption: HTMLAttributes</span>
+  <span class="s1">cite: HTMLAttributes</span>
+  <span class="s1">code: HTMLAttributes</span>
+  <span class="s1">col: ColHTMLAttributes</span>
+  <span class="s1">colgroup: ColgroupHTMLAttributes</span>
+  <span class="s1">data: DataHTMLAttributes</span>
+  <span class="s1">datalist: HTMLAttributes</span>
+  <span class="s1">dd: HTMLAttributes</span>
+  <span class="s1">del: DelHTMLAttributes</span>
+  <span class="s1">details: DetailsHTMLAttributes</span>
+  <span class="s1">dfn: HTMLAttributes</span>
+  <span class="s1">dialog: DialogHTMLAttributes</span>
+  <span class="s1">div: HTMLAttributes</span>
+  <span class="s1">dl: HTMLAttributes</span>
+  <span class="s1">dt: HTMLAttributes</span>
+  <span class="s1">em: HTMLAttributes</span>
+  <span class="s1">embed: EmbedHTMLAttributes</span>
+  <span class="s1">fieldset: FieldsetHTMLAttributes</span>
+  <span class="s1">figcaption: HTMLAttributes</span>
+  <span class="s1">figure: HTMLAttributes</span>
+  <span class="s1">footer: HTMLAttributes</span>
+  <span class="s1">form: FormHTMLAttributes</span>
+  <span class="s1">h1: HTMLAttributes</span>
+  <span class="s1">h2: HTMLAttributes</span>
+  <span class="s1">h3: HTMLAttributes</span>
+  <span class="s1">h4: HTMLAttributes</span>
+  <span class="s1">h5: HTMLAttributes</span>
+  <span class="s1">h6: HTMLAttributes</span>
+  <span class="s1">head: HTMLAttributes</span>
+  <span class="s1">header: HTMLAttributes</span>
+  <span class="s1">hgroup: HTMLAttributes</span>
+  <span class="s1">hr: HTMLAttributes</span>
+  <span class="s1">html: HtmlHTMLAttributes</span>
+  <span class="s1">i: HTMLAttributes</span>
+  <span class="s1">iframe: IframeHTMLAttributes</span>
+  <span class="s1">img: ImgHTMLAttributes</span>
+  <span class="s1">input: InputHTMLAttributes</span>
+  <span class="s1">ins: InsHTMLAttributes</span>
+  <span class="s1">kbd: HTMLAttributes</span>
+  <span class="s1">keygen: KeygenHTMLAttributes</span>
+  <span class="s1">label: LabelHTMLAttributes</span>
+  <span class="s1">legend: HTMLAttributes</span>
+  <span class="s1">li: LiHTMLAttributes</span>
+  <span class="s1">link: LinkHTMLAttributes</span>
+  <span class="s1">main: HTMLAttributes</span>
+  <span class="s1">map: MapHTMLAttributes</span>
+  <span class="s1">mark: HTMLAttributes</span>
+  <span class="s1">menu: MenuHTMLAttributes</span>
+  <span class="s1">meta: MetaHTMLAttributes</span>
+  <span class="s1">meter: MeterHTMLAttributes</span>
+  <span class="s1">nav: HTMLAttributes</span>
+  <span class="s1">noindex: HTMLAttributes</span>
+  <span class="s1">noscript: HTMLAttributes</span>
+  <span class="s1">object: ObjectHTMLAttributes</span>
+  <span class="s1">ol: OlHTMLAttributes</span>
+  <span class="s1">optgroup: OptgroupHTMLAttributes</span>
+  <span class="s1">option: OptionHTMLAttributes</span>
+  <span class="s1">output: OutputHTMLAttributes</span>
+  <span class="s1">p: HTMLAttributes</span>
+  <span class="s1">param: ParamHTMLAttributes</span>
+  <span class="s1">picture: HTMLAttributes</span>
+  <span class="s1">pre: HTMLAttributes</span>
+  <span class="s1">progress: ProgressHTMLAttributes</span>
+  <span class="s1">q: QuoteHTMLAttributes</span>
+  <span class="s1">rp: HTMLAttributes</span>
+  <span class="s1">rt: HTMLAttributes</span>
+  <span class="s1">ruby: HTMLAttributes</span>
+  <span class="s1">s: HTMLAttributes</span>
+  <span class="s1">samp: HTMLAttributes</span>
+  <span class="s1">script: ScriptHTMLAttributes</span>
+  <span class="s1">section: HTMLAttributes</span>
+  <span class="s1">select: SelectHTMLAttributes</span>
+  <span class="s1">small: HTMLAttributes</span>
+  <span class="s1">source: SourceHTMLAttributes</span>
+  <span class="s1">span: HTMLAttributes</span>
+  <span class="s1">strong: HTMLAttributes</span>
+  <span class="s1">style: StyleHTMLAttributes</span>
+  <span class="s1">sub: HTMLAttributes</span>
+  <span class="s1">summary: HTMLAttributes</span>
+  <span class="s1">sup: HTMLAttributes</span>
+  <span class="s1">table: TableHTMLAttributes</span>
+  <span class="s1">template: HTMLAttributes</span>
+  <span class="s1">tbody: HTMLAttributes</span>
+  <span class="s1">td: TdHTMLAttributes</span>
+  <span class="s1">textarea: TextareaHTMLAttributes</span>
+  <span class="s1">tfoot: HTMLAttributes</span>
+  <span class="s1">th: ThHTMLAttributes</span>
+  <span class="s1">thead: HTMLAttributes</span>
+  <span class="s1">time: TimeHTMLAttributes</span>
+  <span class="s1">title: HTMLAttributes</span>
+  <span class="s1">tr: HTMLAttributes</span>
+  <span class="s1">track: TrackHTMLAttributes</span>
+  <span class="s1">u: HTMLAttributes</span>
+  <span class="s1">ul: HTMLAttributes</span>
+  <span class="s0">var</span><span class="s1">: HTMLAttributes</span>
+  <span class="s1">video: VideoHTMLAttributes</span>
+  <span class="s1">wbr: HTMLAttributes</span>
+  <span class="s1">webview: WebViewHTMLAttributes</span>
+
+  <span class="s3">// SVG</span>
+  <span class="s1">svg: SVGAttributes</span>
+
+  <span class="s1">animate: SVGAttributes</span>
+  <span class="s1">animateMotion: SVGAttributes</span>
+  <span class="s1">animateTransform: SVGAttributes</span>
+  <span class="s1">circle: SVGAttributes</span>
+  <span class="s1">clipPath: SVGAttributes</span>
+  <span class="s1">defs: SVGAttributes</span>
+  <span class="s1">desc: SVGAttributes</span>
+  <span class="s1">ellipse: SVGAttributes</span>
+  <span class="s1">feBlend: SVGAttributes</span>
+  <span class="s1">feColorMatrix: SVGAttributes</span>
+  <span class="s1">feComponentTransfer: SVGAttributes</span>
+  <span class="s1">feComposite: SVGAttributes</span>
+  <span class="s1">feConvolveMatrix: SVGAttributes</span>
+  <span class="s1">feDiffuseLighting: SVGAttributes</span>
+  <span class="s1">feDisplacementMap: SVGAttributes</span>
+  <span class="s1">feDistantLight: SVGAttributes</span>
+  <span class="s1">feDropShadow: SVGAttributes</span>
+  <span class="s1">feFlood: SVGAttributes</span>
+  <span class="s1">feFuncA: SVGAttributes</span>
+  <span class="s1">feFuncB: SVGAttributes</span>
+  <span class="s1">feFuncG: SVGAttributes</span>
+  <span class="s1">feFuncR: SVGAttributes</span>
+  <span class="s1">feGaussianBlur: SVGAttributes</span>
+  <span class="s1">feImage: SVGAttributes</span>
+  <span class="s1">feMerge: SVGAttributes</span>
+  <span class="s1">feMergeNode: SVGAttributes</span>
+  <span class="s1">feMorphology: SVGAttributes</span>
+  <span class="s1">feOffset: SVGAttributes</span>
+  <span class="s1">fePointLight: SVGAttributes</span>
+  <span class="s1">feSpecularLighting: SVGAttributes</span>
+  <span class="s1">feSpotLight: SVGAttributes</span>
+  <span class="s1">feTile: SVGAttributes</span>
+  <span class="s1">feTurbulence: SVGAttributes</span>
+  <span class="s1">filter: SVGAttributes</span>
+  <span class="s1">foreignObject: SVGAttributes</span>
+  <span class="s1">g: SVGAttributes</span>
+  <span class="s1">image: SVGAttributes</span>
+  <span class="s1">line: SVGAttributes</span>
+  <span class="s1">linearGradient: SVGAttributes</span>
+  <span class="s1">marker: SVGAttributes</span>
+  <span class="s1">mask: SVGAttributes</span>
+  <span class="s1">metadata: SVGAttributes</span>
+  <span class="s1">mpath: SVGAttributes</span>
+  <span class="s1">path: SVGAttributes</span>
+  <span class="s1">pattern: SVGAttributes</span>
+  <span class="s1">polygon: SVGAttributes</span>
+  <span class="s1">polyline: SVGAttributes</span>
+  <span class="s1">radialGradient: SVGAttributes</span>
+  <span class="s1">rect: SVGAttributes</span>
+  <span class="s1">stop: SVGAttributes</span>
+  <span class="s0">switch</span><span class="s1">: SVGAttributes</span>
+  <span class="s1">symbol: SVGAttributes</span>
+  <span class="s1">text: SVGAttributes</span>
+  <span class="s1">textPath: SVGAttributes</span>
+  <span class="s1">tspan: SVGAttributes</span>
+  <span class="s1">use: SVGAttributes</span>
+  <span class="s1">view: SVGAttributes</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">Events {</span>
+  <span class="s3">// clipboard events</span>
+  <span class="s1">onCopy: ClipboardEvent</span>
+  <span class="s1">onCut: ClipboardEvent</span>
+  <span class="s1">onPaste: ClipboardEvent</span>
+
+  <span class="s3">// composition events</span>
+  <span class="s1">onCompositionend: CompositionEvent</span>
+  <span class="s1">onCompositionstart: CompositionEvent</span>
+  <span class="s1">onCompositionupdate: CompositionEvent</span>
+
+  <span class="s3">// drag drop events</span>
+  <span class="s1">onDrag: DragEvent</span>
+  <span class="s1">onDragend: DragEvent</span>
+  <span class="s1">onDragenter: DragEvent</span>
+  <span class="s1">onDragexit: DragEvent</span>
+  <span class="s1">onDragleave: DragEvent</span>
+  <span class="s1">onDragover: DragEvent</span>
+  <span class="s1">onDragstart: DragEvent</span>
+  <span class="s1">onDrop: DragEvent</span>
+
+  <span class="s3">// focus events</span>
+  <span class="s1">onFocus: FocusEvent</span>
+  <span class="s1">onFocusin: FocusEvent</span>
+  <span class="s1">onFocusout: FocusEvent</span>
+  <span class="s1">onBlur: FocusEvent</span>
+
+  <span class="s3">// form events</span>
+  <span class="s1">onChange: Event</span>
+  <span class="s1">onBeforeinput: Event</span>
+  <span class="s1">onInput: Event</span>
+  <span class="s1">onReset: Event</span>
+  <span class="s1">onSubmit: Event</span>
+  <span class="s1">onInvalid: Event</span>
+
+  <span class="s3">// image events</span>
+  <span class="s1">onLoad: Event</span>
+  <span class="s1">onError: Event</span>
+
+  <span class="s3">// keyboard events</span>
+  <span class="s1">onKeydown: KeyboardEvent</span>
+  <span class="s1">onKeypress: KeyboardEvent</span>
+  <span class="s1">onKeyup: KeyboardEvent</span>
+
+  <span class="s3">// mouse events</span>
+  <span class="s1">onAuxclick: MouseEvent</span>
+  <span class="s1">onClick: MouseEvent</span>
+  <span class="s1">onContextmenu: MouseEvent</span>
+  <span class="s1">onDblclick: MouseEvent</span>
+  <span class="s1">onMousedown: MouseEvent</span>
+  <span class="s1">onMouseenter: MouseEvent</span>
+  <span class="s1">onMouseleave: MouseEvent</span>
+  <span class="s1">onMousemove: MouseEvent</span>
+  <span class="s1">onMouseout: MouseEvent</span>
+  <span class="s1">onMouseover: MouseEvent</span>
+  <span class="s1">onMouseup: MouseEvent</span>
+
+  <span class="s3">// media events</span>
+  <span class="s1">onAbort: Event</span>
+  <span class="s1">onCanplay: Event</span>
+  <span class="s1">onCanplaythrough: Event</span>
+  <span class="s1">onDurationchange: Event</span>
+  <span class="s1">onEmptied: Event</span>
+  <span class="s1">onEncrypted: Event</span>
+  <span class="s1">onEnded: Event</span>
+  <span class="s1">onLoadeddata: Event</span>
+  <span class="s1">onLoadedmetadata: Event</span>
+  <span class="s1">onLoadstart: Event</span>
+  <span class="s1">onPause: Event</span>
+  <span class="s1">onPlay: Event</span>
+  <span class="s1">onPlaying: Event</span>
+  <span class="s1">onProgress: Event</span>
+  <span class="s1">onRatechange: Event</span>
+  <span class="s1">onSeeked: Event</span>
+  <span class="s1">onSeeking: Event</span>
+  <span class="s1">onStalled: Event</span>
+  <span class="s1">onSuspend: Event</span>
+  <span class="s1">onTimeupdate: Event</span>
+  <span class="s1">onVolumechange: Event</span>
+  <span class="s1">onWaiting: Event</span>
+
+  <span class="s3">// selection events</span>
+  <span class="s1">onSelect: Event</span>
+
+  <span class="s3">// UI events</span>
+  <span class="s1">onScroll: UIEvent</span>
+
+  <span class="s3">// touch events</span>
+  <span class="s1">onTouchcancel: TouchEvent</span>
+  <span class="s1">onTouchend: TouchEvent</span>
+  <span class="s1">onTouchmove: TouchEvent</span>
+  <span class="s1">onTouchstart: TouchEvent</span>
+
+  <span class="s3">// pointer events</span>
+  <span class="s1">onPointerdown: PointerEvent</span>
+  <span class="s1">onPointermove: PointerEvent</span>
+  <span class="s1">onPointerup: PointerEvent</span>
+  <span class="s1">onPointercancel: PointerEvent</span>
+  <span class="s1">onPointerenter: PointerEvent</span>
+  <span class="s1">onPointerleave: PointerEvent</span>
+  <span class="s1">onPointerover: PointerEvent</span>
+  <span class="s1">onPointerout: PointerEvent</span>
+
+  <span class="s3">// wheel events</span>
+  <span class="s1">onWheel: WheelEvent</span>
+
+  <span class="s3">// animation events</span>
+  <span class="s1">onAnimationstart: AnimationEvent</span>
+  <span class="s1">onAnimationend: AnimationEvent</span>
+  <span class="s1">onAnimationiteration: AnimationEvent</span>
+
+  <span class="s3">// transition events</span>
+  <span class="s1">onTransitionend: TransitionEvent</span>
+  <span class="s1">onTransitionstart: TransitionEvent</span>
+<span class="s1">}</span>
+
+<span class="s1">type EventHandlers&lt;E&gt; = {</span>
+  <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof E]?: E[K] </span><span class="s0">extends </span><span class="s1">(...args: any) =&gt; any</span>
+    <span class="s1">? E[K]</span>
+    <span class="s1">: (payload: E[K]) =&gt; </span><span class="s0">void</span>
+<span class="s1">}</span>
+
+<span class="s3">// use namespace import to avoid collision with generated types which use</span>
+<span class="s3">// named imports.</span>
+<span class="s0">import </span><span class="s1">* as RuntimeCore from </span><span class="s2">'@vue/runtime-core'</span>
+
+<span class="s1">type ReservedProps = {</span>
+  <span class="s1">key?: string | number | symbol</span>
+  <span class="s1">ref?: RuntimeCore.VNodeRef</span>
+  <span class="s1">ref_for?: boolean</span>
+  <span class="s1">ref_key?: string</span>
+<span class="s1">}</span>
+
+<span class="s1">type ElementAttrs&lt;T&gt; = T &amp; ReservedProps</span>
+
+<span class="s1">type NativeElements = {</span>
+  <span class="s1">[K </span><span class="s0">in </span><span class="s1">keyof IntrinsicElementAttributes]: ElementAttrs&lt;</span>
+    <span class="s1">IntrinsicElementAttributes[K]</span>
+  <span class="s1">&gt;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare global {</span>
+  <span class="s1">namespace JSX {</span>
+    <span class="s0">interface </span><span class="s1">Element </span><span class="s0">extends </span><span class="s1">VNode {}</span>
+    <span class="s0">interface </span><span class="s1">ElementClass {</span>
+      <span class="s1">$props: {}</span>
+    <span class="s1">}</span>
+    <span class="s0">interface </span><span class="s1">ElementAttributesProperty {</span>
+      <span class="s1">$props: {}</span>
+    <span class="s1">}</span>
+    <span class="s0">interface </span><span class="s1">IntrinsicElements </span><span class="s0">extends </span><span class="s1">NativeElements {</span>
+      <span class="s3">// allow arbitrary elements</span>
+      <span class="s3">// @ts-ignore suppress ts:2374 = Duplicate string index signature.</span>
+      <span class="s1">[name: string]: any</span>
+    <span class="s1">}</span>
+    <span class="s0">interface </span><span class="s1">IntrinsicAttributes </span><span class="s0">extends </span><span class="s1">ReservedProps {}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s3">// suppress ts:2669</span>
+<span class="s0">export </span><span class="s1">{}</span>
+
+<span class="s3">// Note: this file is auto concatenated to the end of the bundled d.ts during</span>
+<span class="s3">// build.</span>
+
+<span class="s1">declare module </span><span class="s2">'@vue/reactivity' </span><span class="s1">{</span>
+  <span class="s0">export interface </span><span class="s1">RefUnwrapBailTypes {</span>
+    <span class="s1">runtimeDOMBailTypes: Node | Window</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

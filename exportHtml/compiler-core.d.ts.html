@@ -1,0 +1,1224 @@
+<html>
+<head>
+<title>compiler-core.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #629755; font-weight: bold; font-style: italic;}
+.s5 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+compiler-core.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">type { BlockStatement as BlockStatement_2 } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">type { Function as Function_2 } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ generateCodeFrame } from </span><span class="s2">'@vue/shared'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">type { Identifier } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">type { Node as Node_3 } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">type { ObjectProperty } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ParserPlugin } from </span><span class="s2">'@babel/parser'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">type { Program } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RawSourceMap } from </span><span class="s2">'source-map'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ SourceMapGenerator } from </span><span class="s2">'source-map'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">advancePositionWithClone(pos: Position</span><span class="s0">, </span><span class="s1">source: string</span><span class="s0">, </span><span class="s1">numberOfCharacters?: number): Position</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">advancePositionWithMutation(pos: Position</span><span class="s0">, </span><span class="s1">source: string</span><span class="s0">, </span><span class="s1">numberOfCharacters?: number): Position</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ArrayExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_ARRAY_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">elements: Array&lt;string | Node_2&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">function </span><span class="s1">assert_2(condition: boolean</span><span class="s0">, </span><span class="s1">msg?: string): </span><span class="s0">void;</span>
+<span class="s0">export </span><span class="s1">{ assert_2 as assert }</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">AssignmentExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_ASSIGNMENT_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">left: SimpleExpressionNode</span><span class="s0">;</span>
+    <span class="s1">right: JSChildNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">AttributeNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.ATTRIBUTE</span><span class="s0">;</span>
+    <span class="s1">name: string</span><span class="s0">;</span>
+    <span class="s1">value: TextNode | undefined</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">BASE_TRANSITION: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">baseCompile(template: string | RootNode</span><span class="s0">, </span><span class="s1">options?: CompilerOptions): CodegenResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">BaseElementNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.ELEMENT</span><span class="s0">;</span>
+    <span class="s1">ns: Namespace</span><span class="s0">;</span>
+    <span class="s1">tag: string</span><span class="s0">;</span>
+    <span class="s1">tagType: ElementTypes</span><span class="s0">;</span>
+    <span class="s1">isSelfClosing: boolean</span><span class="s0">;</span>
+    <span class="s1">props: Array&lt;AttributeNode | DirectiveNode&gt;</span><span class="s0">;</span>
+    <span class="s1">children: TemplateChildNode[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">baseParse(content: string</span><span class="s0">, </span><span class="s1">options?: ParserOptions): RootNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type BindingMetadata = {</span>
+    <span class="s1">[key: string]: BindingTypes | undefined</span><span class="s0">;</span>
+<span class="s1">} &amp; {</span>
+    <span class="s1">__isScriptSetup?: boolean</span><span class="s0">;</span>
+    <span class="s1">__propsAliases?: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">BindingTypes {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* returned from data()</span>
+     <span class="s3">*/</span>
+    <span class="s1">DATA = </span><span class="s2">&quot;data&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* declared as a prop</span>
+     <span class="s3">*/</span>
+    <span class="s1">PROPS = </span><span class="s2">&quot;props&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* a local alias of a `&lt;script setup&gt;` destructured prop.</span>
+     <span class="s3">* the original is stored in __propsAliases of the bindingMetadata object.</span>
+     <span class="s3">*/</span>
+    <span class="s1">PROPS_ALIASED = </span><span class="s2">&quot;props-aliased&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* a let binding (may or may not be a ref)</span>
+     <span class="s3">*/</span>
+    <span class="s1">SETUP_LET = </span><span class="s2">&quot;setup-let&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* a const binding that can never be a ref.</span>
+     <span class="s3">* these bindings don't need `unref()` calls when processed in inlined</span>
+     <span class="s3">* template expressions.</span>
+     <span class="s3">*/</span>
+    <span class="s1">SETUP_CONST = </span><span class="s2">&quot;setup-const&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* a const binding that does not need `unref()`, but may be mutated.</span>
+     <span class="s3">*/</span>
+    <span class="s1">SETUP_REACTIVE_CONST = </span><span class="s2">&quot;setup-reactive-const&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* a const binding that may be a ref.</span>
+     <span class="s3">*/</span>
+    <span class="s1">SETUP_MAYBE_REF = </span><span class="s2">&quot;setup-maybe-ref&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* bindings that are guaranteed to be refs</span>
+     <span class="s3">*/</span>
+    <span class="s1">SETUP_REF = </span><span class="s2">&quot;setup-ref&quot;</span><span class="s0">,</span>
+    <span class="s3">/**</span>
+     <span class="s3">* declared by other options, e.g. computed, inject</span>
+     <span class="s3">*/</span>
+    <span class="s1">OPTIONS = </span><span class="s2">&quot;options&quot;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type BlockCodegenNode = VNodeCall | RenderSlotCall</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">BlockStatement </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_BLOCK_STATEMENT</span><span class="s0">;</span>
+    <span class="s1">body: (JSChildNode | IfStatement)[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">buildDirectiveArgs(dir: DirectiveNode</span><span class="s0">, </span><span class="s1">context: TransformContext): ArrayExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">buildProps(node: ElementNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">props: (DirectiveNode | AttributeNode)[] | undefined</span><span class="s0">, </span><span class="s1">isComponent: boolean</span><span class="s0">, </span><span class="s1">isDynamicComponent: boolean</span><span class="s0">, </span><span class="s1">ssr?: boolean): {</span>
+    <span class="s1">props: PropsExpression | undefined</span><span class="s0">;</span>
+    <span class="s1">directives: DirectiveNode[]</span><span class="s0">;</span>
+    <span class="s1">patchFlag: number</span><span class="s0">;</span>
+    <span class="s1">dynamicPropNames: string[]</span><span class="s0">;</span>
+    <span class="s1">shouldUseBlock: boolean</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">buildSlots(node: ElementNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">buildSlotFn?: SlotFnBuilder): {</span>
+    <span class="s1">slots: SlotsExpression</span><span class="s0">;</span>
+    <span class="s1">hasDynamicSlots: boolean</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CacheExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_CACHE_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">index: number</span><span class="s0">;</span>
+    <span class="s1">value: JSChildNode</span><span class="s0">;</span>
+    <span class="s1">isVNode: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CallExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_CALL_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">callee: string | symbol</span><span class="s0">;</span>
+    <span class="s1">arguments: (string | symbol | JSChildNode | SSRCodegenNode | TemplateChildNode | TemplateChildNode[])[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CAMELIZE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CAPITALIZE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">checkCompatEnabled(key: CompilerDeprecationTypes</span><span class="s0">, </span><span class="s1">context: ParserContext | TransformContext</span><span class="s0">, </span><span class="s1">loc: SourceLocation | </span><span class="s0">null, </span><span class="s1">...args: any[]): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CodegenContext </span><span class="s0">extends </span><span class="s1">Omit&lt;Required&lt;CodegenOptions&gt;</span><span class="s0">, </span><span class="s2">'bindingMetadata' </span><span class="s1">| </span><span class="s2">'inline'</span><span class="s1">&gt; {</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">code: string</span><span class="s0">;</span>
+    <span class="s1">line: number</span><span class="s0">;</span>
+    <span class="s1">column: number</span><span class="s0">;</span>
+    <span class="s1">offset: number</span><span class="s0">;</span>
+    <span class="s1">indentLevel: number</span><span class="s0">;</span>
+    <span class="s1">pure: boolean</span><span class="s0">;</span>
+    <span class="s1">map?: SourceMapGenerator</span><span class="s0">;</span>
+    <span class="s1">helper(key: symbol): string</span><span class="s0">;</span>
+    <span class="s1">push(code: string</span><span class="s0">, </span><span class="s1">node?: CodegenNode): </span><span class="s0">void;</span>
+    <span class="s1">indent(): </span><span class="s0">void;</span>
+    <span class="s1">deindent(withoutNewLine?: boolean): </span><span class="s0">void;</span>
+    <span class="s1">newline(): </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare type CodegenNode = TemplateChildNode | JSChildNode | SSRCodegenNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CodegenOptions </span><span class="s0">extends </span><span class="s1">SharedTransformCodegenOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* - `module` mode will generate ES module import statements for helpers</span>
+     <span class="s3">* and export the render function as the default export.</span>
+     <span class="s3">* - `function` mode will generate a single `const { helpers... } = Vue`</span>
+     <span class="s3">* statement and return the render function. It expects `Vue` to be globally</span>
+     <span class="s3">* available (or passed by wrapping the code with an IIFE). It is meant to be</span>
+     <span class="s3">* used with `new Function(code)()` to generate a render function at runtime.</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">'function'</span>
+     <span class="s3">*/</span>
+    <span class="s1">mode?: </span><span class="s2">'module' </span><span class="s1">| </span><span class="s2">'function'</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Generate source map?</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">false</span>
+     <span class="s3">*/</span>
+    <span class="s1">sourceMap?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* SFC scoped styles ID</span>
+     <span class="s3">*/</span>
+    <span class="s1">scopeId?: string | </span><span class="s0">null;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Option to optimize helper import bindings via variable assignment</span>
+     <span class="s3">* (only used for webpack code-split)</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">false</span>
+     <span class="s3">*/</span>
+    <span class="s1">optimizeImports?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Customize where to import runtime helpers from.</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">'vue'</span>
+     <span class="s3">*/</span>
+    <span class="s1">runtimeModuleName?: string</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Customize where to import ssr runtime helpers from/**</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">'vue/server-renderer'</span>
+     <span class="s3">*/</span>
+    <span class="s1">ssrRuntimeModuleName?: string</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Customize the global variable name of `Vue` to get helpers from</span>
+     <span class="s3">* in function mode</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">'Vue'</span>
+     <span class="s3">*/</span>
+    <span class="s1">runtimeGlobalName?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CodegenResult {</span>
+    <span class="s1">code: string</span><span class="s0">;</span>
+    <span class="s1">preamble: string</span><span class="s0">;</span>
+    <span class="s1">ast: RootNode</span><span class="s0">;</span>
+    <span class="s1">map?: RawSourceMap</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CommentNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.COMMENT</span><span class="s0">;</span>
+    <span class="s1">content: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare type CompilerCompatConfig = Partial&lt;Record&lt;CompilerDeprecationTypes</span><span class="s0">, </span><span class="s1">boolean | </span><span class="s2">'suppress-warning'</span><span class="s1">&gt;&gt; &amp; {</span>
+    <span class="s1">MODE?: </span><span class="s5">2 </span><span class="s1">| </span><span class="s5">3</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">CompilerCompatOptions {</span>
+    <span class="s1">compatConfig?: CompilerCompatConfig</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">CompilerDeprecationTypes {</span>
+    <span class="s1">COMPILER_IS_ON_ELEMENT = </span><span class="s2">&quot;COMPILER_IS_ON_ELEMENT&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_V_BIND_SYNC = </span><span class="s2">&quot;COMPILER_V_BIND_SYNC&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_V_BIND_PROP = </span><span class="s2">&quot;COMPILER_V_BIND_PROP&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_V_BIND_OBJECT_ORDER = </span><span class="s2">&quot;COMPILER_V_BIND_OBJECT_ORDER&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_V_ON_NATIVE = </span><span class="s2">&quot;COMPILER_V_ON_NATIVE&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_V_IF_V_FOR_PRECEDENCE = </span><span class="s2">&quot;COMPILER_V_IF_V_FOR_PRECEDENCE&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_NATIVE_TEMPLATE = </span><span class="s2">&quot;COMPILER_NATIVE_TEMPLATE&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_INLINE_TEMPLATE = </span><span class="s2">&quot;COMPILER_INLINE_TEMPLATE&quot;</span><span class="s0">,</span>
+    <span class="s1">COMPILER_FILTERS = </span><span class="s2">&quot;COMPILER_FILTER&quot;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CompilerError </span><span class="s0">extends </span><span class="s1">SyntaxError {</span>
+    <span class="s1">code: number | string</span><span class="s0">;</span>
+    <span class="s1">loc?: SourceLocation</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type CompilerOptions = ParserOptions &amp; TransformOptions &amp; CodegenOptions</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ComponentNode </span><span class="s0">extends </span><span class="s1">BaseElementNode {</span>
+    <span class="s1">tagType: ElementTypes.COMPONENT</span><span class="s0">;</span>
+    <span class="s1">codegenNode: VNodeCall | CacheExpression | MemoExpression | undefined</span><span class="s0">;</span>
+    <span class="s1">ssrCodegenNode?: CallExpression</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CompoundExpressionNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.COMPOUND_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">children: (SimpleExpressionNode | CompoundExpressionNode | InterpolationNode | TextNode | string | symbol)[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* an expression parsed as the params of a function will track</span>
+     <span class="s3">* the identifiers declared inside the function body.</span>
+     <span class="s3">*/</span>
+    <span class="s1">identifiers?: string[]</span><span class="s0">;</span>
+    <span class="s1">isHandlerKey?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ConditionalDynamicSlotNode </span><span class="s0">extends </span><span class="s1">ConditionalExpression {</span>
+    <span class="s1">consequent: DynamicSlotNode</span><span class="s0">;</span>
+    <span class="s1">alternate: DynamicSlotNode | SimpleExpressionNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ConditionalExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_CONDITIONAL_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">test: JSChildNode</span><span class="s0">;</span>
+    <span class="s1">consequent: JSChildNode</span><span class="s0">;</span>
+    <span class="s1">alternate: JSChildNode</span><span class="s0">;</span>
+    <span class="s1">newline: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Static types have several levels.</span>
+ <span class="s3">* Higher levels implies lower levels. e.g. a node that can be stringified</span>
+ <span class="s3">* can always be hoisted and skipped for patch.</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">ConstantTypes {</span>
+    <span class="s1">NOT_CONSTANT = </span><span class="s5">0</span><span class="s0">,</span>
+    <span class="s1">CAN_SKIP_PATCH = </span><span class="s5">1</span><span class="s0">,</span>
+    <span class="s1">CAN_HOIST = </span><span class="s5">2</span><span class="s0">,</span>
+    <span class="s1">CAN_STRINGIFY = </span><span class="s5">3</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">CoreCompilerError </span><span class="s0">extends </span><span class="s1">CompilerError {</span>
+    <span class="s1">code: ErrorCodes</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_BLOCK: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_COMMENT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_ELEMENT_BLOCK: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_ELEMENT_VNODE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_SLOTS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_STATIC: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_TEXT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">CREATE_VNODE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createArrayExpression(elements: ArrayExpression[</span><span class="s2">'elements'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): ArrayExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createAssignmentExpression(left: AssignmentExpression[</span><span class="s2">'left'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">right: AssignmentExpression[</span><span class="s2">'right'</span><span class="s1">]): AssignmentExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createBlockStatement(body: BlockStatement[</span><span class="s2">'body'</span><span class="s1">]): BlockStatement</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createCacheExpression(index: number</span><span class="s0">, </span><span class="s1">value: JSChildNode</span><span class="s0">, </span><span class="s1">isVNode?: boolean): CacheExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createCallExpression&lt;T </span><span class="s0">extends </span><span class="s1">CallExpression[</span><span class="s2">'callee'</span><span class="s1">]&gt;(callee: T</span><span class="s0">, </span><span class="s1">args?: CallExpression[</span><span class="s2">'arguments'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): InferCodegenNodeType&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createCompilerError&lt;T </span><span class="s0">extends </span><span class="s1">number&gt;(code: T</span><span class="s0">, </span><span class="s1">loc?: SourceLocation</span><span class="s0">, </span><span class="s1">messages?: {</span>
+    <span class="s1">[code: number]: string</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">, </span><span class="s1">additionalMessage?: string): InferCompilerError&lt;T&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createCompoundExpression(children: CompoundExpressionNode[</span><span class="s2">'children'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): CompoundExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createConditionalExpression(test: ConditionalExpression[</span><span class="s2">'test'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">consequent: ConditionalExpression[</span><span class="s2">'consequent'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">alternate: ConditionalExpression[</span><span class="s2">'alternate'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">newline?: boolean): ConditionalExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createForLoopParams({ value</span><span class="s0">, </span><span class="s1">key</span><span class="s0">, </span><span class="s1">index }: ForParseResult</span><span class="s0">, </span><span class="s1">memoArgs?: ExpressionNode[]): ExpressionNode[]</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createFunctionExpression(params: FunctionExpression[</span><span class="s2">'params'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">returns?: FunctionExpression[</span><span class="s2">'returns'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">newline?: boolean</span><span class="s0">, </span><span class="s1">isSlot?: boolean</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): FunctionExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createIfStatement(test: IfStatement[</span><span class="s2">'test'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">consequent: IfStatement[</span><span class="s2">'consequent'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">alternate?: IfStatement[</span><span class="s2">'alternate'</span><span class="s1">]): IfStatement</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createInterpolation(content: InterpolationNode[</span><span class="s2">'content'</span><span class="s1">] | string</span><span class="s0">, </span><span class="s1">loc: SourceLocation): InterpolationNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createObjectExpression(properties: ObjectExpression[</span><span class="s2">'properties'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): ObjectExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createObjectProperty(key: Property[</span><span class="s2">'key'</span><span class="s1">] | string</span><span class="s0">, </span><span class="s1">value: Property[</span><span class="s2">'value'</span><span class="s1">]): Property</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createReturnStatement(returns: ReturnStatement[</span><span class="s2">'returns'</span><span class="s1">]): ReturnStatement</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createRoot(children: TemplateChildNode[]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): RootNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createSequenceExpression(expressions: SequenceExpression[</span><span class="s2">'expressions'</span><span class="s1">]): SequenceExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createSimpleExpression(content: SimpleExpressionNode[</span><span class="s2">'content'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">isStatic?: SimpleExpressionNode[</span><span class="s2">'isStatic'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation</span><span class="s0">, </span><span class="s1">constType?: ConstantTypes): SimpleExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createStructuralDirectiveTransform(name: string | RegExp</span><span class="s0">, </span><span class="s1">fn: StructuralDirectiveTransform): NodeTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createTemplateLiteral(elements: TemplateLiteral[</span><span class="s2">'elements'</span><span class="s1">]): TemplateLiteral</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createTransformContext(root: RootNode</span><span class="s0">, </span><span class="s1">{ filename</span><span class="s0">, </span><span class="s1">prefixIdentifiers</span><span class="s0">, </span><span class="s1">hoistStatic</span><span class="s0">, </span><span class="s1">cacheHandlers</span><span class="s0">, </span><span class="s1">nodeTransforms</span><span class="s0">, </span><span class="s1">directiveTransforms</span><span class="s0">, </span><span class="s1">transformHoist</span><span class="s0">, </span><span class="s1">isBuiltInComponent</span><span class="s0">, </span><span class="s1">isCustomElement</span><span class="s0">, </span><span class="s1">expressionPlugins</span><span class="s0">, </span><span class="s1">scopeId</span><span class="s0">, </span><span class="s1">slotted</span><span class="s0">, </span><span class="s1">ssr</span><span class="s0">, </span><span class="s1">inSSR</span><span class="s0">, </span><span class="s1">ssrCssVars</span><span class="s0">, </span><span class="s1">bindingMetadata</span><span class="s0">, </span><span class="s1">inline</span><span class="s0">, </span><span class="s1">isTS</span><span class="s0">, </span><span class="s1">onError</span><span class="s0">, </span><span class="s1">onWarn</span><span class="s0">, </span><span class="s1">compatConfig }: TransformOptions): TransformContext</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">createVNodeCall(context: TransformContext | </span><span class="s0">null, </span><span class="s1">tag: VNodeCall[</span><span class="s2">'tag'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">props?: VNodeCall[</span><span class="s2">'props'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">children?: VNodeCall[</span><span class="s2">'children'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">patchFlag?: VNodeCall[</span><span class="s2">'patchFlag'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">dynamicProps?: VNodeCall[</span><span class="s2">'dynamicProps'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">directives?: VNodeCall[</span><span class="s2">'directives'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">isBlock?: VNodeCall[</span><span class="s2">'isBlock'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">disableTracking?: VNodeCall[</span><span class="s2">'disableTracking'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">isComponent?: VNodeCall[</span><span class="s2">'isComponent'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">loc?: SourceLocation): VNodeCall</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DirectiveArgumentNode </span><span class="s0">extends </span><span class="s1">ArrayExpression {</span>
+    <span class="s1">elements: [string] | [string</span><span class="s0">, </span><span class="s1">ExpressionNode] | [string</span><span class="s0">, </span><span class="s1">ExpressionNode</span><span class="s0">, </span><span class="s1">ExpressionNode] | [string</span><span class="s0">, </span><span class="s1">ExpressionNode</span><span class="s0">, </span><span class="s1">ExpressionNode</span><span class="s0">, </span><span class="s1">ObjectExpression]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DirectiveArguments </span><span class="s0">extends </span><span class="s1">ArrayExpression {</span>
+    <span class="s1">elements: DirectiveArgumentNode[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DirectiveNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.DIRECTIVE</span><span class="s0">;</span>
+    <span class="s1">name: string</span><span class="s0">;</span>
+    <span class="s1">exp: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">arg: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">modifiers: string[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* optional property to cache the expression parse result for v-for</span>
+     <span class="s3">*/</span>
+    <span class="s1">parseResult?: ForParseResult</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type DirectiveTransform = (dir: DirectiveNode</span><span class="s0">, </span><span class="s1">node: ElementNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">augmentor?: (ret: DirectiveTransformResult) =&gt; DirectiveTransformResult) =&gt; DirectiveTransformResult</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">DirectiveTransformResult {</span>
+    <span class="s1">props: Property[]</span><span class="s0">;</span>
+    <span class="s1">needRuntime?: boolean | symbol</span><span class="s0">;</span>
+    <span class="s1">ssrTagParts?: TemplateLiteral[</span><span class="s2">'elements'</span><span class="s1">]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DynamicSlotEntries </span><span class="s0">extends </span><span class="s1">ArrayExpression {</span>
+    <span class="s1">elements: (ConditionalDynamicSlotNode | ListDynamicSlotNode)[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DynamicSlotFnProperty </span><span class="s0">extends </span><span class="s1">Property {</span>
+    <span class="s1">value: SlotFunctionExpression</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DynamicSlotNode </span><span class="s0">extends </span><span class="s1">ObjectExpression {</span>
+    <span class="s1">properties: [Property</span><span class="s0">, </span><span class="s1">DynamicSlotFnProperty]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">DynamicSlotsExpression </span><span class="s0">extends </span><span class="s1">CallExpression {</span>
+    <span class="s1">callee: </span><span class="s0">typeof </span><span class="s1">CREATE_SLOTS</span><span class="s0">;</span>
+    <span class="s1">arguments: [SlotsObjectExpression</span><span class="s0">, </span><span class="s1">DynamicSlotEntries]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type ElementNode = PlainElementNode | ComponentNode | SlotOutletNode | TemplateNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">ElementTypes {</span>
+    <span class="s1">ELEMENT = </span><span class="s5">0</span><span class="s0">,</span>
+    <span class="s1">COMPONENT = </span><span class="s5">1</span><span class="s0">,</span>
+    <span class="s1">SLOT = </span><span class="s5">2</span><span class="s0">,</span>
+    <span class="s1">TEMPLATE = </span><span class="s5">3</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">ErrorCodes {</span>
+    <span class="s1">ABRUPT_CLOSING_OF_EMPTY_COMMENT = </span><span class="s5">0</span><span class="s0">,</span>
+    <span class="s1">CDATA_IN_HTML_CONTENT = </span><span class="s5">1</span><span class="s0">,</span>
+    <span class="s1">DUPLICATE_ATTRIBUTE = </span><span class="s5">2</span><span class="s0">,</span>
+    <span class="s1">END_TAG_WITH_ATTRIBUTES = </span><span class="s5">3</span><span class="s0">,</span>
+    <span class="s1">END_TAG_WITH_TRAILING_SOLIDUS = </span><span class="s5">4</span><span class="s0">,</span>
+    <span class="s1">EOF_BEFORE_TAG_NAME = </span><span class="s5">5</span><span class="s0">,</span>
+    <span class="s1">EOF_IN_CDATA = </span><span class="s5">6</span><span class="s0">,</span>
+    <span class="s1">EOF_IN_COMMENT = </span><span class="s5">7</span><span class="s0">,</span>
+    <span class="s1">EOF_IN_SCRIPT_HTML_COMMENT_LIKE_TEXT = </span><span class="s5">8</span><span class="s0">,</span>
+    <span class="s1">EOF_IN_TAG = </span><span class="s5">9</span><span class="s0">,</span>
+    <span class="s1">INCORRECTLY_CLOSED_COMMENT = </span><span class="s5">10</span><span class="s0">,</span>
+    <span class="s1">INCORRECTLY_OPENED_COMMENT = </span><span class="s5">11</span><span class="s0">,</span>
+    <span class="s1">INVALID_FIRST_CHARACTER_OF_TAG_NAME = </span><span class="s5">12</span><span class="s0">,</span>
+    <span class="s1">MISSING_ATTRIBUTE_VALUE = </span><span class="s5">13</span><span class="s0">,</span>
+    <span class="s1">MISSING_END_TAG_NAME = </span><span class="s5">14</span><span class="s0">,</span>
+    <span class="s1">MISSING_WHITESPACE_BETWEEN_ATTRIBUTES = </span><span class="s5">15</span><span class="s0">,</span>
+    <span class="s1">NESTED_COMMENT = </span><span class="s5">16</span><span class="s0">,</span>
+    <span class="s1">UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME = </span><span class="s5">17</span><span class="s0">,</span>
+    <span class="s1">UNEXPECTED_CHARACTER_IN_UNQUOTED_ATTRIBUTE_VALUE = </span><span class="s5">18</span><span class="s0">,</span>
+    <span class="s1">UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME = </span><span class="s5">19</span><span class="s0">,</span>
+    <span class="s1">UNEXPECTED_NULL_CHARACTER = </span><span class="s5">20</span><span class="s0">,</span>
+    <span class="s1">UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME = </span><span class="s5">21</span><span class="s0">,</span>
+    <span class="s1">UNEXPECTED_SOLIDUS_IN_TAG = </span><span class="s5">22</span><span class="s0">,</span>
+    <span class="s1">X_INVALID_END_TAG = </span><span class="s5">23</span><span class="s0">,</span>
+    <span class="s1">X_MISSING_END_TAG = </span><span class="s5">24</span><span class="s0">,</span>
+    <span class="s1">X_MISSING_INTERPOLATION_END = </span><span class="s5">25</span><span class="s0">,</span>
+    <span class="s1">X_MISSING_DIRECTIVE_NAME = </span><span class="s5">26</span><span class="s0">,</span>
+    <span class="s1">X_MISSING_DYNAMIC_DIRECTIVE_ARGUMENT_END = </span><span class="s5">27</span><span class="s0">,</span>
+    <span class="s1">X_V_IF_NO_EXPRESSION = </span><span class="s5">28</span><span class="s0">,</span>
+    <span class="s1">X_V_IF_SAME_KEY = </span><span class="s5">29</span><span class="s0">,</span>
+    <span class="s1">X_V_ELSE_NO_ADJACENT_IF = </span><span class="s5">30</span><span class="s0">,</span>
+    <span class="s1">X_V_FOR_NO_EXPRESSION = </span><span class="s5">31</span><span class="s0">,</span>
+    <span class="s1">X_V_FOR_MALFORMED_EXPRESSION = </span><span class="s5">32</span><span class="s0">,</span>
+    <span class="s1">X_V_FOR_TEMPLATE_KEY_PLACEMENT = </span><span class="s5">33</span><span class="s0">,</span>
+    <span class="s1">X_V_BIND_NO_EXPRESSION = </span><span class="s5">34</span><span class="s0">,</span>
+    <span class="s1">X_V_ON_NO_EXPRESSION = </span><span class="s5">35</span><span class="s0">,</span>
+    <span class="s1">X_V_SLOT_UNEXPECTED_DIRECTIVE_ON_SLOT_OUTLET = </span><span class="s5">36</span><span class="s0">,</span>
+    <span class="s1">X_V_SLOT_MIXED_SLOT_USAGE = </span><span class="s5">37</span><span class="s0">,</span>
+    <span class="s1">X_V_SLOT_DUPLICATE_SLOT_NAMES = </span><span class="s5">38</span><span class="s0">,</span>
+    <span class="s1">X_V_SLOT_EXTRANEOUS_DEFAULT_SLOT_CHILDREN = </span><span class="s5">39</span><span class="s0">,</span>
+    <span class="s1">X_V_SLOT_MISPLACED = </span><span class="s5">40</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_NO_EXPRESSION = </span><span class="s5">41</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_MALFORMED_EXPRESSION = </span><span class="s5">42</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_ON_SCOPE_VARIABLE = </span><span class="s5">43</span><span class="s0">,</span>
+    <span class="s1">X_V_MODEL_ON_PROPS = </span><span class="s5">44</span><span class="s0">,</span>
+    <span class="s1">X_INVALID_EXPRESSION = </span><span class="s5">45</span><span class="s0">,</span>
+    <span class="s1">X_KEEP_ALIVE_INVALID_CHILDREN = </span><span class="s5">46</span><span class="s0">,</span>
+    <span class="s1">X_PREFIX_ID_NOT_SUPPORTED = </span><span class="s5">47</span><span class="s0">,</span>
+    <span class="s1">X_MODULE_MODE_NOT_SUPPORTED = </span><span class="s5">48</span><span class="s0">,</span>
+    <span class="s1">X_CACHE_HANDLER_NOT_SUPPORTED = </span><span class="s5">49</span><span class="s0">,</span>
+    <span class="s1">X_SCOPE_ID_NOT_SUPPORTED = </span><span class="s5">50</span><span class="s0">,</span>
+    <span class="s1">__EXTEND_POINT__ = </span><span class="s5">51</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">ErrorHandlingOptions {</span>
+    <span class="s1">onWarn?: (warning: CompilerError) =&gt; </span><span class="s0">void;</span>
+    <span class="s1">onError?: (error: CompilerError) =&gt; </span><span class="s0">void;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type ExpressionNode = SimpleExpressionNode | CompoundExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">extractIdentifiers(param: Node_3</span><span class="s0">, </span><span class="s1">nodes?: Identifier[]): Identifier[]</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">findDir(node: ElementNode</span><span class="s0">, </span><span class="s1">name: string | RegExp</span><span class="s0">, </span><span class="s1">allowEmpty?: boolean): DirectiveNode | undefined</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">findProp(node: ElementNode</span><span class="s0">, </span><span class="s1">name: string</span><span class="s0">, </span><span class="s1">dynamicOnly?: boolean</span><span class="s0">, </span><span class="s1">allowEmpty?: boolean): ElementNode[</span><span class="s2">'props'</span><span class="s1">][</span><span class="s5">0</span><span class="s1">] | undefined</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ForCodegenNode </span><span class="s0">extends </span><span class="s1">VNodeCall {</span>
+    <span class="s1">isBlock: </span><span class="s0">true;</span>
+    <span class="s1">tag: </span><span class="s0">typeof </span><span class="s1">FRAGMENT</span><span class="s0">;</span>
+    <span class="s1">props: undefined</span><span class="s0">;</span>
+    <span class="s1">children: ForRenderListExpression</span><span class="s0">;</span>
+    <span class="s1">patchFlag: string</span><span class="s0">;</span>
+    <span class="s1">disableTracking: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ForIteratorExpression </span><span class="s0">extends </span><span class="s1">FunctionExpression {</span>
+    <span class="s1">returns: BlockCodegenNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ForNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.FOR</span><span class="s0">;</span>
+    <span class="s1">source: ExpressionNode</span><span class="s0">;</span>
+    <span class="s1">valueAlias: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">keyAlias: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">objectIndexAlias: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">parseResult: ForParseResult</span><span class="s0">;</span>
+    <span class="s1">children: TemplateChildNode[]</span><span class="s0">;</span>
+    <span class="s1">codegenNode?: ForCodegenNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">ForParseResult {</span>
+    <span class="s1">source: ExpressionNode</span><span class="s0">;</span>
+    <span class="s1">value: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">key: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">index: ExpressionNode | undefined</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ForRenderListExpression </span><span class="s0">extends </span><span class="s1">CallExpression {</span>
+    <span class="s1">callee: </span><span class="s0">typeof </span><span class="s1">RENDER_LIST</span><span class="s0">;</span>
+    <span class="s1">arguments: [ExpressionNode</span><span class="s0">, </span><span class="s1">ForIteratorExpression]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">FRAGMENT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">FunctionExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_FUNCTION_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">params: ExpressionNode | string | (ExpressionNode | string)[] | undefined</span><span class="s0">;</span>
+    <span class="s1">returns?: TemplateChildNode | TemplateChildNode[] | JSChildNode</span><span class="s0">;</span>
+    <span class="s1">body?: BlockStatement | IfStatement</span><span class="s0">;</span>
+    <span class="s1">newline: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* This flag is for codegen to determine whether it needs to generate the</span>
+     <span class="s3">* withScopeId() wrapper</span>
+     <span class="s3">*/</span>
+    <span class="s1">isSlot: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* __COMPAT__ only, indicates a slot function that should be excluded from</span>
+     <span class="s3">* the legacy $scopedSlots instance property.</span>
+     <span class="s3">*/</span>
+    <span class="s1">isNonScopedSlot?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">generate(ast: RootNode</span><span class="s0">, </span><span class="s1">options?: CodegenOptions &amp; {</span>
+    <span class="s1">onContextCreated?: (context: CodegenContext) =&gt; </span><span class="s0">void;</span>
+<span class="s1">}): CodegenResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ generateCodeFrame }</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getBaseTransformPreset(prefixIdentifiers?: boolean): TransformPreset</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getConstantType(node: TemplateChildNode | SimpleExpressionNode</span><span class="s0">, </span><span class="s1">context: TransformContext): ConstantTypes</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getInnerRange(loc: SourceLocation</span><span class="s0">, </span><span class="s1">offset: number</span><span class="s0">, </span><span class="s1">length: number): SourceLocation</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getMemoedVNodeCall(node: BlockCodegenNode | MemoExpression): VNodeCall | RenderSlotCall</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getVNodeBlockHelper(ssr: boolean</span><span class="s0">, </span><span class="s1">isComponent: boolean): </span><span class="s0">typeof </span><span class="s1">CREATE_BLOCK | </span><span class="s0">typeof </span><span class="s1">CREATE_ELEMENT_BLOCK</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">getVNodeHelper(ssr: boolean</span><span class="s0">, </span><span class="s1">isComponent: boolean): </span><span class="s0">typeof </span><span class="s1">CREATE_VNODE | </span><span class="s0">typeof </span><span class="s1">CREATE_ELEMENT_VNODE</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">GUARD_REACTIVE_PROPS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">hasDynamicKeyVBind(node: ElementNode): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">hasScopeRef(node: TemplateChildNode | IfBranchNode | ExpressionNode | undefined</span><span class="s0">, </span><span class="s1">ids: TransformContext[</span><span class="s2">'identifiers'</span><span class="s1">]): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">helperNameMap: Record&lt;symbol</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type HoistTransform = (children: TemplateChildNode[]</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">parent: ParentNode_2) =&gt; </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">IfBranchNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.IF_BRANCH</span><span class="s0">;</span>
+    <span class="s1">condition: ExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">children: TemplateChildNode[]</span><span class="s0">;</span>
+    <span class="s1">userKey?: AttributeNode | DirectiveNode</span><span class="s0">;</span>
+    <span class="s1">isTemplateIf?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">IfConditionalExpression </span><span class="s0">extends </span><span class="s1">ConditionalExpression {</span>
+    <span class="s1">consequent: BlockCodegenNode | MemoExpression</span><span class="s0">;</span>
+    <span class="s1">alternate: BlockCodegenNode | IfConditionalExpression | MemoExpression</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">IfNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.IF</span><span class="s0">;</span>
+    <span class="s1">branches: IfBranchNode[]</span><span class="s0">;</span>
+    <span class="s1">codegenNode?: IfConditionalExpression | CacheExpression</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">IfStatement </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_IF_STATEMENT</span><span class="s0">;</span>
+    <span class="s1">test: ExpressionNode</span><span class="s0">;</span>
+    <span class="s1">consequent: BlockStatement</span><span class="s0">;</span>
+    <span class="s1">alternate: IfStatement | BlockStatement | ReturnStatement | undefined</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">ImportItem {</span>
+    <span class="s1">exp: string | ExpressionNode</span><span class="s0">;</span>
+    <span class="s1">path: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare type InferCodegenNodeType&lt;T&gt; = T </span><span class="s0">extends typeof </span><span class="s1">RENDER_SLOT ? RenderSlotCall : CallExpression</span><span class="s0">;</span>
+
+<span class="s1">declare type InferCompilerError&lt;T&gt; = T </span><span class="s0">extends </span><span class="s1">ErrorCodes ? CoreCompilerError : CompilerError</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">injectProp(node: VNodeCall | RenderSlotCall</span><span class="s0">, </span><span class="s1">prop: Property</span><span class="s0">, </span><span class="s1">context: TransformContext): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">InterpolationNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.INTERPOLATION</span><span class="s0">;</span>
+    <span class="s1">content: ExpressionNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">IS_MEMO_SAME: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">IS_REF: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isBuiltInType: (tag: string</span><span class="s0">, </span><span class="s1">expected: string) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isCoreComponent(tag: string): symbol | </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isFunctionType: (node: Node_3) =&gt; node is Function_2</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isInDestructureAssignment(parent: Node_3</span><span class="s0">, </span><span class="s1">parentStack: Node_3[]): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isMemberExpression: (path: string</span><span class="s0">, </span><span class="s1">context: TransformContext) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Simple lexer to check if an expression is a member expression. This is</span>
+ <span class="s3">* lax and only checks validity at the root level (i.e. does not validate exps</span>
+ <span class="s3">* inside square brackets), but it's ok since these are only used on template</span>
+ <span class="s3">* expressions and false positives are invalid expressions in the first place.</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isMemberExpressionBrowser: (path: string) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isMemberExpressionNode: (path: string</span><span class="s0">, </span><span class="s1">context: TransformContext) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isReferencedIdentifier(id: Identifier</span><span class="s0">, </span><span class="s1">parent: Node_3 | </span><span class="s0">null, </span><span class="s1">parentStack: Node_3[]): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isSimpleIdentifier: (name: string) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isSlotOutlet(node: RootNode | TemplateChildNode): node is SlotOutletNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isStaticArgOf(arg: DirectiveNode[</span><span class="s2">'arg'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">name: string): boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isStaticExp: (p: JSChildNode) =&gt; p is SimpleExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isStaticProperty: (node: Node_3) =&gt; node is ObjectProperty</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">isStaticPropertyKey: (node: Node_3</span><span class="s0">, </span><span class="s1">parent: Node_3) =&gt; boolean</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isTemplateNode(node: RootNode | TemplateChildNode): node is TemplateNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isText(node: TemplateChildNode): node is TextNode | InterpolationNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">isVSlot(p: ElementNode[</span><span class="s2">'props'</span><span class="s1">][</span><span class="s5">0</span><span class="s1">]): p is DirectiveNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type JSChildNode = VNodeCall | CallExpression | ObjectExpression | ArrayExpression | ExpressionNode | FunctionExpression | ConditionalExpression | CacheExpression | AssignmentExpression | SequenceExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">KEEP_ALIVE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ListDynamicSlotIterator </span><span class="s0">extends </span><span class="s1">FunctionExpression {</span>
+    <span class="s1">returns: DynamicSlotNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ListDynamicSlotNode </span><span class="s0">extends </span><span class="s1">CallExpression {</span>
+    <span class="s1">callee: </span><span class="s0">typeof </span><span class="s1">RENDER_LIST</span><span class="s0">;</span>
+    <span class="s1">arguments: [ExpressionNode</span><span class="s0">, </span><span class="s1">ListDynamicSlotIterator]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">locStub: SourceLocation</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">makeBlock(node: VNodeCall</span><span class="s0">, </span><span class="s1">{ helper</span><span class="s0">, </span><span class="s1">removeHelper</span><span class="s0">, </span><span class="s1">inSSR }: TransformContext): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">MemoExpression </span><span class="s0">extends </span><span class="s1">CallExpression {</span>
+    <span class="s1">callee: </span><span class="s0">typeof </span><span class="s1">WITH_MEMO</span><span class="s0">;</span>
+    <span class="s1">arguments: [ExpressionNode</span><span class="s0">, </span><span class="s1">MemoFactory</span><span class="s0">, </span><span class="s1">string</span><span class="s0">, </span><span class="s1">string]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">MemoFactory </span><span class="s0">extends </span><span class="s1">FunctionExpression {</span>
+    <span class="s1">returns: BlockCodegenNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">MERGE_PROPS: unique symbol</span><span class="s0">;</span>
+
+<span class="s1">declare type MergedParserOptions = Omit&lt;Required&lt;ParserOptions&gt;</span><span class="s0">, </span><span class="s1">OptionalOptions&gt; &amp; Pick&lt;ParserOptions</span><span class="s0">, </span><span class="s1">OptionalOptions&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type Namespace = number</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">Namespaces {</span>
+    <span class="s1">HTML = </span><span class="s5">0</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes</span><span class="s0">;</span>
+    <span class="s1">loc: SourceLocation</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">export </span><span class="s1">{ Node_2 as Node }</span>
+
+<span class="s0">export </span><span class="s1">declare type NodeTransform = (node: RootNode | TemplateChildNode</span><span class="s0">, </span><span class="s1">context: TransformContext) =&gt; </span><span class="s0">void </span><span class="s1">| (() =&gt; </span><span class="s0">void</span><span class="s1">) | (() =&gt; </span><span class="s0">void</span><span class="s1">)[]</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">NodeTypes {</span>
+    <span class="s1">ROOT = </span><span class="s5">0</span><span class="s0">,</span>
+    <span class="s1">ELEMENT = </span><span class="s5">1</span><span class="s0">,</span>
+    <span class="s1">TEXT = </span><span class="s5">2</span><span class="s0">,</span>
+    <span class="s1">COMMENT = </span><span class="s5">3</span><span class="s0">,</span>
+    <span class="s1">SIMPLE_EXPRESSION = </span><span class="s5">4</span><span class="s0">,</span>
+    <span class="s1">INTERPOLATION = </span><span class="s5">5</span><span class="s0">,</span>
+    <span class="s1">ATTRIBUTE = </span><span class="s5">6</span><span class="s0">,</span>
+    <span class="s1">DIRECTIVE = </span><span class="s5">7</span><span class="s0">,</span>
+    <span class="s1">COMPOUND_EXPRESSION = </span><span class="s5">8</span><span class="s0">,</span>
+    <span class="s1">IF = </span><span class="s5">9</span><span class="s0">,</span>
+    <span class="s1">IF_BRANCH = </span><span class="s5">10</span><span class="s0">,</span>
+    <span class="s1">FOR = </span><span class="s5">11</span><span class="s0">,</span>
+    <span class="s1">TEXT_CALL = </span><span class="s5">12</span><span class="s0">,</span>
+    <span class="s1">VNODE_CALL = </span><span class="s5">13</span><span class="s0">,</span>
+    <span class="s1">JS_CALL_EXPRESSION = </span><span class="s5">14</span><span class="s0">,</span>
+    <span class="s1">JS_OBJECT_EXPRESSION = </span><span class="s5">15</span><span class="s0">,</span>
+    <span class="s1">JS_PROPERTY = </span><span class="s5">16</span><span class="s0">,</span>
+    <span class="s1">JS_ARRAY_EXPRESSION = </span><span class="s5">17</span><span class="s0">,</span>
+    <span class="s1">JS_FUNCTION_EXPRESSION = </span><span class="s5">18</span><span class="s0">,</span>
+    <span class="s1">JS_CONDITIONAL_EXPRESSION = </span><span class="s5">19</span><span class="s0">,</span>
+    <span class="s1">JS_CACHE_EXPRESSION = </span><span class="s5">20</span><span class="s0">,</span>
+    <span class="s1">JS_BLOCK_STATEMENT = </span><span class="s5">21</span><span class="s0">,</span>
+    <span class="s1">JS_TEMPLATE_LITERAL = </span><span class="s5">22</span><span class="s0">,</span>
+    <span class="s1">JS_IF_STATEMENT = </span><span class="s5">23</span><span class="s0">,</span>
+    <span class="s1">JS_ASSIGNMENT_EXPRESSION = </span><span class="s5">24</span><span class="s0">,</span>
+    <span class="s1">JS_SEQUENCE_EXPRESSION = </span><span class="s5">25</span><span class="s0">,</span>
+    <span class="s1">JS_RETURN_STATEMENT = </span><span class="s5">26</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">noopDirectiveTransform: DirectiveTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">NORMALIZE_CLASS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">NORMALIZE_PROPS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">NORMALIZE_STYLE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ObjectExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_OBJECT_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">properties: Array&lt;Property&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">OPEN_BLOCK: unique symbol</span><span class="s0">;</span>
+
+<span class="s1">declare type OptionalOptions = </span><span class="s2">'whitespace' </span><span class="s1">| </span><span class="s2">'isNativeTag' </span><span class="s1">| </span><span class="s2">'isBuiltInComponent' </span><span class="s1">| keyof CompilerCompatOptions</span><span class="s0">;</span>
+
+<span class="s1">declare type ParentNode_2 = RootNode | ElementNode | IfBranchNode | ForNode</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">{ ParentNode_2 as ParentNode }</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">ParserContext {</span>
+    <span class="s1">options: MergedParserOptions</span><span class="s0">;</span>
+    <span class="s1">readonly originalSource: string</span><span class="s0">;</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">offset: number</span><span class="s0">;</span>
+    <span class="s1">line: number</span><span class="s0">;</span>
+    <span class="s1">column: number</span><span class="s0">;</span>
+    <span class="s1">inPre: boolean</span><span class="s0">;</span>
+    <span class="s1">inVPre: boolean</span><span class="s0">;</span>
+    <span class="s1">onWarn: NonNullable&lt;ErrorHandlingOptions[</span><span class="s2">'onWarn'</span><span class="s1">]&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ParserOptions </span><span class="s0">extends </span><span class="s1">ErrorHandlingOptions</span><span class="s0">, </span><span class="s1">CompilerCompatOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* e.g. platform native elements, e.g. `&lt;div&gt;` for browsers</span>
+     <span class="s3">*/</span>
+    <span class="s1">isNativeTag?: (tag: string) =&gt; boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* e.g. native elements that can self-close, e.g. `&lt;img&gt;`, `&lt;br&gt;`, `&lt;hr&gt;`</span>
+     <span class="s3">*/</span>
+    <span class="s1">isVoidTag?: (tag: string) =&gt; boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* e.g. elements that should preserve whitespace inside, e.g. `&lt;pre&gt;`</span>
+     <span class="s3">*/</span>
+    <span class="s1">isPreTag?: (tag: string) =&gt; boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Platform-specific built-in components e.g. `&lt;Transition&gt;`</span>
+     <span class="s3">*/</span>
+    <span class="s1">isBuiltInComponent?: (tag: string) =&gt; symbol | </span><span class="s0">void;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Separate option for end users to extend the native elements list</span>
+     <span class="s3">*/</span>
+    <span class="s1">isCustomElement?: (tag: string) =&gt; boolean | </span><span class="s0">void;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Get tag namespace</span>
+     <span class="s3">*/</span>
+    <span class="s1">getNamespace?: (tag: string</span><span class="s0">, </span><span class="s1">parent: ElementNode | undefined) =&gt; Namespace</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Get text parsing mode for this element</span>
+     <span class="s3">*/</span>
+    <span class="s1">getTextMode?: (node: ElementNode</span><span class="s0">, </span><span class="s1">parent: ElementNode | undefined) =&gt; TextModes</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">['{{', '}}']</span>
+     <span class="s3">*/</span>
+    <span class="s1">delimiters?: [string</span><span class="s0">, </span><span class="s1">string]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Whitespace handling strategy</span>
+     <span class="s3">*/</span>
+    <span class="s1">whitespace?: </span><span class="s2">'preserve' </span><span class="s1">| </span><span class="s2">'condense'</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Only needed for DOM compilers</span>
+     <span class="s3">*/</span>
+    <span class="s1">decodeEntities?: (rawText: string</span><span class="s0">, </span><span class="s1">asAttr: boolean) =&gt; string</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Whether to keep comments in the templates AST.</span>
+     <span class="s3">* This defaults to `true` in development and `false` in production builds.</span>
+     <span class="s3">*/</span>
+    <span class="s1">comments?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">PlainElementNode </span><span class="s0">extends </span><span class="s1">BaseElementNode {</span>
+    <span class="s1">tagType: ElementTypes.ELEMENT</span><span class="s0">;</span>
+    <span class="s1">codegenNode: VNodeCall | SimpleExpressionNode | CacheExpression | MemoExpression | undefined</span><span class="s0">;</span>
+    <span class="s1">ssrCodegenNode?: TemplateLiteral</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">POP_SCOPE_ID: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">Position {</span>
+    <span class="s1">offset: number</span><span class="s0">;</span>
+    <span class="s1">line: number</span><span class="s0">;</span>
+    <span class="s1">column: number</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">processExpression(node: SimpleExpressionNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">asParams?: boolean</span><span class="s0">, </span><span class="s1">asRawStatements?: boolean</span><span class="s0">, </span><span class="s1">localVars?: Record&lt;string</span><span class="s0">, </span><span class="s1">number&gt;): ExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">processFor(node: ElementNode</span><span class="s0">, </span><span class="s1">dir: DirectiveNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">processCodegen?: (forNode: ForNode) =&gt; (() =&gt; </span><span class="s0">void</span><span class="s1">) | undefined): (() =&gt; </span><span class="s0">void</span><span class="s1">) | undefined</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">processIf(node: ElementNode</span><span class="s0">, </span><span class="s1">dir: DirectiveNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">processCodegen?: (node: IfNode</span><span class="s0">, </span><span class="s1">branch: IfBranchNode</span><span class="s0">, </span><span class="s1">isRoot: boolean) =&gt; (() =&gt; </span><span class="s0">void</span><span class="s1">) | undefined): (() =&gt; </span><span class="s0">void</span><span class="s1">) | undefined</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">processSlotOutlet(node: SlotOutletNode</span><span class="s0">, </span><span class="s1">context: TransformContext): SlotOutletProcessResult</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">Property </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_PROPERTY</span><span class="s0">;</span>
+    <span class="s1">key: ExpressionNode</span><span class="s0">;</span>
+    <span class="s1">value: JSChildNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type PropsExpression = ObjectExpression | CallExpression | ExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">PUSH_SCOPE_ID: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">registerRuntimeHelpers(helpers: Record&lt;symbol</span><span class="s0">, </span><span class="s1">string&gt;): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RENDER_LIST: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RENDER_SLOT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">RenderSlotCall </span><span class="s0">extends </span><span class="s1">CallExpression {</span>
+    <span class="s1">callee: </span><span class="s0">typeof </span><span class="s1">RENDER_SLOT</span><span class="s0">;</span>
+    <span class="s1">arguments: [string</span><span class="s0">, </span><span class="s1">string | ExpressionNode] | [string</span><span class="s0">, </span><span class="s1">string | ExpressionNode</span><span class="s0">, </span><span class="s1">PropsExpression] | [</span>
+    <span class="s1">string</span><span class="s0">,</span>
+    <span class="s1">string | ExpressionNode</span><span class="s0">,</span>
+    <span class="s1">PropsExpression | </span><span class="s2">'{}'</span><span class="s0">,</span>
+    <span class="s1">TemplateChildNode[]</span>
+    <span class="s1">]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RESOLVE_COMPONENT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RESOLVE_DIRECTIVE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RESOLVE_DYNAMIC_COMPONENT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">RESOLVE_FILTER: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">resolveComponentType(node: ComponentNode</span><span class="s0">, </span><span class="s1">context: TransformContext</span><span class="s0">, </span><span class="s1">ssr?: boolean): string | symbol | CallExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">ReturnStatement </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_RETURN_STATEMENT</span><span class="s0">;</span>
+    <span class="s1">returns: TemplateChildNode | TemplateChildNode[] | JSChildNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">RootNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.ROOT</span><span class="s0">;</span>
+    <span class="s1">children: TemplateChildNode[]</span><span class="s0">;</span>
+    <span class="s1">helpers: Set&lt;symbol&gt;</span><span class="s0">;</span>
+    <span class="s1">components: string[]</span><span class="s0">;</span>
+    <span class="s1">directives: string[]</span><span class="s0">;</span>
+    <span class="s1">hoists: (JSChildNode | </span><span class="s0">null</span><span class="s1">)[]</span><span class="s0">;</span>
+    <span class="s1">imports: ImportItem[]</span><span class="s0">;</span>
+    <span class="s1">cached: number</span><span class="s0">;</span>
+    <span class="s1">temps: number</span><span class="s0">;</span>
+    <span class="s1">ssrHelpers?: symbol[]</span><span class="s0">;</span>
+    <span class="s1">codegenNode?: TemplateChildNode | JSChildNode | BlockStatement</span><span class="s0">;</span>
+    <span class="s1">filters?: string[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SequenceExpression </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_SEQUENCE_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">expressions: JSChildNode[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">SET_BLOCK_TRACKING: unique symbol</span><span class="s0">;</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">SharedTransformCodegenOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Transform expressions like {{ foo }} to `_ctx.foo`.</span>
+     <span class="s3">* If this option is false, the generated code will be wrapped in a</span>
+     <span class="s3">* `with (this) { ... }` block.</span>
+     <span class="s3">* - This is force-enabled in module mode, since modules are by default strict</span>
+     <span class="s3">* and cannot use `with`</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">mode === 'module'</span>
+     <span class="s3">*/</span>
+    <span class="s1">prefixIdentifiers?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Control whether generate SSR-optimized render functions instead.</span>
+     <span class="s3">* The resulting function must be attached to the component via the</span>
+     <span class="s3">* `ssrRender` option instead of `render`.</span>
+     <span class="s3">*</span>
+     <span class="s3">* When compiler generates code for SSR's fallback branch, we need to set it to false:</span>
+     <span class="s3">*  - context.ssr = false</span>
+     <span class="s3">*</span>
+     <span class="s3">* see `subTransform` in `ssrTransformComponent.ts`</span>
+     <span class="s3">*/</span>
+    <span class="s1">ssr?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Indicates whether the compiler generates code for SSR,</span>
+     <span class="s3">* it is always true when generating code for SSR,</span>
+     <span class="s3">* regardless of whether we are generating code for SSR's fallback branch,</span>
+     <span class="s3">* this means that when the compiler generates code for SSR's fallback branch:</span>
+     <span class="s3">*  - context.ssr = false</span>
+     <span class="s3">*  - context.inSSR = true</span>
+     <span class="s3">*/</span>
+    <span class="s1">inSSR?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Optional binding metadata analyzed from script - used to optimize</span>
+     <span class="s3">* binding access when `prefixIdentifiers` is enabled.</span>
+     <span class="s3">*/</span>
+    <span class="s1">bindingMetadata?: BindingMetadata</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Compile the function for inlining inside setup().</span>
+     <span class="s3">* This allows the function to directly access setup() local bindings.</span>
+     <span class="s3">*/</span>
+    <span class="s1">inline?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Indicates that transforms and codegen should try to output valid TS code</span>
+     <span class="s3">*/</span>
+    <span class="s1">isTS?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Filename for source map generation.</span>
+     <span class="s3">* Also used for self-recursive reference in templates</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">'template.vue.html'</span>
+     <span class="s3">*/</span>
+    <span class="s1">filename?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SimpleExpressionNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.SIMPLE_EXPRESSION</span><span class="s0">;</span>
+    <span class="s1">content: string</span><span class="s0">;</span>
+    <span class="s1">isStatic: boolean</span><span class="s0">;</span>
+    <span class="s1">constType: ConstantTypes</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Indicates this is an identifier for a hoist vnode call and points to the</span>
+     <span class="s3">* hoisted node.</span>
+     <span class="s3">*/</span>
+    <span class="s1">hoisted?: JSChildNode</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* an expression parsed as the params of a function will track</span>
+     <span class="s3">* the identifiers declared inside the function body.</span>
+     <span class="s3">*/</span>
+    <span class="s1">identifiers?: string[]</span><span class="s0">;</span>
+    <span class="s1">isHandlerKey?: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type SlotFnBuilder = (slotProps: ExpressionNode | undefined</span><span class="s0">, </span><span class="s1">slotChildren: TemplateChildNode[]</span><span class="s0">, </span><span class="s1">loc: SourceLocation) =&gt; FunctionExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SlotFunctionExpression </span><span class="s0">extends </span><span class="s1">FunctionExpression {</span>
+    <span class="s1">returns: TemplateChildNode[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SlotOutletNode </span><span class="s0">extends </span><span class="s1">BaseElementNode {</span>
+    <span class="s1">tagType: ElementTypes.SLOT</span><span class="s0">;</span>
+    <span class="s1">codegenNode: RenderSlotCall | CacheExpression | undefined</span><span class="s0">;</span>
+    <span class="s1">ssrCodegenNode?: CallExpression</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">SlotOutletProcessResult {</span>
+    <span class="s1">slotName: string | ExpressionNode</span><span class="s0">;</span>
+    <span class="s1">slotProps: PropsExpression | undefined</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type SlotsExpression = SlotsObjectExpression | DynamicSlotsExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SlotsObjectExpression </span><span class="s0">extends </span><span class="s1">ObjectExpression {</span>
+    <span class="s1">properties: SlotsObjectProperty[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SlotsObjectProperty </span><span class="s0">extends </span><span class="s1">Property {</span>
+    <span class="s1">value: SlotFunctionExpression</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SourceLocation {</span>
+    <span class="s1">start: Position</span><span class="s0">;</span>
+    <span class="s1">end: Position</span><span class="s0">;</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type SSRCodegenNode = BlockStatement | TemplateLiteral | IfStatement | AssignmentExpression | ReturnStatement | SequenceExpression</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">stringifyExpression(exp: ExpressionNode | string): string</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type StructuralDirectiveTransform = (node: ElementNode</span><span class="s0">, </span><span class="s1">dir: DirectiveNode</span><span class="s0">, </span><span class="s1">context: TransformContext) =&gt; </span><span class="s0">void </span><span class="s1">| (() =&gt; </span><span class="s0">void</span><span class="s1">)</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">SUSPENSE: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TELEPORT: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare type TemplateChildNode = ElementNode | InterpolationNode | CompoundExpressionNode | TextNode | CommentNode | IfNode | IfBranchNode | ForNode | TextCallNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TemplateLiteral </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.JS_TEMPLATE_LITERAL</span><span class="s0">;</span>
+    <span class="s1">elements: (string | JSChildNode)[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TemplateNode </span><span class="s0">extends </span><span class="s1">BaseElementNode {</span>
+    <span class="s1">tagType: ElementTypes.TEMPLATE</span><span class="s0">;</span>
+    <span class="s1">codegenNode: undefined</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type TemplateTextChildNode = TextNode | InterpolationNode | CompoundExpressionNode</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TextCallNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.TEXT_CALL</span><span class="s0">;</span>
+    <span class="s1">content: TextNode | InterpolationNode | CompoundExpressionNode</span><span class="s0">;</span>
+    <span class="s1">codegenNode: CallExpression | SimpleExpressionNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const enum </span><span class="s1">TextModes {</span>
+    <span class="s1">DATA = </span><span class="s5">0</span><span class="s0">,</span>
+    <span class="s1">RCDATA = </span><span class="s5">1</span><span class="s0">,</span>
+    <span class="s1">RAWTEXT = </span><span class="s5">2</span><span class="s0">,</span>
+    <span class="s1">CDATA = </span><span class="s5">3</span><span class="s0">,</span>
+    <span class="s1">ATTRIBUTE_VALUE = </span><span class="s5">4</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TextNode </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.TEXT</span><span class="s0">;</span>
+    <span class="s1">content: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TO_DISPLAY_STRING: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TO_HANDLER_KEY: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">TO_HANDLERS: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">toValidAssetId(name: string</span><span class="s0">, </span><span class="s1">type: </span><span class="s2">'component' </span><span class="s1">| </span><span class="s2">'directive' </span><span class="s1">| </span><span class="s2">'filter'</span><span class="s1">): string</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">trackSlotScopes: NodeTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">trackVForSlotScopes: NodeTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">transform(root: RootNode</span><span class="s0">, </span><span class="s1">options: TransformOptions): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">transformBind: DirectiveTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TransformContext </span><span class="s0">extends </span><span class="s1">Required&lt;Omit&lt;TransformOptions</span><span class="s0">, </span><span class="s2">'filename' </span><span class="s1">| keyof CompilerCompatOptions&gt;&gt;</span><span class="s0">, </span><span class="s1">CompilerCompatOptions {</span>
+    <span class="s1">selfName: string | </span><span class="s0">null;</span>
+    <span class="s1">root: RootNode</span><span class="s0">;</span>
+    <span class="s1">helpers: Map&lt;symbol</span><span class="s0">, </span><span class="s1">number&gt;</span><span class="s0">;</span>
+    <span class="s1">components: Set&lt;string&gt;</span><span class="s0">;</span>
+    <span class="s1">directives: Set&lt;string&gt;</span><span class="s0">;</span>
+    <span class="s1">hoists: (JSChildNode | </span><span class="s0">null</span><span class="s1">)[]</span><span class="s0">;</span>
+    <span class="s1">imports: ImportItem[]</span><span class="s0">;</span>
+    <span class="s1">temps: number</span><span class="s0">;</span>
+    <span class="s1">cached: number</span><span class="s0">;</span>
+    <span class="s1">identifiers: {</span>
+        <span class="s1">[name: string]: number | undefined</span><span class="s0">;</span>
+    <span class="s1">}</span><span class="s0">;</span>
+    <span class="s1">scopes: {</span>
+        <span class="s1">vFor: number</span><span class="s0">;</span>
+        <span class="s1">vSlot: number</span><span class="s0">;</span>
+        <span class="s1">vPre: number</span><span class="s0">;</span>
+        <span class="s1">vOnce: number</span><span class="s0">;</span>
+    <span class="s1">}</span><span class="s0">;</span>
+    <span class="s1">parent: ParentNode_2 | </span><span class="s0">null;</span>
+    <span class="s1">childIndex: number</span><span class="s0">;</span>
+    <span class="s1">currentNode: RootNode | TemplateChildNode | </span><span class="s0">null;</span>
+    <span class="s1">inVOnce: boolean</span><span class="s0">;</span>
+    <span class="s1">helper&lt;T </span><span class="s0">extends </span><span class="s1">symbol&gt;(name: T): T</span><span class="s0">;</span>
+    <span class="s1">removeHelper&lt;T </span><span class="s0">extends </span><span class="s1">symbol&gt;(name: T): </span><span class="s0">void;</span>
+    <span class="s1">helperString(name: symbol): string</span><span class="s0">;</span>
+    <span class="s1">replaceNode(node: TemplateChildNode): </span><span class="s0">void;</span>
+    <span class="s1">removeNode(node?: TemplateChildNode): </span><span class="s0">void;</span>
+    <span class="s1">onNodeRemoved(): </span><span class="s0">void;</span>
+    <span class="s1">addIdentifiers(exp: ExpressionNode | string): </span><span class="s0">void;</span>
+    <span class="s1">removeIdentifiers(exp: ExpressionNode | string): </span><span class="s0">void;</span>
+    <span class="s1">hoist(exp: string | JSChildNode | ArrayExpression): SimpleExpressionNode</span><span class="s0">;</span>
+    <span class="s1">cache&lt;T </span><span class="s0">extends </span><span class="s1">JSChildNode&gt;(exp: T</span><span class="s0">, </span><span class="s1">isVNode?: boolean): CacheExpression | T</span><span class="s0">;</span>
+    <span class="s1">constantCache: Map&lt;TemplateChildNode</span><span class="s0">, </span><span class="s1">ConstantTypes&gt;</span><span class="s0">;</span>
+    <span class="s1">filters?: Set&lt;string&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">transformElement: NodeTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">transformExpression: NodeTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">transformModel: DirectiveTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">transformOn: DirectiveTransform</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TransformOptions </span><span class="s0">extends </span><span class="s1">SharedTransformCodegenOptions</span><span class="s0">, </span><span class="s1">ErrorHandlingOptions</span><span class="s0">, </span><span class="s1">CompilerCompatOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* An array of node transforms to be applied to every AST node.</span>
+     <span class="s3">*/</span>
+    <span class="s1">nodeTransforms?: NodeTransform[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* An object of { name: transform } to be applied to every directive attribute</span>
+     <span class="s3">* node found on element nodes.</span>
+     <span class="s3">*/</span>
+    <span class="s1">directiveTransforms?: Record&lt;string</span><span class="s0">, </span><span class="s1">DirectiveTransform | undefined&gt;</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* An optional hook to transform a node being hoisted.</span>
+     <span class="s3">* used by compiler-dom to turn hoisted nodes into stringified HTML vnodes.</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">null</span>
+     <span class="s3">*/</span>
+    <span class="s1">transformHoist?: HoistTransform | </span><span class="s0">null;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* If the pairing runtime provides additional built-in elements, use this to</span>
+     <span class="s3">* mark them as built-in so the compiler will generate component vnodes</span>
+     <span class="s3">* for them.</span>
+     <span class="s3">*/</span>
+    <span class="s1">isBuiltInComponent?: (tag: string) =&gt; symbol | </span><span class="s0">void;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Used by some transforms that expects only native elements</span>
+     <span class="s3">*/</span>
+    <span class="s1">isCustomElement?: (tag: string) =&gt; boolean | </span><span class="s0">void;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Transform expressions like {{ foo }} to `_ctx.foo`.</span>
+     <span class="s3">* If this option is false, the generated code will be wrapped in a</span>
+     <span class="s3">* `with (this) { ... }` block.</span>
+     <span class="s3">* - This is force-enabled in module mode, since modules are by default strict</span>
+     <span class="s3">* and cannot use `with`</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">mode === 'module'</span>
+     <span class="s3">*/</span>
+    <span class="s1">prefixIdentifiers?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Hoist static VNodes and props objects to `_hoisted_x` constants</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">false</span>
+     <span class="s3">*/</span>
+    <span class="s1">hoistStatic?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Cache v-on handlers to avoid creating new inline functions on each render,</span>
+     <span class="s3">* also avoids the need for dynamically patching the handlers by wrapping it.</span>
+     <span class="s3">* e.g `@click=&quot;foo&quot;` by default is compiled to `{ onClick: foo }`. With this</span>
+     <span class="s3">* option it's compiled to:</span>
+     <span class="s3">* ```js</span>
+     <span class="s3">* { onClick: _cache[0] || (_cache[0] = e =&gt; _ctx.foo(e)) }</span>
+     <span class="s3">* ```</span>
+     <span class="s3">* - Requires &quot;prefixIdentifiers&quot; to be enabled because it relies on scope</span>
+     <span class="s3">* analysis to determine if a handler is safe to cache.</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">false</span>
+     <span class="s3">*/</span>
+    <span class="s1">cacheHandlers?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* A list of parser plugins to enable for `@babel/parser`, which is used to</span>
+     <span class="s3">* parse expressions in bindings and interpolations.</span>
+     <span class="s3">* https://babeljs.io/docs/en/next/babel-parser#plugins</span>
+     <span class="s3">*/</span>
+    <span class="s1">expressionPlugins?: ParserPlugin[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* SFC scoped styles ID</span>
+     <span class="s3">*/</span>
+    <span class="s1">scopeId?: string | </span><span class="s0">null;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Indicates this SFC template has used :slotted in its styles</span>
+     <span class="s3">* Defaults to `true` for backwards compatibility - SFC tooling should set it</span>
+     <span class="s3">* to `false` if no `:slotted` usage is detected in `&lt;style&gt;`</span>
+     <span class="s3">*/</span>
+    <span class="s1">slotted?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* SFC `&lt;style vars&gt;` injection string</span>
+     <span class="s3">* Should already be an object expression, e.g. `{ 'xxxx-color': color }`</span>
+     <span class="s3">* needed to render inline CSS variables on component root</span>
+     <span class="s3">*/</span>
+    <span class="s1">ssrCssVars?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare type TransformPreset = [</span>
+<span class="s1">NodeTransform[]</span><span class="s0">,</span>
+<span class="s1">Record&lt;string</span><span class="s0">, </span><span class="s1">DirectiveTransform&gt;</span>
+<span class="s1">]</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">traverseNode(node: RootNode | TemplateChildNode</span><span class="s0">, </span><span class="s1">context: TransformContext): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">UNREF: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">VNodeCall </span><span class="s0">extends </span><span class="s1">Node_2 {</span>
+    <span class="s1">type: NodeTypes.VNODE_CALL</span><span class="s0">;</span>
+    <span class="s1">tag: string | symbol | CallExpression</span><span class="s0">;</span>
+    <span class="s1">props: PropsExpression | undefined</span><span class="s0">;</span>
+    <span class="s1">children: TemplateChildNode[] | TemplateTextChildNode | SlotsExpression | ForRenderListExpression | SimpleExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">patchFlag: string | undefined</span><span class="s0">;</span>
+    <span class="s1">dynamicProps: string | SimpleExpressionNode | undefined</span><span class="s0">;</span>
+    <span class="s1">directives: DirectiveArguments | undefined</span><span class="s0">;</span>
+    <span class="s1">isBlock: boolean</span><span class="s0">;</span>
+    <span class="s1">disableTracking: boolean</span><span class="s0">;</span>
+    <span class="s1">isComponent: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">walkBlockDeclarations(block: BlockStatement_2 | Program</span><span class="s0">, </span><span class="s1">onIdent: (node: Identifier) =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">walkFunctionParams(node: Function_2</span><span class="s0">, </span><span class="s1">onIdent: (id: Identifier) =&gt; </span><span class="s0">void</span><span class="s1">): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">walkIdentifiers(root: Node_3</span><span class="s0">, </span><span class="s1">onIdentifier: (node: Identifier</span><span class="s0">, </span><span class="s1">parent: Node_3</span><span class="s0">, </span><span class="s1">parentStack: Node_3[]</span><span class="s0">, </span><span class="s1">isReference: boolean</span><span class="s0">, </span><span class="s1">isLocal: boolean) =&gt; </span><span class="s0">void, </span><span class="s1">includeAll?: boolean</span><span class="s0">, </span><span class="s1">parentStack?: Node_3[]</span><span class="s0">, </span><span class="s1">knownIds?: Record&lt;string</span><span class="s0">, </span><span class="s1">number&gt;): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">warnDeprecation(key: CompilerDeprecationTypes</span><span class="s0">, </span><span class="s1">context: ParserContext | TransformContext</span><span class="s0">, </span><span class="s1">loc: SourceLocation | </span><span class="s0">null, </span><span class="s1">...args: any[]): </span><span class="s0">void;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">WITH_CTX: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">WITH_DIRECTIVES: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">WITH_MEMO: unique symbol</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ }</span>
+</pre>
+</body>
+</html>

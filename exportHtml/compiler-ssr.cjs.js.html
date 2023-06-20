@@ -1,0 +1,1296 @@
+<html>
+<head>
+<title>compiler-ssr.cjs.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #cc7832;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+.s5 { color: #629755; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+compiler-ssr.cjs.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span><span class="s1">;</span>
+
+<span class="s2">Object.defineProperty(exports</span><span class="s1">, </span><span class="s0">'__esModule'</span><span class="s1">, </span><span class="s2">{ value: </span><span class="s1">true </span><span class="s2">})</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">compilerDom = require(</span><span class="s0">'@vue/compiler-dom'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">shared = require(</span><span class="s0">'@vue/shared'</span><span class="s2">)</span><span class="s1">;</span>
+
+<span class="s1">const </span><span class="s2">SSR_INTERPOLATE = Symbol(</span><span class="s0">`ssrInterpolate`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_VNODE = Symbol(</span><span class="s0">`ssrRenderVNode`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_COMPONENT = Symbol(</span><span class="s0">`ssrRenderComponent`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_SLOT = Symbol(</span><span class="s0">`ssrRenderSlot`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_SLOT_INNER = Symbol(</span><span class="s0">`ssrRenderSlotInner`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_CLASS = Symbol(</span><span class="s0">`ssrRenderClass`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_STYLE = Symbol(</span><span class="s0">`ssrRenderStyle`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_ATTRS = Symbol(</span><span class="s0">`ssrRenderAttrs`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_ATTR = Symbol(</span><span class="s0">`ssrRenderAttr`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_DYNAMIC_ATTR = Symbol(</span><span class="s0">`ssrRenderDynamicAttr`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_LIST = Symbol(</span><span class="s0">`ssrRenderList`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_INCLUDE_BOOLEAN_ATTR = Symbol(</span><span class="s0">`ssrIncludeBooleanAttr`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_LOOSE_EQUAL = Symbol(</span><span class="s0">`ssrLooseEqual`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_LOOSE_CONTAIN = Symbol(</span><span class="s0">`ssrLooseContain`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_DYNAMIC_MODEL = Symbol(</span><span class="s0">`ssrRenderDynamicModel`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_GET_DYNAMIC_MODEL_PROPS = Symbol(</span><span class="s0">`ssrGetDynamicModelProps`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_TELEPORT = Symbol(</span><span class="s0">`ssrRenderTeleport`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_RENDER_SUSPENSE = Symbol(</span><span class="s0">`ssrRenderSuspense`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">SSR_GET_DIRECTIVE_PROPS = Symbol(</span><span class="s0">`ssrGetDirectiveProps`</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">ssrHelpers = {</span>
+    <span class="s2">[SSR_INTERPOLATE]: </span><span class="s0">`ssrInterpolate`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_VNODE]: </span><span class="s0">`ssrRenderVNode`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_COMPONENT]: </span><span class="s0">`ssrRenderComponent`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_SLOT]: </span><span class="s0">`ssrRenderSlot`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_SLOT_INNER]: </span><span class="s0">`ssrRenderSlotInner`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_CLASS]: </span><span class="s0">`ssrRenderClass`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_STYLE]: </span><span class="s0">`ssrRenderStyle`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_ATTRS]: </span><span class="s0">`ssrRenderAttrs`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_ATTR]: </span><span class="s0">`ssrRenderAttr`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_DYNAMIC_ATTR]: </span><span class="s0">`ssrRenderDynamicAttr`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_LIST]: </span><span class="s0">`ssrRenderList`</span><span class="s1">,</span>
+    <span class="s2">[SSR_INCLUDE_BOOLEAN_ATTR]: </span><span class="s0">`ssrIncludeBooleanAttr`</span><span class="s1">,</span>
+    <span class="s2">[SSR_LOOSE_EQUAL]: </span><span class="s0">`ssrLooseEqual`</span><span class="s1">,</span>
+    <span class="s2">[SSR_LOOSE_CONTAIN]: </span><span class="s0">`ssrLooseContain`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_DYNAMIC_MODEL]: </span><span class="s0">`ssrRenderDynamicModel`</span><span class="s1">,</span>
+    <span class="s2">[SSR_GET_DYNAMIC_MODEL_PROPS]: </span><span class="s0">`ssrGetDynamicModelProps`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_TELEPORT]: </span><span class="s0">`ssrRenderTeleport`</span><span class="s1">,</span>
+    <span class="s2">[SSR_RENDER_SUSPENSE]: </span><span class="s0">`ssrRenderSuspense`</span><span class="s1">,</span>
+    <span class="s2">[SSR_GET_DIRECTIVE_PROPS]: </span><span class="s0">`ssrGetDirectiveProps`</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s3">// Note: these are helpers imported from @vue/server-renderer</span>
+<span class="s3">// make sure the names match!</span>
+<span class="s2">compilerDom.registerRuntimeHelpers(ssrHelpers)</span><span class="s1">;</span>
+
+<span class="s3">// Plugin for the first transform pass, which simply constructs the AST node</span>
+<span class="s1">const </span><span class="s2">ssrTransformIf = compilerDom.createStructuralDirectiveTransform(</span><span class="s4">/^(if|else|else-if)$/</span><span class="s1">, </span><span class="s2">compilerDom.processIf)</span><span class="s1">;</span>
+<span class="s3">// This is called during the 2nd transform pass to construct the SSR-specific</span>
+<span class="s3">// codegen nodes.</span>
+<span class="s1">function </span><span class="s2">ssrProcessIf(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments = </span><span class="s1">false</span><span class="s2">) {</span>
+    <span class="s1">const </span><span class="s2">[rootBranch] = node.branches</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">ifStatement = compilerDom.createIfStatement(rootBranch.condition</span><span class="s1">, </span><span class="s2">processIfBranch(rootBranch</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments))</span><span class="s1">;</span>
+    <span class="s2">context.pushStatement(ifStatement)</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">currentIf = ifStatement</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">1</span><span class="s1">; </span><span class="s2">i &lt; node.branches.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+        <span class="s1">const </span><span class="s2">branch = node.branches[i]</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">branchBlockStatement = processIfBranch(branch</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(branch.condition) {</span>
+            <span class="s3">// else-if</span>
+            <span class="s2">currentIf = currentIf.alternate = compilerDom.createIfStatement(branch.condition</span><span class="s1">, </span><span class="s2">branchBlockStatement)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s3">// else</span>
+            <span class="s2">currentIf.alternate = branchBlockStatement</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(!currentIf.alternate) {</span>
+        <span class="s2">currentIf.alternate = compilerDom.createBlockStatement([</span>
+            <span class="s2">compilerDom.createCallExpression(</span><span class="s0">`_push`</span><span class="s1">, </span><span class="s2">[</span><span class="s0">'`&lt;!----&gt;`'</span><span class="s2">])</span>
+        <span class="s2">])</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">processIfBranch(branch</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments = </span><span class="s1">false</span><span class="s2">) {</span>
+    <span class="s1">const </span><span class="s2">{ children } = branch</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">needFragmentWrapper = !disableNestedFragments &amp;&amp;</span>
+        <span class="s2">(children.length !== </span><span class="s4">1 </span><span class="s2">|| children[</span><span class="s4">0</span><span class="s2">].type !== </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s2">) &amp;&amp;</span>
+        <span class="s3">// optimize away nested fragments when the only child is a ForNode</span>
+        <span class="s2">!(children.length === </span><span class="s4">1 </span><span class="s2">&amp;&amp; children[</span><span class="s4">0</span><span class="s2">].type === </span><span class="s4">11 </span><span class="s3">/* NodeTypes.FOR */</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">processChildrenAsStatement(branch</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">needFragmentWrapper)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s3">// Plugin for the first transform pass, which simply constructs the AST node</span>
+<span class="s1">const </span><span class="s2">ssrTransformFor = compilerDom.createStructuralDirectiveTransform(</span><span class="s0">'for'</span><span class="s1">, </span><span class="s2">compilerDom.processFor)</span><span class="s1">;</span>
+<span class="s3">// This is called during the 2nd transform pass to construct the SSR-specific</span>
+<span class="s3">// codegen nodes.</span>
+<span class="s1">function </span><span class="s2">ssrProcessFor(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments = </span><span class="s1">false</span><span class="s2">) {</span>
+    <span class="s1">const </span><span class="s2">needFragmentWrapper = !disableNestedFragments &amp;&amp;</span>
+        <span class="s2">(node.children.length !== </span><span class="s4">1 </span><span class="s2">|| node.children[</span><span class="s4">0</span><span class="s2">].type !== </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">renderLoop = compilerDom.createFunctionExpression(compilerDom.createForLoopParams(node.parseResult))</span><span class="s1">;</span>
+    <span class="s2">renderLoop.body = processChildrenAsStatement(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">needFragmentWrapper)</span><span class="s1">;</span>
+    <span class="s3">// v-for always renders a fragment unless explicitly disabled</span>
+    <span class="s1">if </span><span class="s2">(!disableNestedFragments) {</span>
+        <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;!--[--&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s2">context.pushStatement(compilerDom.createCallExpression(context.helper(SSR_RENDER_LIST)</span><span class="s1">, </span><span class="s2">[</span>
+        <span class="s2">node.source</span><span class="s1">,</span>
+        <span class="s2">renderLoop</span>
+    <span class="s2">]))</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!disableNestedFragments) {</span>
+        <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;!--]--&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">ssrTransformSlotOutlet = (node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(compilerDom.isSlotOutlet(node)) {</span>
+        <span class="s1">const </span><span class="s2">{ slotName</span><span class="s1">, </span><span class="s2">slotProps } = compilerDom.processSlotOutlet(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">args = [</span>
+            <span class="s0">`_ctx.$slots`</span><span class="s1">,</span>
+            <span class="s2">slotName</span><span class="s1">,</span>
+            <span class="s2">slotProps || </span><span class="s0">`{}`</span><span class="s1">,</span>
+            <span class="s3">// fallback content placeholder. will be replaced in the process phase</span>
+            <span class="s0">`null`</span><span class="s1">,</span>
+            <span class="s0">`_push`</span><span class="s1">,</span>
+            <span class="s0">`_parent`</span>
+        <span class="s2">]</span><span class="s1">;</span>
+        <span class="s3">// inject slot scope id if current template uses :slotted</span>
+        <span class="s1">if </span><span class="s2">(context.scopeId &amp;&amp; context.slotted !== </span><span class="s1">false</span><span class="s2">) {</span>
+            <span class="s2">args.push(</span><span class="s0">`&quot;</span><span class="s2">${context.scopeId}</span><span class="s0">-s&quot;`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">let </span><span class="s2">method = SSR_RENDER_SLOT</span><span class="s1">;</span>
+        <span class="s3">// #3989</span>
+        <span class="s3">// check if this is a single slot inside a transition wrapper - since</span>
+        <span class="s3">// transition will unwrap the slot fragment into a single vnode at runtime,</span>
+        <span class="s3">// we need to avoid rendering the slot as a fragment.</span>
+        <span class="s1">const </span><span class="s2">parent = context.parent</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(parent &amp;&amp;</span>
+            <span class="s2">parent.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp;</span>
+            <span class="s2">parent.tagType === </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */ </span><span class="s2">&amp;&amp;</span>
+            <span class="s2">compilerDom.resolveComponentType(parent</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, true</span><span class="s2">) === compilerDom.TRANSITION &amp;&amp;</span>
+            <span class="s2">parent.children.filter(c =&gt; c.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s2">).length === </span><span class="s4">1</span><span class="s2">) {</span>
+            <span class="s2">method = SSR_RENDER_SLOT_INNER</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(!(context.scopeId &amp;&amp; context.slotted !== </span><span class="s1">false</span><span class="s2">)) {</span>
+                <span class="s2">args.push(</span><span class="s0">'null'</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">args.push(</span><span class="s0">'true'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s2">node.ssrCodegenNode = compilerDom.createCallExpression(context.helper(method)</span><span class="s1">, </span><span class="s2">args)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">ssrProcessSlotOutlet(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">const </span><span class="s2">renderCall = node.ssrCodegenNode</span><span class="s1">;</span>
+    <span class="s3">// has fallback content</span>
+    <span class="s1">if </span><span class="s2">(node.children.length) {</span>
+        <span class="s1">const </span><span class="s2">fallbackRenderFn = compilerDom.createFunctionExpression([])</span><span class="s1">;</span>
+        <span class="s2">fallbackRenderFn.body = processChildrenAsStatement(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s3">// _renderSlot(slots, name, props, fallback, ...)</span>
+        <span class="s2">renderCall.arguments[</span><span class="s4">3</span><span class="s2">] = fallbackRenderFn</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s3">// Forwarded &lt;slot/&gt;. Merge slot scope ids</span>
+    <span class="s1">if </span><span class="s2">(context.withSlotScopeId) {</span>
+        <span class="s1">const </span><span class="s2">slotScopeId = renderCall.arguments[</span><span class="s4">6</span><span class="s2">]</span><span class="s1">;</span>
+        <span class="s2">renderCall.arguments[</span><span class="s4">6</span><span class="s2">] = slotScopeId</span>
+            <span class="s2">? </span><span class="s0">`</span><span class="s2">${slotScopeId} </span><span class="s0">+ _scopeId`</span>
+            <span class="s2">: </span><span class="s0">`_scopeId`</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s2">context.pushStatement(node.ssrCodegenNode)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">createSSRCompilerError(code</span><span class="s1">, </span><span class="s2">loc) {</span>
+    <span class="s1">return </span><span class="s2">compilerDom.createCompilerError(code</span><span class="s1">, </span><span class="s2">loc</span><span class="s1">, </span><span class="s2">SSRErrorMessages)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">SSRErrorMessages = {</span>
+    <span class="s2">[</span><span class="s4">62 </span><span class="s3">/* SSRErrorCodes.X_SSR_UNSAFE_ATTR_NAME */</span><span class="s2">]: </span><span class="s0">`Unsafe attribute name for SSR.`</span><span class="s1">,</span>
+    <span class="s2">[</span><span class="s4">63 </span><span class="s3">/* SSRErrorCodes.X_SSR_NO_TELEPORT_TARGET */</span><span class="s2">]: </span><span class="s0">`Missing the 'to' prop on teleport element.`</span><span class="s1">,</span>
+    <span class="s2">[</span><span class="s4">64 </span><span class="s3">/* SSRErrorCodes.X_SSR_INVALID_AST_NODE */</span><span class="s2">]: </span><span class="s0">`Invalid AST node during SSR transform.`</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s3">// Note: this is a 2nd-pass codegen transform.</span>
+<span class="s1">function </span><span class="s2">ssrProcessTeleport(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">const </span><span class="s2">targetProp = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'to'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!targetProp) {</span>
+        <span class="s2">context.onError(createSSRCompilerError(</span><span class="s4">63 </span><span class="s3">/* SSRErrorCodes.X_SSR_NO_TELEPORT_TARGET */</span><span class="s1">, </span><span class="s2">node.loc))</span><span class="s1">;</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">let </span><span class="s2">target</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(targetProp.type === </span><span class="s4">6 </span><span class="s3">/* NodeTypes.ATTRIBUTE */</span><span class="s2">) {</span>
+        <span class="s2">target =</span>
+            <span class="s2">targetProp.value &amp;&amp; compilerDom.createSimpleExpression(targetProp.value.content</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s2">target = targetProp.exp</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(!target) {</span>
+        <span class="s2">context.onError(createSSRCompilerError(</span><span class="s4">63 </span><span class="s3">/* SSRErrorCodes.X_SSR_NO_TELEPORT_TARGET */</span><span class="s1">, </span><span class="s2">targetProp.loc))</span><span class="s1">;</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">disabledProp = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'disabled'</span><span class="s1">, false, true </span><span class="s3">/* allow empty */</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">disabled = disabledProp</span>
+        <span class="s2">? disabledProp.type === </span><span class="s4">6 </span><span class="s3">/* NodeTypes.ATTRIBUTE */</span>
+            <span class="s2">? </span><span class="s0">`true`</span>
+            <span class="s2">: disabledProp.exp || </span><span class="s0">`false`</span>
+        <span class="s2">: </span><span class="s0">`false`</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">contentRenderFn = compilerDom.createFunctionExpression([</span><span class="s0">`_push`</span><span class="s2">]</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, </span><span class="s3">// Body is added later</span>
+    <span class="s1">true, </span><span class="s3">// newline</span>
+    <span class="s1">false, </span><span class="s3">// isSlot</span>
+    <span class="s2">node.loc)</span><span class="s1">;</span>
+    <span class="s2">contentRenderFn.body = processChildrenAsStatement(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+    <span class="s2">context.pushStatement(compilerDom.createCallExpression(context.helper(SSR_RENDER_TELEPORT)</span><span class="s1">, </span><span class="s2">[</span>
+        <span class="s0">`_push`</span><span class="s1">,</span>
+        <span class="s2">contentRenderFn</span><span class="s1">,</span>
+        <span class="s2">target</span><span class="s1">,</span>
+        <span class="s2">disabled</span><span class="s1">,</span>
+        <span class="s0">`_parent`</span>
+    <span class="s2">]))</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">wipMap$2 = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s3">// phase 1</span>
+<span class="s1">function </span><span class="s2">ssrTransformSuspense(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">return </span><span class="s2">() =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(node.children.length) {</span>
+            <span class="s1">const </span><span class="s2">wipEntry = {</span>
+                <span class="s2">slotsExp: </span><span class="s1">null,</span>
+                <span class="s2">wipSlots: []</span>
+            <span class="s2">}</span><span class="s1">;</span>
+            <span class="s2">wipMap$2.set(node</span><span class="s1">, </span><span class="s2">wipEntry)</span><span class="s1">;</span>
+            <span class="s2">wipEntry.slotsExp = compilerDom.buildSlots(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">(_props</span><span class="s1">, </span><span class="s2">children</span><span class="s1">, </span><span class="s2">loc) =&gt; {</span>
+                <span class="s1">const </span><span class="s2">fn = compilerDom.createFunctionExpression([]</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, </span><span class="s3">// no return, assign body later</span>
+                <span class="s1">true, </span><span class="s3">// newline</span>
+                <span class="s1">false, </span><span class="s3">// suspense slots are not treated as normal slots</span>
+                <span class="s2">loc)</span><span class="s1">;</span>
+                <span class="s2">wipEntry.wipSlots.push({</span>
+                    <span class="s2">fn</span><span class="s1">,</span>
+                    <span class="s2">children</span>
+                <span class="s2">})</span><span class="s1">;</span>
+                <span class="s1">return </span><span class="s2">fn</span><span class="s1">;</span>
+            <span class="s2">}).slots</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// phase 2</span>
+<span class="s1">function </span><span class="s2">ssrProcessSuspense(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s3">// complete wip slots with ssr code</span>
+    <span class="s1">const </span><span class="s2">wipEntry = wipMap$2.get(node)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!wipEntry) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ slotsExp</span><span class="s1">, </span><span class="s2">wipSlots } = wipEntry</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; wipSlots.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+        <span class="s1">const </span><span class="s2">slot = wipSlots[i]</span><span class="s1">;</span>
+        <span class="s2">slot.fn.body = processChildrenAsStatement(slot</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s3">// _push(ssrRenderSuspense(slots))</span>
+    <span class="s2">context.pushStatement(compilerDom.createCallExpression(context.helper(SSR_RENDER_SUSPENSE)</span><span class="s1">, </span><span class="s2">[</span>
+        <span class="s0">`_push`</span><span class="s1">,</span>
+        <span class="s2">slotsExp</span>
+    <span class="s2">]))</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s3">// for directives with children overwrite (e.g. v-html &amp; v-text), we need to</span>
+<span class="s3">// store the raw children so that they can be added in the 2nd pass.</span>
+<span class="s1">const </span><span class="s2">rawChildrenMap = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">ssrTransformElement = (node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(node.type !== </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">||</span>
+        <span class="s2">node.tagType !== </span><span class="s4">0 </span><span class="s3">/* ElementTypes.ELEMENT */</span><span class="s2">) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">return function </span><span class="s2">ssrPostTransformElement() {</span>
+        <span class="s3">// element</span>
+        <span class="s3">// generate the template literal representing the open tag.</span>
+        <span class="s1">const </span><span class="s2">openTag = [</span><span class="s0">`&lt;</span><span class="s2">${node.tag}</span><span class="s0">`</span><span class="s2">]</span><span class="s1">;</span>
+        <span class="s3">// some tags need to be passed to runtime for special checks</span>
+        <span class="s1">const </span><span class="s2">needTagForRuntime = node.tag === </span><span class="s0">'textarea' </span><span class="s2">|| node.tag.indexOf(</span><span class="s0">'-'</span><span class="s2">) &gt; </span><span class="s4">0</span><span class="s1">;</span>
+        <span class="s3">// v-bind=&quot;obj&quot;, v-bind:[key] and custom directives can potentially</span>
+        <span class="s3">// overwrite other static attrs and can affect final rendering result,</span>
+        <span class="s3">// so when they are present we need to bail out to full `renderAttrs`</span>
+        <span class="s1">const </span><span class="s2">hasDynamicVBind = compilerDom.hasDynamicKeyVBind(node)</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">hasCustomDir = node.props.some(p =&gt; p.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */ </span><span class="s2">&amp;&amp; !shared.isBuiltInDirective(p.name))</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">needMergeProps = hasDynamicVBind || hasCustomDir</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(needMergeProps) {</span>
+            <span class="s1">const </span><span class="s2">{ props</span><span class="s1">, </span><span class="s2">directives } = compilerDom.buildProps(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">node.props</span><span class="s1">, false </span><span class="s3">/* isComponent */</span><span class="s1">, false </span><span class="s3">/* isDynamicComponent */</span><span class="s1">, true </span><span class="s3">/* ssr */</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(props || directives.length) {</span>
+                <span class="s1">const </span><span class="s2">mergedProps = buildSSRProps(props</span><span class="s1">, </span><span class="s2">directives</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">propsExp = compilerDom.createCallExpression(context.helper(SSR_RENDER_ATTRS)</span><span class="s1">, </span><span class="s2">[mergedProps])</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(node.tag === </span><span class="s0">'textarea'</span><span class="s2">) {</span>
+                    <span class="s1">const </span><span class="s2">existingText = node.children[</span><span class="s4">0</span><span class="s2">]</span><span class="s1">;</span>
+                    <span class="s3">// If interpolation, this is dynamic &lt;textarea&gt; content, potentially</span>
+                    <span class="s3">// injected by v-model and takes higher priority than v-bind value</span>
+                    <span class="s1">if </span><span class="s2">(!existingText || existingText.type !== </span><span class="s4">5 </span><span class="s3">/* NodeTypes.INTERPOLATION */</span><span class="s2">) {</span>
+                        <span class="s3">// &lt;textarea&gt; with dynamic v-bind. We don't know if the final props</span>
+                        <span class="s3">// will contain .value, so we will have to do something special:</span>
+                        <span class="s3">// assign the merged props to a temp variable, and check whether</span>
+                        <span class="s3">// it contains value (if yes, render is as children).</span>
+                        <span class="s1">const </span><span class="s2">tempId = </span><span class="s0">`_temp</span><span class="s2">${context.temps++}</span><span class="s0">`</span><span class="s1">;</span>
+                        <span class="s2">propsExp.arguments = [</span>
+                            <span class="s2">compilerDom.createAssignmentExpression(compilerDom.createSimpleExpression(tempId</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">, </span><span class="s2">mergedProps)</span>
+                        <span class="s2">]</span><span class="s1">;</span>
+                        <span class="s2">rawChildrenMap.set(node</span><span class="s1">, </span><span class="s2">compilerDom.createCallExpression(context.helper(SSR_INTERPOLATE)</span><span class="s1">, </span><span class="s2">[</span>
+                            <span class="s2">compilerDom.createConditionalExpression(compilerDom.createSimpleExpression(</span><span class="s0">`&quot;value&quot; in </span><span class="s2">${tempId}</span><span class="s0">`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">, </span><span class="s2">compilerDom.createSimpleExpression(</span><span class="s0">`</span><span class="s2">${tempId}</span><span class="s0">.value`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">, </span><span class="s2">compilerDom.createSimpleExpression(existingText ? existingText.content : </span><span class="s0">``</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">, false</span><span class="s2">)</span>
+                        <span class="s2">]))</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(node.tag === </span><span class="s0">'input'</span><span class="s2">) {</span>
+                    <span class="s3">// &lt;input v-bind=&quot;obj&quot; v-model&gt;</span>
+                    <span class="s3">// we need to determine the props to render for the dynamic v-model</span>
+                    <span class="s3">// and merge it with the v-bind expression.</span>
+                    <span class="s1">const </span><span class="s2">vModel = findVModel(node)</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">(vModel) {</span>
+                        <span class="s3">// 1. save the props (san v-model) in a temp variable</span>
+                        <span class="s1">const </span><span class="s2">tempId = </span><span class="s0">`_temp</span><span class="s2">${context.temps++}</span><span class="s0">`</span><span class="s1">;</span>
+                        <span class="s1">const </span><span class="s2">tempExp = compilerDom.createSimpleExpression(tempId</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+                        <span class="s2">propsExp.arguments = [</span>
+                            <span class="s2">compilerDom.createSequenceExpression([</span>
+                                <span class="s2">compilerDom.createAssignmentExpression(tempExp</span><span class="s1">, </span><span class="s2">mergedProps)</span><span class="s1">,</span>
+                                <span class="s2">compilerDom.createCallExpression(context.helper(compilerDom.MERGE_PROPS)</span><span class="s1">, </span><span class="s2">[</span>
+                                    <span class="s2">tempExp</span><span class="s1">,</span>
+                                    <span class="s2">compilerDom.createCallExpression(context.helper(SSR_GET_DYNAMIC_MODEL_PROPS)</span><span class="s1">, </span><span class="s2">[</span>
+                                        <span class="s2">tempExp</span><span class="s1">,</span>
+                                        <span class="s2">vModel.exp </span><span class="s3">// model</span>
+                                    <span class="s2">])</span>
+                                <span class="s2">])</span>
+                            <span class="s2">])</span>
+                        <span class="s2">]</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s1">if </span><span class="s2">(needTagForRuntime) {</span>
+                    <span class="s2">propsExp.arguments.push(</span><span class="s0">`&quot;</span><span class="s2">${node.tag}</span><span class="s0">&quot;`</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s2">openTag.push(propsExp)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s3">// book keeping static/dynamic class merging.</span>
+        <span class="s1">let </span><span class="s2">dynamicClassBinding = undefined</span><span class="s1">;</span>
+        <span class="s1">let </span><span class="s2">staticClassBinding = undefined</span><span class="s1">;</span>
+        <span class="s3">// all style bindings are converted to dynamic by transformStyle.</span>
+        <span class="s3">// but we need to make sure to merge them.</span>
+        <span class="s1">let </span><span class="s2">dynamicStyleBinding = undefined</span><span class="s1">;</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; node.props.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+            <span class="s1">const </span><span class="s2">prop = node.props[i]</span><span class="s1">;</span>
+            <span class="s3">// ignore true-value/false-value on input</span>
+            <span class="s1">if </span><span class="s2">(node.tag === </span><span class="s0">'input' </span><span class="s2">&amp;&amp; isTrueFalseValue(prop)) {</span>
+                <span class="s1">continue;</span>
+            <span class="s2">}</span>
+            <span class="s3">// special cases with children override</span>
+            <span class="s1">if </span><span class="s2">(prop.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s2">) {</span>
+                <span class="s1">if </span><span class="s2">(prop.name === </span><span class="s0">'html' </span><span class="s2">&amp;&amp; prop.exp) {</span>
+                    <span class="s2">rawChildrenMap.set(node</span><span class="s1">, </span><span class="s2">prop.exp)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(prop.name === </span><span class="s0">'text' </span><span class="s2">&amp;&amp; prop.exp) {</span>
+                    <span class="s2">node.children = [compilerDom.createInterpolation(prop.exp</span><span class="s1">, </span><span class="s2">prop.loc)]</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(prop.name === </span><span class="s0">'slot'</span><span class="s2">) {</span>
+                    <span class="s2">context.onError(compilerDom.createCompilerError(</span><span class="s4">40 </span><span class="s3">/* ErrorCodes.X_V_SLOT_MISPLACED */</span><span class="s1">, </span><span class="s2">prop.loc))</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(isTextareaWithValue(node</span><span class="s1">, </span><span class="s2">prop) &amp;&amp; prop.exp) {</span>
+                    <span class="s1">if </span><span class="s2">(!needMergeProps) {</span>
+                        <span class="s2">node.children = [compilerDom.createInterpolation(prop.exp</span><span class="s1">, </span><span class="s2">prop.loc)]</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(!needMergeProps &amp;&amp; prop.name !== </span><span class="s0">'on'</span><span class="s2">) {</span>
+                    <span class="s3">// Directive transforms.</span>
+                    <span class="s1">const </span><span class="s2">directiveTransform = context.directiveTransforms[prop.name]</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">(directiveTransform) {</span>
+                        <span class="s1">const </span><span class="s2">{ props</span><span class="s1">, </span><span class="s2">ssrTagParts } = directiveTransform(prop</span><span class="s1">, </span><span class="s2">node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+                        <span class="s1">if </span><span class="s2">(ssrTagParts) {</span>
+                            <span class="s2">openTag.push(...ssrTagParts)</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">j = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">j &lt; props.length</span><span class="s1">; </span><span class="s2">j++) {</span>
+                            <span class="s1">const </span><span class="s2">{ key</span><span class="s1">, </span><span class="s2">value } = props[j]</span><span class="s1">;</span>
+                            <span class="s1">if </span><span class="s2">(compilerDom.isStaticExp(key)) {</span>
+                                <span class="s1">let </span><span class="s2">attrName = key.content</span><span class="s1">;</span>
+                                <span class="s3">// static key attr</span>
+                                <span class="s1">if </span><span class="s2">(attrName === </span><span class="s0">'key' </span><span class="s2">|| attrName === </span><span class="s0">'ref'</span><span class="s2">) {</span>
+                                    <span class="s1">continue;</span>
+                                <span class="s2">}</span>
+                                <span class="s1">if </span><span class="s2">(attrName === </span><span class="s0">'class'</span><span class="s2">) {</span>
+                                    <span class="s2">openTag.push(</span><span class="s0">` class=&quot;`</span><span class="s1">, </span><span class="s2">(dynamicClassBinding = compilerDom.createCallExpression(context.helper(SSR_RENDER_CLASS)</span><span class="s1">, </span><span class="s2">[value]))</span><span class="s1">, </span><span class="s0">`&quot;`</span><span class="s2">)</span><span class="s1">;</span>
+                                <span class="s2">}</span>
+                                <span class="s1">else if </span><span class="s2">(attrName === </span><span class="s0">'style'</span><span class="s2">) {</span>
+                                    <span class="s1">if </span><span class="s2">(dynamicStyleBinding) {</span>
+                                        <span class="s3">// already has style binding, merge into it.</span>
+                                        <span class="s2">mergeCall(dynamicStyleBinding</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+                                    <span class="s2">}</span>
+                                    <span class="s1">else </span><span class="s2">{</span>
+                                        <span class="s2">openTag.push(</span><span class="s0">` style=&quot;`</span><span class="s1">, </span><span class="s2">(dynamicStyleBinding = compilerDom.createCallExpression(context.helper(SSR_RENDER_STYLE)</span><span class="s1">, </span><span class="s2">[value]))</span><span class="s1">, </span><span class="s0">`&quot;`</span><span class="s2">)</span><span class="s1">;</span>
+                                    <span class="s2">}</span>
+                                <span class="s2">}</span>
+                                <span class="s1">else </span><span class="s2">{</span>
+                                    <span class="s2">attrName =</span>
+                                        <span class="s2">node.tag.indexOf(</span><span class="s0">'-'</span><span class="s2">) &gt; </span><span class="s4">0</span>
+                                            <span class="s2">? attrName </span><span class="s3">// preserve raw name on custom elements</span>
+                                            <span class="s2">: shared.propsToAttrMap[attrName] || attrName.toLowerCase()</span><span class="s1">;</span>
+                                    <span class="s1">if </span><span class="s2">(shared.isBooleanAttr(attrName)) {</span>
+                                        <span class="s2">openTag.push(compilerDom.createConditionalExpression(compilerDom.createCallExpression(context.helper(SSR_INCLUDE_BOOLEAN_ATTR)</span><span class="s1">, </span><span class="s2">[value])</span><span class="s1">, </span><span class="s2">compilerDom.createSimpleExpression(</span><span class="s0">' ' </span><span class="s2">+ attrName</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">, </span><span class="s2">compilerDom.createSimpleExpression(</span><span class="s0">''</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">, false </span><span class="s3">/* no newline */</span><span class="s2">))</span><span class="s1">;</span>
+                                    <span class="s2">}</span>
+                                    <span class="s1">else if </span><span class="s2">(shared.isSSRSafeAttrName(attrName)) {</span>
+                                        <span class="s2">openTag.push(compilerDom.createCallExpression(context.helper(SSR_RENDER_ATTR)</span><span class="s1">, </span><span class="s2">[</span>
+                                            <span class="s2">key</span><span class="s1">,</span>
+                                            <span class="s2">value</span>
+                                        <span class="s2">]))</span><span class="s1">;</span>
+                                    <span class="s2">}</span>
+                                    <span class="s1">else </span><span class="s2">{</span>
+                                        <span class="s2">context.onError(createSSRCompilerError(</span><span class="s4">62 </span><span class="s3">/* SSRErrorCodes.X_SSR_UNSAFE_ATTR_NAME */</span><span class="s1">, </span><span class="s2">key.loc))</span><span class="s1">;</span>
+                                    <span class="s2">}</span>
+                                <span class="s2">}</span>
+                            <span class="s2">}</span>
+                            <span class="s1">else </span><span class="s2">{</span>
+                                <span class="s3">// dynamic key attr</span>
+                                <span class="s3">// this branch is only encountered for custom directive</span>
+                                <span class="s3">// transforms that returns properties with dynamic keys</span>
+                                <span class="s1">const </span><span class="s2">args = [key</span><span class="s1">, </span><span class="s2">value]</span><span class="s1">;</span>
+                                <span class="s1">if </span><span class="s2">(needTagForRuntime) {</span>
+                                    <span class="s2">args.push(</span><span class="s0">`&quot;</span><span class="s2">${node.tag}</span><span class="s0">&quot;`</span><span class="s2">)</span><span class="s1">;</span>
+                                <span class="s2">}</span>
+                                <span class="s2">openTag.push(compilerDom.createCallExpression(context.helper(SSR_RENDER_DYNAMIC_ATTR)</span><span class="s1">, </span><span class="s2">args))</span><span class="s1">;</span>
+                            <span class="s2">}</span>
+                        <span class="s2">}</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s3">// special case: value on &lt;textarea&gt;</span>
+                <span class="s1">if </span><span class="s2">(node.tag === </span><span class="s0">'textarea' </span><span class="s2">&amp;&amp; prop.name === </span><span class="s0">'value' </span><span class="s2">&amp;&amp; prop.value) {</span>
+                    <span class="s2">rawChildrenMap.set(node</span><span class="s1">, </span><span class="s2">shared.escapeHtml(prop.value.content))</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(!needMergeProps) {</span>
+                    <span class="s1">if </span><span class="s2">(prop.name === </span><span class="s0">'key' </span><span class="s2">|| prop.name === </span><span class="s0">'ref'</span><span class="s2">) {</span>
+                        <span class="s1">continue;</span>
+                    <span class="s2">}</span>
+                    <span class="s3">// static prop</span>
+                    <span class="s1">if </span><span class="s2">(prop.name === </span><span class="s0">'class' </span><span class="s2">&amp;&amp; prop.value) {</span>
+                        <span class="s2">staticClassBinding = JSON.stringify(prop.value.content)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                    <span class="s2">openTag.push(</span><span class="s0">` </span><span class="s2">${prop.name}</span><span class="s0">` </span><span class="s2">+</span>
+                        <span class="s2">(prop.value ? </span><span class="s0">`=&quot;</span><span class="s2">${shared.escapeHtml(prop.value.content)}</span><span class="s0">&quot;` </span><span class="s2">: </span><span class="s0">``</span><span class="s2">))</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s3">// handle co-existence of dynamic + static class bindings</span>
+        <span class="s1">if </span><span class="s2">(dynamicClassBinding &amp;&amp; staticClassBinding) {</span>
+            <span class="s2">mergeCall(dynamicClassBinding</span><span class="s1">, </span><span class="s2">staticClassBinding)</span><span class="s1">;</span>
+            <span class="s2">removeStaticBinding(openTag</span><span class="s1">, </span><span class="s0">'class'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(context.scopeId) {</span>
+            <span class="s2">openTag.push(</span><span class="s0">` </span><span class="s2">${context.scopeId}</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s2">node.ssrCodegenNode = compilerDom.createTemplateLiteral(openTag)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">buildSSRProps(props</span><span class="s1">, </span><span class="s2">directives</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">let </span><span class="s2">mergePropsArgs = []</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(props) {</span>
+        <span class="s1">if </span><span class="s2">(props.type === </span><span class="s4">14 </span><span class="s3">/* NodeTypes.JS_CALL_EXPRESSION */</span><span class="s2">) {</span>
+            <span class="s3">// already a mergeProps call</span>
+            <span class="s2">mergePropsArgs = props.arguments</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">mergePropsArgs.push(props)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(directives.length) {</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">dir of directives) {</span>
+            <span class="s2">mergePropsArgs.push(compilerDom.createCallExpression(context.helper(SSR_GET_DIRECTIVE_PROPS)</span><span class="s1">, </span><span class="s2">[</span>
+                <span class="s0">`_ctx`</span><span class="s1">,</span>
+                <span class="s2">...compilerDom.buildDirectiveArgs(dir</span><span class="s1">, </span><span class="s2">context).elements</span>
+            <span class="s2">]))</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">mergePropsArgs.length &gt; </span><span class="s4">1</span>
+        <span class="s2">? compilerDom.createCallExpression(context.helper(compilerDom.MERGE_PROPS)</span><span class="s1">, </span><span class="s2">mergePropsArgs)</span>
+        <span class="s2">: mergePropsArgs[</span><span class="s4">0</span><span class="s2">]</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">isTrueFalseValue(prop) {</span>
+    <span class="s1">if </span><span class="s2">(prop.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s2">) {</span>
+        <span class="s1">return </span><span class="s2">(prop.name === </span><span class="s0">'bind' </span><span class="s2">&amp;&amp;</span>
+            <span class="s2">prop.arg &amp;&amp;</span>
+            <span class="s2">compilerDom.isStaticExp(prop.arg) &amp;&amp;</span>
+            <span class="s2">(prop.arg.content === </span><span class="s0">'true-value' </span><span class="s2">|| prop.arg.content === </span><span class="s0">'false-value'</span><span class="s2">))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">return </span><span class="s2">prop.name === </span><span class="s0">'true-value' </span><span class="s2">|| prop.name === </span><span class="s0">'false-value'</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">isTextareaWithValue(node</span><span class="s1">, </span><span class="s2">prop) {</span>
+    <span class="s1">return </span><span class="s2">!!(node.tag === </span><span class="s0">'textarea' </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">prop.name === </span><span class="s0">'bind' </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">compilerDom.isStaticArgOf(prop.arg</span><span class="s1">, </span><span class="s0">'value'</span><span class="s2">))</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">mergeCall(call</span><span class="s1">, </span><span class="s2">arg) {</span>
+    <span class="s1">const </span><span class="s2">existing = call.arguments[</span><span class="s4">0</span><span class="s2">]</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(existing.type === </span><span class="s4">17 </span><span class="s3">/* NodeTypes.JS_ARRAY_EXPRESSION */</span><span class="s2">) {</span>
+        <span class="s2">existing.elements.push(arg)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s2">call.arguments[</span><span class="s4">0</span><span class="s2">] = compilerDom.createArrayExpression([existing</span><span class="s1">, </span><span class="s2">arg])</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">removeStaticBinding(tag</span><span class="s1">, </span><span class="s2">binding) {</span>
+    <span class="s1">const </span><span class="s2">regExp = </span><span class="s1">new </span><span class="s2">RegExp(</span><span class="s0">`^ </span><span class="s2">${binding}</span><span class="s0">=&quot;.+&quot;$`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">i = tag.findIndex(e =&gt; </span><span class="s1">typeof </span><span class="s2">e === </span><span class="s0">'string' </span><span class="s2">&amp;&amp; regExp.test(e))</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(i &gt; -</span><span class="s4">1</span><span class="s2">) {</span>
+        <span class="s2">tag.splice(i</span><span class="s1">, </span><span class="s4">1</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">findVModel(node) {</span>
+    <span class="s1">return </span><span class="s2">node.props.find(p =&gt; p.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */ </span><span class="s2">&amp;&amp; p.name === </span><span class="s0">'model' </span><span class="s2">&amp;&amp; p.exp)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">ssrProcessElement(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">const </span><span class="s2">isVoidTag = context.options.isVoidTag || shared.NO</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">elementsToAdd = node.ssrCodegenNode.elements</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">j = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">j &lt; elementsToAdd.length</span><span class="s1">; </span><span class="s2">j++) {</span>
+        <span class="s2">context.pushStringPart(elementsToAdd[j])</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s3">// Handle slot scopeId</span>
+    <span class="s1">if </span><span class="s2">(context.withSlotScopeId) {</span>
+        <span class="s2">context.pushStringPart(compilerDom.createSimpleExpression(</span><span class="s0">`_scopeId`</span><span class="s1">, false</span><span class="s2">))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s3">// close open tag</span>
+    <span class="s2">context.pushStringPart(</span><span class="s0">`&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">rawChildren = rawChildrenMap.get(node)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(rawChildren) {</span>
+        <span class="s2">context.pushStringPart(rawChildren)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(node.children.length) {</span>
+        <span class="s2">processChildren(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(!isVoidTag(node.tag)) {</span>
+        <span class="s3">// push closing tag</span>
+        <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;/</span><span class="s2">${node.tag}</span><span class="s0">&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">wipMap$1 = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s3">// phase 1: build props</span>
+<span class="s1">function </span><span class="s2">ssrTransformTransitionGroup(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">return </span><span class="s2">() =&gt; {</span>
+        <span class="s1">const </span><span class="s2">tag = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'tag'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(tag) {</span>
+            <span class="s1">const </span><span class="s2">otherProps = node.props.filter(p =&gt; p !== tag)</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">{ props</span><span class="s1">, </span><span class="s2">directives } = compilerDom.buildProps(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">otherProps</span><span class="s1">, true </span><span class="s3">/* isComponent */</span><span class="s1">, false </span><span class="s3">/* isDynamicComponent */</span><span class="s1">, true </span><span class="s3">/* ssr (skip event listeners) */</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">let </span><span class="s2">propsExp = </span><span class="s1">null;</span>
+            <span class="s1">if </span><span class="s2">(props || directives.length) {</span>
+                <span class="s2">propsExp = compilerDom.createCallExpression(context.helper(SSR_RENDER_ATTRS)</span><span class="s1">, </span><span class="s2">[</span>
+                    <span class="s2">buildSSRProps(props</span><span class="s1">, </span><span class="s2">directives</span><span class="s1">, </span><span class="s2">context)</span>
+                <span class="s2">])</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">wipMap$1.set(node</span><span class="s1">, </span><span class="s2">{</span>
+                <span class="s2">tag</span><span class="s1">,</span>
+                <span class="s2">propsExp</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// phase 2: process children</span>
+<span class="s1">function </span><span class="s2">ssrProcessTransitionGroup(node</span><span class="s1">, </span><span class="s2">context) {</span>
+    <span class="s1">const </span><span class="s2">entry = wipMap$1.get(node)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(entry) {</span>
+        <span class="s1">const </span><span class="s2">{ tag</span><span class="s1">, </span><span class="s2">propsExp } = entry</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(tag.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s2">) {</span>
+            <span class="s3">// dynamic :tag</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">context.pushStringPart(tag.exp)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(propsExp) {</span>
+                <span class="s2">context.pushStringPart(propsExp)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">processChildren(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, false, </span>
+            <span class="s5">/**</span>
+             <span class="s5">* TransitionGroup has the special runtime behavior of flattening and</span>
+             <span class="s5">* concatenating all children into a single fragment (in order for them to</span>
+             <span class="s5">* be patched using the same key map) so we need to account for that here</span>
+             <span class="s5">* by disabling nested fragment wrappers from being generated.</span>
+             <span class="s5">*/</span>
+            <span class="s1">true</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;/`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">context.pushStringPart(tag.exp)</span><span class="s1">;</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s3">// static tag</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;</span><span class="s2">${tag.value.content}</span><span class="s0">`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(propsExp) {</span>
+                <span class="s2">context.pushStringPart(propsExp)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">processChildren(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, false, true</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;/</span><span class="s2">${tag.value.content}</span><span class="s0">&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s3">// fragment</span>
+        <span class="s2">processChildren(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, true, true</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s3">// We need to construct the slot functions in the 1st pass to ensure proper</span>
+<span class="s3">// scope tracking, but the children of each slot cannot be processed until</span>
+<span class="s3">// the 2nd pass, so we store the WIP slot functions in a weakMap during the 1st</span>
+<span class="s3">// pass and complete them in the 2nd pass.</span>
+<span class="s1">const </span><span class="s2">wipMap = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">WIP_SLOT = Symbol()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">componentTypeMap = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s3">// ssr component transform is done in two phases:</span>
+<span class="s3">// In phase 1. we use `buildSlot` to analyze the children of the component into</span>
+<span class="s3">// WIP slot functions (it must be done in phase 1 because `buildSlot` relies on</span>
+<span class="s3">// the core transform context).</span>
+<span class="s3">// In phase 2. we convert the WIP slots from phase 1 into ssr-specific codegen</span>
+<span class="s3">// nodes.</span>
+<span class="s1">const </span><span class="s2">ssrTransformComponent = (node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(node.type !== </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">||</span>
+        <span class="s2">node.tagType !== </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */</span><span class="s2">) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">component = compilerDom.resolveComponentType(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, true </span><span class="s3">/* ssr */</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">isDynamicComponent = shared.isObject(component) &amp;&amp; component.callee === compilerDom.RESOLVE_DYNAMIC_COMPONENT</span><span class="s1">;</span>
+    <span class="s2">componentTypeMap.set(node</span><span class="s1">, </span><span class="s2">component)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(shared.isSymbol(component)) {</span>
+        <span class="s1">if </span><span class="s2">(component === compilerDom.SUSPENSE) {</span>
+            <span class="s1">return </span><span class="s2">ssrTransformSuspense(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(component === compilerDom.TRANSITION_GROUP) {</span>
+            <span class="s1">return </span><span class="s2">ssrTransformTransitionGroup(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return; </span><span class="s3">// other built-in components: fallthrough</span>
+    <span class="s2">}</span>
+    <span class="s3">// Build the fallback vnode-based branch for the component's slots.</span>
+    <span class="s3">// We need to clone the node into a fresh copy and use the buildSlots' logic</span>
+    <span class="s3">// to get access to the children of each slot. We then compile them with</span>
+    <span class="s3">// a child transform pipeline using vnode-based transforms (instead of ssr-</span>
+    <span class="s3">// based ones), and save the result branch (a ReturnStatement) in an array.</span>
+    <span class="s3">// The branch is retrieved when processing slots again in ssr mode.</span>
+    <span class="s1">const </span><span class="s2">vnodeBranches = []</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">clonedNode = clone(node)</span><span class="s1">;</span>
+    <span class="s1">return function </span><span class="s2">ssrPostTransformComponent() {</span>
+        <span class="s3">// Using the cloned node, build the normal VNode-based branches (for</span>
+        <span class="s3">// fallback in case the child is render-fn based). Store them in an array</span>
+        <span class="s3">// for later use.</span>
+        <span class="s1">if </span><span class="s2">(clonedNode.children.length) {</span>
+            <span class="s2">compilerDom.buildSlots(clonedNode</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">(props</span><span class="s1">, </span><span class="s2">children) =&gt; {</span>
+                <span class="s2">vnodeBranches.push(createVNodeSlotBranch(props</span><span class="s1">, </span><span class="s2">children</span><span class="s1">, </span><span class="s2">context))</span><span class="s1">;</span>
+                <span class="s1">return </span><span class="s2">compilerDom.createFunctionExpression(undefined)</span><span class="s1">;</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">let </span><span class="s2">propsExp = </span><span class="s0">`null`</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(node.props.length) {</span>
+            <span class="s3">// note we are not passing ssr: true here because for components, v-on</span>
+            <span class="s3">// handlers should still be passed</span>
+            <span class="s1">const </span><span class="s2">{ props</span><span class="s1">, </span><span class="s2">directives } = compilerDom.buildProps(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, true, </span><span class="s2">isDynamicComponent)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(props || directives.length) {</span>
+                <span class="s2">propsExp = buildSSRProps(props</span><span class="s1">, </span><span class="s2">directives</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">const </span><span class="s2">wipEntries = []</span><span class="s1">;</span>
+        <span class="s2">wipMap.set(node</span><span class="s1">, </span><span class="s2">wipEntries)</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">buildSSRSlotFn = (props</span><span class="s1">, </span><span class="s2">children</span><span class="s1">, </span><span class="s2">loc) =&gt; {</span>
+            <span class="s1">const </span><span class="s2">param0 = (props &amp;&amp; compilerDom.stringifyExpression(props)) || </span><span class="s0">`_`</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">fn = compilerDom.createFunctionExpression([param0</span><span class="s1">, </span><span class="s0">`_push`</span><span class="s1">, </span><span class="s0">`_parent`</span><span class="s1">, </span><span class="s0">`_scopeId`</span><span class="s2">]</span><span class="s1">, </span><span class="s2">undefined</span><span class="s1">, </span><span class="s3">// no return, assign body later</span>
+            <span class="s1">true, </span><span class="s3">// newline</span>
+            <span class="s1">true, </span><span class="s3">// isSlot</span>
+            <span class="s2">loc)</span><span class="s1">;</span>
+            <span class="s2">wipEntries.push({</span>
+                <span class="s2">type: WIP_SLOT</span><span class="s1">,</span>
+                <span class="s2">fn</span><span class="s1">,</span>
+                <span class="s2">children</span><span class="s1">,</span>
+                <span class="s3">// also collect the corresponding vnode branch built earlier</span>
+                <span class="s2">vnodeBranch: vnodeBranches[wipEntries.length]</span>
+            <span class="s2">})</span><span class="s1">;</span>
+            <span class="s1">return </span><span class="s2">fn</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">slots = node.children.length</span>
+            <span class="s2">? compilerDom.buildSlots(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">buildSSRSlotFn).slots</span>
+            <span class="s2">: </span><span class="s0">`null`</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">component !== </span><span class="s0">'string'</span><span class="s2">) {</span>
+            <span class="s3">// dynamic component that resolved to a `resolveDynamicComponent` call</span>
+            <span class="s3">// expression - since the resolved result may be a plain element (string)</span>
+            <span class="s3">// or a VNode, handle it with `renderVNode`.</span>
+            <span class="s2">node.ssrCodegenNode = compilerDom.createCallExpression(context.helper(SSR_RENDER_VNODE)</span><span class="s1">, </span><span class="s2">[</span>
+                <span class="s0">`_push`</span><span class="s1">,</span>
+                <span class="s2">compilerDom.createCallExpression(context.helper(compilerDom.CREATE_VNODE)</span><span class="s1">, </span><span class="s2">[</span>
+                    <span class="s2">component</span><span class="s1">,</span>
+                    <span class="s2">propsExp</span><span class="s1">,</span>
+                    <span class="s2">slots</span>
+                <span class="s2">])</span><span class="s1">,</span>
+                <span class="s0">`_parent`</span>
+            <span class="s2">])</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">node.ssrCodegenNode = compilerDom.createCallExpression(context.helper(SSR_RENDER_COMPONENT)</span><span class="s1">, </span><span class="s2">[component</span><span class="s1">, </span><span class="s2">propsExp</span><span class="s1">, </span><span class="s2">slots</span><span class="s1">, </span><span class="s0">`_parent`</span><span class="s2">])</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">ssrProcessComponent(node</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">parent) {</span>
+    <span class="s1">const </span><span class="s2">component = componentTypeMap.get(node)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!node.ssrCodegenNode) {</span>
+        <span class="s3">// this is a built-in component that fell-through.</span>
+        <span class="s1">if </span><span class="s2">(component === compilerDom.TELEPORT) {</span>
+            <span class="s1">return </span><span class="s2">ssrProcessTeleport(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(component === compilerDom.SUSPENSE) {</span>
+            <span class="s1">return </span><span class="s2">ssrProcessSuspense(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(component === compilerDom.TRANSITION_GROUP) {</span>
+            <span class="s1">return </span><span class="s2">ssrProcessTransitionGroup(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s3">// real fall-through: Transition / KeepAlive</span>
+            <span class="s3">// just render its children.</span>
+            <span class="s3">// #5352: if is at root level of a slot, push an empty string.</span>
+            <span class="s3">// this does not affect the final output, but avoids all-comment slot</span>
+            <span class="s3">// content of being treated as empty by ssrRenderSlot().</span>
+            <span class="s1">if </span><span class="s2">(parent.type === WIP_SLOT) {</span>
+                <span class="s2">context.pushStringPart(</span><span class="s0">``</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s3">// #5351: filter out comment children inside transition</span>
+            <span class="s1">if </span><span class="s2">(component === compilerDom.TRANSITION) {</span>
+                <span class="s2">node.children = node.children.filter(c =&gt; c.type !== </span><span class="s4">3 </span><span class="s3">/* NodeTypes.COMMENT */</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">processChildren(node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s3">// finish up slot function expressions from the 1st pass.</span>
+        <span class="s1">const </span><span class="s2">wipEntries = wipMap.get(node) || []</span><span class="s1">;</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; wipEntries.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+            <span class="s1">const </span><span class="s2">{ fn</span><span class="s1">, </span><span class="s2">vnodeBranch } = wipEntries[i]</span><span class="s1">;</span>
+            <span class="s3">// For each slot, we generate two branches: one SSR-optimized branch and</span>
+            <span class="s3">// one normal vnode-based branch. The branches are taken based on the</span>
+            <span class="s3">// presence of the 2nd `_push` argument (which is only present if the slot</span>
+            <span class="s3">// is called by `_ssrRenderSlot`.</span>
+            <span class="s2">fn.body = compilerDom.createIfStatement(compilerDom.createSimpleExpression(</span><span class="s0">`_push`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">, </span><span class="s2">processChildrenAsStatement(wipEntries[i]</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, false, true </span><span class="s3">/* withSlotScopeId */</span><span class="s2">)</span><span class="s1">, </span><span class="s2">vnodeBranch)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s3">// component is inside a slot, inherit slot scope Id</span>
+        <span class="s1">if </span><span class="s2">(context.withSlotScopeId) {</span>
+            <span class="s2">node.ssrCodegenNode.arguments.push(</span><span class="s0">`_scopeId`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">component === </span><span class="s0">'string'</span><span class="s2">) {</span>
+            <span class="s3">// static component</span>
+            <span class="s2">context.pushStatement(compilerDom.createCallExpression(</span><span class="s0">`_push`</span><span class="s1">, </span><span class="s2">[node.ssrCodegenNode]))</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s3">// dynamic component (`resolveDynamicComponent` call)</span>
+            <span class="s3">// the codegen node is a `renderVNode` call</span>
+            <span class="s2">context.pushStatement(node.ssrCodegenNode)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">rawOptionsMap = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">[baseNodeTransforms</span><span class="s1">, </span><span class="s2">baseDirectiveTransforms] = compilerDom.getBaseTransformPreset(</span><span class="s1">true</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">vnodeNodeTransforms = [...baseNodeTransforms</span><span class="s1">, </span><span class="s2">...compilerDom.DOMNodeTransforms]</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">vnodeDirectiveTransforms = {</span>
+    <span class="s2">...baseDirectiveTransforms</span><span class="s1">,</span>
+    <span class="s2">...compilerDom.DOMDirectiveTransforms</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">createVNodeSlotBranch(props</span><span class="s1">, </span><span class="s2">children</span><span class="s1">, </span><span class="s2">parentContext) {</span>
+    <span class="s3">// apply a sub-transform using vnode-based transforms.</span>
+    <span class="s1">const </span><span class="s2">rawOptions = rawOptionsMap.get(parentContext.root)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">subOptions = {</span>
+        <span class="s2">...rawOptions</span><span class="s1">,</span>
+        <span class="s3">// overwrite with vnode-based transforms</span>
+        <span class="s2">nodeTransforms: [</span>
+            <span class="s2">...vnodeNodeTransforms</span><span class="s1">,</span>
+            <span class="s2">...(rawOptions.nodeTransforms || [])</span>
+        <span class="s2">]</span><span class="s1">,</span>
+        <span class="s2">directiveTransforms: {</span>
+            <span class="s2">...vnodeDirectiveTransforms</span><span class="s1">,</span>
+            <span class="s2">...(rawOptions.directiveTransforms || {})</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s3">// wrap the children with a wrapper template for proper children treatment.</span>
+    <span class="s1">const </span><span class="s2">wrapperNode = {</span>
+        <span class="s2">type: </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s1">,</span>
+        <span class="s2">ns: </span><span class="s4">0 </span><span class="s3">/* Namespaces.HTML */</span><span class="s1">,</span>
+        <span class="s2">tag: </span><span class="s0">'template'</span><span class="s1">,</span>
+        <span class="s2">tagType: </span><span class="s4">3 </span><span class="s3">/* ElementTypes.TEMPLATE */</span><span class="s1">,</span>
+        <span class="s2">isSelfClosing: </span><span class="s1">false,</span>
+        <span class="s3">// important: provide v-slot=&quot;props&quot; on the wrapper for proper</span>
+        <span class="s3">// scope analysis</span>
+        <span class="s2">props: [</span>
+            <span class="s2">{</span>
+                <span class="s2">type: </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s1">,</span>
+                <span class="s2">name: </span><span class="s0">'slot'</span><span class="s1">,</span>
+                <span class="s2">exp: props</span><span class="s1">,</span>
+                <span class="s2">arg: undefined</span><span class="s1">,</span>
+                <span class="s2">modifiers: []</span><span class="s1">,</span>
+                <span class="s2">loc: compilerDom.locStub</span>
+            <span class="s2">}</span>
+        <span class="s2">]</span><span class="s1">,</span>
+        <span class="s2">children</span><span class="s1">,</span>
+        <span class="s2">loc: compilerDom.locStub</span><span class="s1">,</span>
+        <span class="s2">codegenNode: undefined</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">subTransform(wrapperNode</span><span class="s1">, </span><span class="s2">subOptions</span><span class="s1">, </span><span class="s2">parentContext)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">compilerDom.createReturnStatement(children)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">subTransform(node</span><span class="s1">, </span><span class="s2">options</span><span class="s1">, </span><span class="s2">parentContext) {</span>
+    <span class="s1">const </span><span class="s2">childRoot = compilerDom.createRoot([node])</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">childContext = compilerDom.createTransformContext(childRoot</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+    <span class="s3">// this sub transform is for vnode fallback branch so it should be handled</span>
+    <span class="s3">// like normal render functions</span>
+    <span class="s2">childContext.ssr = </span><span class="s1">false;</span>
+    <span class="s3">// inherit parent scope analysis state</span>
+    <span class="s2">childContext.scopes = { ...parentContext.scopes }</span><span class="s1">;</span>
+    <span class="s2">childContext.identifiers = { ...parentContext.identifiers }</span><span class="s1">;</span>
+    <span class="s2">childContext.imports = parentContext.imports</span><span class="s1">;</span>
+    <span class="s3">// traverse</span>
+    <span class="s2">compilerDom.traverseNode(childRoot</span><span class="s1">, </span><span class="s2">childContext)</span><span class="s1">;</span>
+    <span class="s2">[</span><span class="s0">'helpers'</span><span class="s1">, </span><span class="s0">'components'</span><span class="s1">, </span><span class="s0">'directives'</span><span class="s2">].forEach(key =&gt; {</span>
+        <span class="s2">childContext[key].forEach((value</span><span class="s1">, </span><span class="s2">helperKey) =&gt; {</span>
+            <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'helpers'</span><span class="s2">) {</span>
+                <span class="s1">const </span><span class="s2">parentCount = parentContext.helpers.get(helperKey)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(parentCount === undefined) {</span>
+                    <span class="s2">parentContext.helpers.set(helperKey</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s2">parentContext.helpers.set(helperKey</span><span class="s1">, </span><span class="s2">value + parentCount)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">parentContext[key].add(value)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">})</span><span class="s1">;</span>
+    <span class="s3">// imports/hoists are not merged because:</span>
+    <span class="s3">// - imports are only used for asset urls and should be consistent between</span>
+    <span class="s3">//   node/client branches</span>
+    <span class="s3">// - hoists are not enabled for the client branch here</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">clone(v) {</span>
+    <span class="s1">if </span><span class="s2">(shared.isArray(v)) {</span>
+        <span class="s1">return </span><span class="s2">v.map(clone)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(shared.isObject(v)) {</span>
+        <span class="s1">const </span><span class="s2">res = {}</span><span class="s1">;</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key </span><span class="s1">in </span><span class="s2">v) {</span>
+            <span class="s2">res[key] = clone(v[key])</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">res</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">return </span><span class="s2">v</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s3">// Because SSR codegen output is completely different from client-side output</span>
+<span class="s3">// (e.g. multiple elements can be concatenated into a single template literal</span>
+<span class="s3">// instead of each getting a corresponding call), we need to apply an extra</span>
+<span class="s3">// transform pass to convert the template AST into a fresh JS AST before</span>
+<span class="s3">// passing it to codegen.</span>
+<span class="s1">function </span><span class="s2">ssrCodegenTransform(ast</span><span class="s1">, </span><span class="s2">options) {</span>
+    <span class="s1">const </span><span class="s2">context = createSSRTransformContext(ast</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+    <span class="s3">// inject SFC &lt;style&gt; CSS variables</span>
+    <span class="s3">// we do this instead of inlining the expression to ensure the vars are</span>
+    <span class="s3">// only resolved once per render</span>
+    <span class="s1">if </span><span class="s2">(options.ssrCssVars) {</span>
+        <span class="s1">const </span><span class="s2">cssContext = compilerDom.createTransformContext(compilerDom.createRoot([])</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">varsExp = compilerDom.processExpression(compilerDom.createSimpleExpression(options.ssrCssVars</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">, </span><span class="s2">cssContext)</span><span class="s1">;</span>
+        <span class="s2">context.body.push(compilerDom.createCompoundExpression([</span><span class="s0">`const _cssVars = { style: `</span><span class="s1">, </span><span class="s2">varsExp</span><span class="s1">, </span><span class="s0">`}`</span><span class="s2">]))</span><span class="s1">;</span>
+        <span class="s2">Array.from(cssContext.helpers.keys()).forEach(helper =&gt; {</span>
+            <span class="s2">ast.helpers.add(helper)</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">isFragment = ast.children.length &gt; </span><span class="s4">1 </span><span class="s2">&amp;&amp; ast.children.some(c =&gt; !compilerDom.isText(c))</span><span class="s1">;</span>
+    <span class="s2">processChildren(ast</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">isFragment)</span><span class="s1">;</span>
+    <span class="s2">ast.codegenNode = compilerDom.createBlockStatement(context.body)</span><span class="s1">;</span>
+    <span class="s3">// Finalize helpers.</span>
+    <span class="s3">// We need to separate helpers imported from 'vue' vs. '@vue/server-renderer'</span>
+    <span class="s2">ast.ssrHelpers = Array.from(</span><span class="s1">new </span><span class="s2">Set([</span>
+        <span class="s2">...Array.from(ast.helpers).filter(h =&gt; h </span><span class="s1">in </span><span class="s2">ssrHelpers)</span><span class="s1">,</span>
+        <span class="s2">...context.helpers</span>
+    <span class="s2">]))</span><span class="s1">;</span>
+    <span class="s2">ast.helpers = </span><span class="s1">new </span><span class="s2">Set(Array.from(ast.helpers).filter(h =&gt; !(h </span><span class="s1">in </span><span class="s2">ssrHelpers)))</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">createSSRTransformContext(root</span><span class="s1">, </span><span class="s2">options</span><span class="s1">, </span><span class="s2">helpers = </span><span class="s1">new </span><span class="s2">Set()</span><span class="s1">, </span><span class="s2">withSlotScopeId = </span><span class="s1">false</span><span class="s2">) {</span>
+    <span class="s1">const </span><span class="s2">body = []</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">currentString = </span><span class="s1">null;</span>
+    <span class="s1">return </span><span class="s2">{</span>
+        <span class="s2">root</span><span class="s1">,</span>
+        <span class="s2">options</span><span class="s1">,</span>
+        <span class="s2">body</span><span class="s1">,</span>
+        <span class="s2">helpers</span><span class="s1">,</span>
+        <span class="s2">withSlotScopeId</span><span class="s1">,</span>
+        <span class="s2">onError: options.onError ||</span>
+            <span class="s2">(e =&gt; {</span>
+                <span class="s1">throw </span><span class="s2">e</span><span class="s1">;</span>
+            <span class="s2">})</span><span class="s1">,</span>
+        <span class="s2">helper(name) {</span>
+            <span class="s2">helpers.add(name)</span><span class="s1">;</span>
+            <span class="s1">return </span><span class="s2">name</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">pushStringPart(part) {</span>
+            <span class="s1">if </span><span class="s2">(!currentString) {</span>
+                <span class="s1">const </span><span class="s2">currentCall = compilerDom.createCallExpression(</span><span class="s0">`_push`</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">body.push(currentCall)</span><span class="s1">;</span>
+                <span class="s2">currentString = compilerDom.createTemplateLiteral([])</span><span class="s1">;</span>
+                <span class="s2">currentCall.arguments.push(currentString)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">const </span><span class="s2">bufferedElements = currentString.elements</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">lastItem = bufferedElements[bufferedElements.length - </span><span class="s4">1</span><span class="s2">]</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(shared.isString(part) &amp;&amp; shared.isString(lastItem)) {</span>
+                <span class="s2">bufferedElements[bufferedElements.length - </span><span class="s4">1</span><span class="s2">] += part</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">bufferedElements.push(part)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">pushStatement(statement) {</span>
+            <span class="s3">// close current string</span>
+            <span class="s2">currentString = </span><span class="s1">null;</span>
+            <span class="s2">body.push(statement)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">createChildContext(parent</span><span class="s1">, </span><span class="s2">withSlotScopeId = parent.withSlotScopeId) {</span>
+    <span class="s3">// ensure child inherits parent helpers</span>
+    <span class="s1">return </span><span class="s2">createSSRTransformContext(parent.root</span><span class="s1">, </span><span class="s2">parent.options</span><span class="s1">, </span><span class="s2">parent.helpers</span><span class="s1">, </span><span class="s2">withSlotScopeId)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">processChildren(parent</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">asFragment = </span><span class="s1">false, </span><span class="s2">disableNestedFragments = </span><span class="s1">false</span><span class="s2">) {</span>
+    <span class="s1">if </span><span class="s2">(asFragment) {</span>
+        <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;!--[--&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ children } = parent</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; children.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+        <span class="s1">const </span><span class="s2">child = children[i]</span><span class="s1">;</span>
+        <span class="s1">switch </span><span class="s2">(child.type) {</span>
+            <span class="s1">case </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */</span><span class="s2">:</span>
+                <span class="s1">switch </span><span class="s2">(child.tagType) {</span>
+                    <span class="s1">case </span><span class="s4">0 </span><span class="s3">/* ElementTypes.ELEMENT */</span><span class="s2">:</span>
+                        <span class="s2">ssrProcessElement(child</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+                        <span class="s1">break;</span>
+                    <span class="s1">case </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */</span><span class="s2">:</span>
+                        <span class="s2">ssrProcessComponent(child</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">parent)</span><span class="s1">;</span>
+                        <span class="s1">break;</span>
+                    <span class="s1">case </span><span class="s4">2 </span><span class="s3">/* ElementTypes.SLOT */</span><span class="s2">:</span>
+                        <span class="s2">ssrProcessSlotOutlet(child</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+                        <span class="s1">break;</span>
+                    <span class="s1">case </span><span class="s4">3 </span><span class="s3">/* ElementTypes.TEMPLATE */</span><span class="s2">:</span>
+                        <span class="s3">// TODO</span>
+                        <span class="s1">break;</span>
+                    <span class="s1">default</span><span class="s2">:</span>
+                        <span class="s2">context.onError(createSSRCompilerError(</span><span class="s4">64 </span><span class="s3">/* SSRErrorCodes.X_SSR_INVALID_AST_NODE */</span><span class="s1">, </span><span class="s2">child.loc))</span><span class="s1">;</span>
+                        <span class="s3">// make sure we exhaust all possible types</span>
+                        <span class="s1">const </span><span class="s2">exhaustiveCheck = child</span><span class="s1">;</span>
+                        <span class="s1">return </span><span class="s2">exhaustiveCheck</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">2 </span><span class="s3">/* NodeTypes.TEXT */</span><span class="s2">:</span>
+                <span class="s2">context.pushStringPart(shared.escapeHtml(child.content))</span><span class="s1">;</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">3 </span><span class="s3">/* NodeTypes.COMMENT */</span><span class="s2">:</span>
+                <span class="s3">// no need to escape comment here because the AST can only</span>
+                <span class="s3">// contain valid comments.</span>
+                <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;!--</span><span class="s2">${child.content}</span><span class="s0">--&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">5 </span><span class="s3">/* NodeTypes.INTERPOLATION */</span><span class="s2">:</span>
+                <span class="s2">context.pushStringPart(compilerDom.createCallExpression(context.helper(SSR_INTERPOLATE)</span><span class="s1">, </span><span class="s2">[child.content]))</span><span class="s1">;</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">9 </span><span class="s3">/* NodeTypes.IF */</span><span class="s2">:</span>
+                <span class="s2">ssrProcessIf(child</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments)</span><span class="s1">;</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">11 </span><span class="s3">/* NodeTypes.FOR */</span><span class="s2">:</span>
+                <span class="s2">ssrProcessFor(child</span><span class="s1">, </span><span class="s2">context</span><span class="s1">, </span><span class="s2">disableNestedFragments)</span><span class="s1">;</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">10 </span><span class="s3">/* NodeTypes.IF_BRANCH */</span><span class="s2">:</span>
+                <span class="s3">// no-op - handled by ssrProcessIf</span>
+                <span class="s1">break;</span>
+            <span class="s1">case </span><span class="s4">12 </span><span class="s3">/* NodeTypes.TEXT_CALL */</span><span class="s2">:</span>
+            <span class="s1">case </span><span class="s4">8 </span><span class="s3">/* NodeTypes.COMPOUND_EXPRESSION */</span><span class="s2">:</span>
+                <span class="s3">// no-op - these two types can never appear as template child node since</span>
+                <span class="s3">// `transformText` is not used during SSR compile.</span>
+                <span class="s1">break;</span>
+            <span class="s1">default</span><span class="s2">:</span>
+                <span class="s2">context.onError(createSSRCompilerError(</span><span class="s4">64 </span><span class="s3">/* SSRErrorCodes.X_SSR_INVALID_AST_NODE */</span><span class="s1">, </span><span class="s2">child.loc))</span><span class="s1">;</span>
+                <span class="s3">// make sure we exhaust all possible types</span>
+                <span class="s1">const </span><span class="s2">exhaustiveCheck = child</span><span class="s1">;</span>
+                <span class="s1">return </span><span class="s2">exhaustiveCheck</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(asFragment) {</span>
+        <span class="s2">context.pushStringPart(</span><span class="s0">`&lt;!--]--&gt;`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">processChildrenAsStatement(parent</span><span class="s1">, </span><span class="s2">parentContext</span><span class="s1">, </span><span class="s2">asFragment = </span><span class="s1">false, </span><span class="s2">withSlotScopeId = parentContext.withSlotScopeId) {</span>
+    <span class="s1">const </span><span class="s2">childContext = createChildContext(parentContext</span><span class="s1">, </span><span class="s2">withSlotScopeId)</span><span class="s1">;</span>
+    <span class="s2">processChildren(parent</span><span class="s1">, </span><span class="s2">childContext</span><span class="s1">, </span><span class="s2">asFragment)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">compilerDom.createBlockStatement(childContext.body)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">ssrTransformModel = (dir</span><span class="s1">, </span><span class="s2">node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s1">const </span><span class="s2">model = dir.exp</span><span class="s1">;</span>
+    <span class="s1">function </span><span class="s2">checkDuplicatedValue() {</span>
+        <span class="s1">const </span><span class="s2">value = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'value'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(value) {</span>
+            <span class="s2">context.onError(compilerDom.createDOMCompilerError(</span><span class="s4">58 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_UNNECESSARY_VALUE */</span><span class="s1">, </span><span class="s2">value.loc))</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(node.tagType === </span><span class="s4">0 </span><span class="s3">/* ElementTypes.ELEMENT */</span><span class="s2">) {</span>
+        <span class="s1">const </span><span class="s2">res = { props: [] }</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">defaultProps = [</span>
+            <span class="s3">// default value binding for text type inputs</span>
+            <span class="s2">compilerDom.createObjectProperty(</span><span class="s0">`value`</span><span class="s1">, </span><span class="s2">model)</span>
+        <span class="s2">]</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(node.tag === </span><span class="s0">'input'</span><span class="s2">) {</span>
+            <span class="s1">const </span><span class="s2">type = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'type'</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(type) {</span>
+                <span class="s1">const </span><span class="s2">value = findValueBinding(node)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(type.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s2">) {</span>
+                    <span class="s3">// dynamic type</span>
+                    <span class="s2">res.ssrTagParts = [</span>
+                        <span class="s2">compilerDom.createCallExpression(context.helper(SSR_RENDER_DYNAMIC_MODEL)</span><span class="s1">, </span><span class="s2">[</span>
+                            <span class="s2">type.exp</span><span class="s1">,</span>
+                            <span class="s2">model</span><span class="s1">,</span>
+                            <span class="s2">value</span>
+                        <span class="s2">])</span>
+                    <span class="s2">]</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(type.value) {</span>
+                    <span class="s3">// static type</span>
+                    <span class="s1">switch </span><span class="s2">(type.value.content) {</span>
+                        <span class="s1">case </span><span class="s0">'radio'</span><span class="s2">:</span>
+                            <span class="s2">res.props = [</span>
+                                <span class="s2">compilerDom.createObjectProperty(</span><span class="s0">`checked`</span><span class="s1">, </span><span class="s2">compilerDom.createCallExpression(context.helper(SSR_LOOSE_EQUAL)</span><span class="s1">, </span><span class="s2">[</span>
+                                    <span class="s2">model</span><span class="s1">,</span>
+                                    <span class="s2">value</span>
+                                <span class="s2">]))</span>
+                            <span class="s2">]</span><span class="s1">;</span>
+                            <span class="s1">break;</span>
+                        <span class="s1">case </span><span class="s0">'checkbox'</span><span class="s2">:</span>
+                            <span class="s1">const </span><span class="s2">trueValueBinding = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'true-value'</span><span class="s2">)</span><span class="s1">;</span>
+                            <span class="s1">if </span><span class="s2">(trueValueBinding) {</span>
+                                <span class="s1">const </span><span class="s2">trueValue = trueValueBinding.type === </span><span class="s4">6 </span><span class="s3">/* NodeTypes.ATTRIBUTE */</span>
+                                    <span class="s2">? JSON.stringify(trueValueBinding.value.content)</span>
+                                    <span class="s2">: trueValueBinding.exp</span><span class="s1">;</span>
+                                <span class="s2">res.props = [</span>
+                                    <span class="s2">compilerDom.createObjectProperty(</span><span class="s0">`checked`</span><span class="s1">, </span><span class="s2">compilerDom.createCallExpression(context.helper(SSR_LOOSE_EQUAL)</span><span class="s1">, </span><span class="s2">[</span>
+                                        <span class="s2">model</span><span class="s1">,</span>
+                                        <span class="s2">trueValue</span>
+                                    <span class="s2">]))</span>
+                                <span class="s2">]</span><span class="s1">;</span>
+                            <span class="s2">}</span>
+                            <span class="s1">else </span><span class="s2">{</span>
+                                <span class="s2">res.props = [</span>
+                                    <span class="s2">compilerDom.createObjectProperty(</span><span class="s0">`checked`</span><span class="s1">, </span><span class="s2">compilerDom.createConditionalExpression(compilerDom.createCallExpression(</span><span class="s0">`Array.isArray`</span><span class="s1">, </span><span class="s2">[model])</span><span class="s1">, </span><span class="s2">compilerDom.createCallExpression(context.helper(SSR_LOOSE_CONTAIN)</span><span class="s1">, </span><span class="s2">[</span>
+                                        <span class="s2">model</span><span class="s1">,</span>
+                                        <span class="s2">value</span>
+                                    <span class="s2">])</span><span class="s1">, </span><span class="s2">model))</span>
+                                <span class="s2">]</span><span class="s1">;</span>
+                            <span class="s2">}</span>
+                            <span class="s1">break;</span>
+                        <span class="s1">case </span><span class="s0">'file'</span><span class="s2">:</span>
+                            <span class="s2">context.onError(compilerDom.createDOMCompilerError(</span><span class="s4">57 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ON_FILE_INPUT_ELEMENT */</span><span class="s1">, </span><span class="s2">dir.loc))</span><span class="s1">;</span>
+                            <span class="s1">break;</span>
+                        <span class="s1">default</span><span class="s2">:</span>
+                            <span class="s2">checkDuplicatedValue()</span><span class="s1">;</span>
+                            <span class="s2">res.props = defaultProps</span><span class="s1">;</span>
+                            <span class="s1">break;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(compilerDom.hasDynamicKeyVBind(node)) </span><span class="s1">;</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s3">// text type</span>
+                <span class="s2">checkDuplicatedValue()</span><span class="s1">;</span>
+                <span class="s2">res.props = defaultProps</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(node.tag === </span><span class="s0">'textarea'</span><span class="s2">) {</span>
+            <span class="s2">checkDuplicatedValue()</span><span class="s1">;</span>
+            <span class="s2">node.children = [compilerDom.createInterpolation(model</span><span class="s1">, </span><span class="s2">model.loc)]</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(node.tag === </span><span class="s0">'select'</span><span class="s2">) </span><span class="s1">;</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">context.onError(compilerDom.createDOMCompilerError(</span><span class="s4">55 </span><span class="s3">/* DOMErrorCodes.X_V_MODEL_ON_INVALID_ELEMENT */</span><span class="s1">, </span><span class="s2">dir.loc))</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">res</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s3">// component v-model</span>
+        <span class="s1">return </span><span class="s2">compilerDom.transformModel(dir</span><span class="s1">, </span><span class="s2">node</span><span class="s1">, </span><span class="s2">context)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">findValueBinding(node) {</span>
+    <span class="s1">const </span><span class="s2">valueBinding = compilerDom.findProp(node</span><span class="s1">, </span><span class="s0">'value'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">valueBinding</span>
+        <span class="s2">? valueBinding.type === </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span>
+            <span class="s2">? valueBinding.exp</span>
+            <span class="s2">: compilerDom.createSimpleExpression(valueBinding.value.content</span><span class="s1">, true</span><span class="s2">)</span>
+        <span class="s2">: compilerDom.createSimpleExpression(</span><span class="s0">`null`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">ssrTransformShow = (dir</span><span class="s1">, </span><span class="s2">node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(!dir.exp) {</span>
+        <span class="s2">context.onError(compilerDom.createDOMCompilerError(</span><span class="s4">59 </span><span class="s3">/* DOMErrorCodes.X_V_SHOW_NO_EXPRESSION */</span><span class="s2">))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">{</span>
+        <span class="s2">props: [</span>
+            <span class="s2">compilerDom.createObjectProperty(</span><span class="s0">`style`</span><span class="s1">, </span><span class="s2">compilerDom.createConditionalExpression(dir.exp</span><span class="s1">, </span><span class="s2">compilerDom.createSimpleExpression(</span><span class="s0">`null`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">, </span><span class="s2">compilerDom.createObjectExpression([</span>
+                <span class="s2">compilerDom.createObjectProperty(</span><span class="s0">`display`</span><span class="s1">, </span><span class="s2">compilerDom.createSimpleExpression(</span><span class="s0">`none`</span><span class="s1">, true</span><span class="s2">))</span>
+            <span class="s2">])</span><span class="s1">, false </span><span class="s3">/* no newline */</span><span class="s2">))</span>
+        <span class="s2">]</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">const </span><span class="s2">filterChild = (node) =&gt; node.children.filter(n =&gt; n.type !== </span><span class="s4">3 </span><span class="s3">/* NodeTypes.COMMENT */</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">hasSingleChild = (node) =&gt; filterChild(node).length === </span><span class="s4">1</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">ssrInjectFallthroughAttrs = (node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s3">// _attrs is provided as a function argument.</span>
+    <span class="s3">// mark it as a known identifier so that it doesn't get prefixed by</span>
+    <span class="s3">// transformExpression.</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">0 </span><span class="s3">/* NodeTypes.ROOT */</span><span class="s2">) {</span>
+        <span class="s2">context.identifiers._attrs = </span><span class="s4">1</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">node.tagType === </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */ </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">(compilerDom.isBuiltInType(node.tag</span><span class="s1">, </span><span class="s0">'Transition'</span><span class="s2">) ||</span>
+            <span class="s2">compilerDom.isBuiltInType(node.tag</span><span class="s1">, </span><span class="s0">'KeepAlive'</span><span class="s2">))) {</span>
+        <span class="s1">const </span><span class="s2">rootChildren = filterChild(context.root)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(rootChildren.length === </span><span class="s4">1 </span><span class="s2">&amp;&amp; rootChildren[</span><span class="s4">0</span><span class="s2">] === node) {</span>
+            <span class="s1">if </span><span class="s2">(hasSingleChild(node)) {</span>
+                <span class="s2">injectFallthroughAttrs(node.children[</span><span class="s4">0</span><span class="s2">])</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">return;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">parent = context.parent</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!parent || parent.type !== </span><span class="s4">0 </span><span class="s3">/* NodeTypes.ROOT */</span><span class="s2">) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">10 </span><span class="s3">/* NodeTypes.IF_BRANCH */ </span><span class="s2">&amp;&amp; hasSingleChild(node)) {</span>
+        <span class="s3">// detect cases where the parent v-if is not the only root level node</span>
+        <span class="s1">let </span><span class="s2">hasEncounteredIf = </span><span class="s1">false;</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">c of filterChild(parent)) {</span>
+            <span class="s1">if </span><span class="s2">(c.type === </span><span class="s4">9 </span><span class="s3">/* NodeTypes.IF */ </span><span class="s2">||</span>
+                <span class="s2">(c.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp; compilerDom.findDir(c</span><span class="s1">, </span><span class="s0">'if'</span><span class="s2">))) {</span>
+                <span class="s3">// multiple root v-if</span>
+                <span class="s1">if </span><span class="s2">(hasEncounteredIf)</span>
+                    <span class="s1">return;</span>
+                <span class="s2">hasEncounteredIf = </span><span class="s1">true;</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(</span>
+            <span class="s3">// node before v-if</span>
+            <span class="s2">!hasEncounteredIf ||</span>
+                <span class="s3">// non else nodes</span>
+                <span class="s2">!(c.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp; compilerDom.findDir(c</span><span class="s1">, </span><span class="s4">/else/</span><span class="s1">, true</span><span class="s2">))) {</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s2">injectFallthroughAttrs(node.children[</span><span class="s4">0</span><span class="s2">])</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(hasSingleChild(parent)) {</span>
+        <span class="s2">injectFallthroughAttrs(node)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">injectFallthroughAttrs(node) {</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">(node.tagType === </span><span class="s4">0 </span><span class="s3">/* ElementTypes.ELEMENT */ </span><span class="s2">||</span>
+            <span class="s2">node.tagType === </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */</span><span class="s2">) &amp;&amp;</span>
+        <span class="s2">!compilerDom.findDir(node</span><span class="s1">, </span><span class="s0">'for'</span><span class="s2">)) {</span>
+        <span class="s2">node.props.push({</span>
+            <span class="s2">type: </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s1">,</span>
+            <span class="s2">name: </span><span class="s0">'bind'</span><span class="s1">,</span>
+            <span class="s2">arg: undefined</span><span class="s1">,</span>
+            <span class="s2">exp: compilerDom.createSimpleExpression(</span><span class="s0">`_attrs`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">,</span>
+            <span class="s2">modifiers: []</span><span class="s1">,</span>
+            <span class="s2">loc: compilerDom.locStub</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">ssrInjectCssVars = (node</span><span class="s1">, </span><span class="s2">context) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(!context.ssrCssVars) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s3">// _cssVars is initialized once per render function</span>
+    <span class="s3">// the code is injected in ssrCodegenTransform when creating the</span>
+    <span class="s3">// ssr transform context</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">0 </span><span class="s3">/* NodeTypes.ROOT */</span><span class="s2">) {</span>
+        <span class="s2">context.identifiers._cssVars = </span><span class="s4">1</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">parent = context.parent</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!parent || parent.type !== </span><span class="s4">0 </span><span class="s3">/* NodeTypes.ROOT */</span><span class="s2">) {</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">10 </span><span class="s3">/* NodeTypes.IF_BRANCH */</span><span class="s2">) {</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">child of node.children) {</span>
+            <span class="s2">injectCssVars(child)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s2">injectCssVars(node)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">injectCssVars(node) {</span>
+    <span class="s1">if </span><span class="s2">(node.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">(node.tagType === </span><span class="s4">0 </span><span class="s3">/* ElementTypes.ELEMENT */ </span><span class="s2">||</span>
+            <span class="s2">node.tagType === </span><span class="s4">1 </span><span class="s3">/* ElementTypes.COMPONENT */</span><span class="s2">) &amp;&amp;</span>
+        <span class="s2">!compilerDom.findDir(node</span><span class="s1">, </span><span class="s0">'for'</span><span class="s2">)) {</span>
+        <span class="s1">if </span><span class="s2">(compilerDom.isBuiltInType(node.tag</span><span class="s1">, </span><span class="s0">'Suspense'</span><span class="s2">)) {</span>
+            <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">child of node.children) {</span>
+                <span class="s1">if </span><span class="s2">(child.type === </span><span class="s4">1 </span><span class="s3">/* NodeTypes.ELEMENT */ </span><span class="s2">&amp;&amp;</span>
+                    <span class="s2">child.tagType === </span><span class="s4">3 </span><span class="s3">/* ElementTypes.TEMPLATE */</span><span class="s2">) {</span>
+                    <span class="s3">// suspense slot</span>
+                    <span class="s2">child.children.forEach(injectCssVars)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s2">injectCssVars(child)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">node.props.push({</span>
+                <span class="s2">type: </span><span class="s4">7 </span><span class="s3">/* NodeTypes.DIRECTIVE */</span><span class="s1">,</span>
+                <span class="s2">name: </span><span class="s0">'bind'</span><span class="s1">,</span>
+                <span class="s2">arg: undefined</span><span class="s1">,</span>
+                <span class="s2">exp: compilerDom.createSimpleExpression(</span><span class="s0">`_cssVars`</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">,</span>
+                <span class="s2">modifiers: []</span><span class="s1">,</span>
+                <span class="s2">loc: compilerDom.locStub</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">compile(template</span><span class="s1">, </span><span class="s2">options = {}) {</span>
+    <span class="s2">options = {</span>
+        <span class="s2">...options</span><span class="s1">,</span>
+        <span class="s3">// apply DOM-specific parsing options</span>
+        <span class="s2">...compilerDom.parserOptions</span><span class="s1">,</span>
+        <span class="s2">ssr: </span><span class="s1">true,</span>
+        <span class="s2">inSSR: </span><span class="s1">true,</span>
+        <span class="s2">scopeId: options.mode === </span><span class="s0">'function' </span><span class="s2">? </span><span class="s1">null </span><span class="s2">: options.scopeId</span><span class="s1">,</span>
+        <span class="s3">// always prefix since compiler-ssr doesn't have size concern</span>
+        <span class="s2">prefixIdentifiers: </span><span class="s1">true,</span>
+        <span class="s3">// disable optimizations that are unnecessary for ssr</span>
+        <span class="s2">cacheHandlers: </span><span class="s1">false,</span>
+        <span class="s2">hoistStatic: </span><span class="s1">false</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">ast = compilerDom.baseParse(template</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+    <span class="s3">// Save raw options for AST. This is needed when performing sub-transforms</span>
+    <span class="s3">// on slot vnode branches.</span>
+    <span class="s2">rawOptionsMap.set(ast</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+    <span class="s2">compilerDom.transform(ast</span><span class="s1">, </span><span class="s2">{</span>
+        <span class="s2">...options</span><span class="s1">,</span>
+        <span class="s2">hoistStatic: </span><span class="s1">false,</span>
+        <span class="s2">nodeTransforms: [</span>
+            <span class="s2">ssrTransformIf</span><span class="s1">,</span>
+            <span class="s2">ssrTransformFor</span><span class="s1">,</span>
+            <span class="s2">compilerDom.trackVForSlotScopes</span><span class="s1">,</span>
+            <span class="s2">compilerDom.transformExpression</span><span class="s1">,</span>
+            <span class="s2">ssrTransformSlotOutlet</span><span class="s1">,</span>
+            <span class="s2">ssrInjectFallthroughAttrs</span><span class="s1">,</span>
+            <span class="s2">ssrInjectCssVars</span><span class="s1">,</span>
+            <span class="s2">ssrTransformElement</span><span class="s1">,</span>
+            <span class="s2">ssrTransformComponent</span><span class="s1">,</span>
+            <span class="s2">compilerDom.trackSlotScopes</span><span class="s1">,</span>
+            <span class="s2">compilerDom.transformStyle</span><span class="s1">,</span>
+            <span class="s2">...(options.nodeTransforms || []) </span><span class="s3">// user transforms</span>
+        <span class="s2">]</span><span class="s1">,</span>
+        <span class="s2">directiveTransforms: {</span>
+            <span class="s3">// reusing core v-bind</span>
+            <span class="s2">bind: compilerDom.transformBind</span><span class="s1">,</span>
+            <span class="s2">on: compilerDom.transformOn</span><span class="s1">,</span>
+            <span class="s3">// model and show has dedicated SSR handling</span>
+            <span class="s2">model: ssrTransformModel</span><span class="s1">,</span>
+            <span class="s2">show: ssrTransformShow</span><span class="s1">,</span>
+            <span class="s3">// the following are ignored during SSR</span>
+            <span class="s3">// on: noopDirectiveTransform,</span>
+            <span class="s2">cloak: compilerDom.noopDirectiveTransform</span><span class="s1">,</span>
+            <span class="s2">once: compilerDom.noopDirectiveTransform</span><span class="s1">,</span>
+            <span class="s2">memo: compilerDom.noopDirectiveTransform</span><span class="s1">,</span>
+            <span class="s2">...(options.directiveTransforms || {}) </span><span class="s3">// user transforms</span>
+        <span class="s2">}</span>
+    <span class="s2">})</span><span class="s1">;</span>
+    <span class="s3">// traverse the template AST and convert into SSR codegen AST</span>
+    <span class="s3">// by replacing ast.codegenNode.</span>
+    <span class="s2">ssrCodegenTransform(ast</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">compilerDom.generate(ast</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s2">exports.compile = compile</span><span class="s1">;</span>
+</pre>
+</body>
+</html>

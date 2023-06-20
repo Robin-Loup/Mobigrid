@@ -1,0 +1,118 @@
+<html>
+<head>
+<title>importGlob.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #629755; font-style: italic;}
+.s3 { color: #629755; font-weight: bold; font-style: italic;}
+.s4 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+importGlob.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">export interface </span><span class="s1">ImportGlobOptions&lt;</span>
+  <span class="s1">Eager </span><span class="s0">extends </span><span class="s1">boolean</span><span class="s0">,</span>
+  <span class="s1">AsType </span><span class="s0">extends </span><span class="s1">string</span><span class="s0">,</span>
+<span class="s1">&gt; {</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Import type for the import url.</span>
+   <span class="s2">*/</span>
+  <span class="s1">as?: AsType</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Import as static or dynamic</span>
+   <span class="s2">*</span>
+   <span class="s2">* </span><span class="s3">@default </span><span class="s2">false</span>
+   <span class="s2">*/</span>
+  <span class="s1">eager?: Eager</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Import only the specific named export. Set to `default` to import the default export.</span>
+   <span class="s2">*/</span>
+  <span class="s0">import</span><span class="s1">?: string</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Custom queries</span>
+   <span class="s2">*/</span>
+  <span class="s1">query?: string | Record&lt;string</span><span class="s0">, </span><span class="s1">string | number | boolean&gt;</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Search files also inside `node_modules/` and hidden directories (e.g. `.git/`). This might have impact on performance.</span>
+   <span class="s2">*</span>
+   <span class="s2">* </span><span class="s3">@default </span><span class="s2">false</span>
+   <span class="s2">*/</span>
+  <span class="s1">exhaustive?: boolean</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">type GeneralImportGlobOptions = ImportGlobOptions&lt;boolean</span><span class="s0">, </span><span class="s1">string&gt;</span>
+
+<span class="s0">export interface </span><span class="s1">KnownAsTypeMap {</span>
+  <span class="s1">raw: string</span>
+  <span class="s1">url: string</span>
+  <span class="s1">worker: Worker</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ImportGlobFunction {</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Import a list of files with a glob pattern.</span>
+   <span class="s2">*</span>
+   <span class="s2">* Overload 1: No generic provided, infer the type from `eager` and `as`</span>
+   <span class="s2">*/</span>
+  <span class="s1">&lt;</span>
+    <span class="s1">Eager </span><span class="s0">extends </span><span class="s1">boolean</span><span class="s0">,</span>
+    <span class="s1">As </span><span class="s0">extends </span><span class="s1">string</span><span class="s0">,</span>
+    <span class="s1">T = As </span><span class="s0">extends </span><span class="s1">keyof KnownAsTypeMap ? KnownAsTypeMap[As] : unknown</span><span class="s0">,</span>
+  <span class="s1">&gt;(</span>
+    <span class="s1">glob: string | string[]</span><span class="s0">,</span>
+    <span class="s1">options?: ImportGlobOptions&lt;Eager</span><span class="s0">, </span><span class="s1">As&gt;</span><span class="s0">,</span>
+  <span class="s1">): (Eager </span><span class="s0">extends true </span><span class="s1">? </span><span class="s0">true </span><span class="s1">: </span><span class="s0">false</span><span class="s1">) </span><span class="s0">extends true</span>
+    <span class="s1">? Record&lt;string</span><span class="s0">, </span><span class="s1">T&gt;</span>
+    <span class="s1">: Record&lt;string</span><span class="s0">, </span><span class="s1">() =&gt; Promise&lt;T&gt;&gt;</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Import a list of files with a glob pattern.</span>
+   <span class="s2">*</span>
+   <span class="s2">* Overload 2: Module generic provided, infer the type from `eager: false`</span>
+   <span class="s2">*/</span>
+  <span class="s1">&lt;M&gt;(</span>
+    <span class="s1">glob: string | string[]</span><span class="s0">,</span>
+    <span class="s1">options?: ImportGlobOptions&lt;</span><span class="s0">false, </span><span class="s1">string&gt;</span><span class="s0">,</span>
+  <span class="s1">): Record&lt;string</span><span class="s0">, </span><span class="s1">() =&gt; Promise&lt;M&gt;&gt;</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Import a list of files with a glob pattern.</span>
+   <span class="s2">*</span>
+   <span class="s2">* Overload 3: Module generic provided, infer the type from `eager: true`</span>
+   <span class="s2">*/</span>
+  <span class="s1">&lt;M&gt;(</span>
+    <span class="s1">glob: string | string[]</span><span class="s0">,</span>
+    <span class="s1">options: ImportGlobOptions&lt;</span><span class="s0">true, </span><span class="s1">string&gt;</span><span class="s0">,</span>
+  <span class="s1">): Record&lt;string</span><span class="s0">, </span><span class="s1">M&gt;</span>
+<span class="s1">}</span>
+
+<span class="s0">export interface </span><span class="s1">ImportGlobEagerFunction {</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Eagerly import a list of files with a glob pattern.</span>
+   <span class="s2">*</span>
+   <span class="s2">* Overload 1: No generic provided, infer the type from `as`</span>
+   <span class="s2">*/</span>
+  <span class="s1">&lt;</span>
+    <span class="s1">As </span><span class="s0">extends </span><span class="s1">string</span><span class="s0">,</span>
+    <span class="s1">T = As </span><span class="s0">extends </span><span class="s1">keyof KnownAsTypeMap ? KnownAsTypeMap[As] : unknown</span><span class="s0">,</span>
+  <span class="s1">&gt;(</span>
+    <span class="s1">glob: string | string[]</span><span class="s0">,</span>
+    <span class="s1">options?: Omit&lt;ImportGlobOptions&lt;boolean</span><span class="s0">, </span><span class="s1">As&gt;</span><span class="s0">, </span><span class="s4">'eager'</span><span class="s1">&gt;</span><span class="s0">,</span>
+  <span class="s1">): Record&lt;string</span><span class="s0">, </span><span class="s1">T&gt;</span>
+  <span class="s2">/**</span>
+   <span class="s2">* Eagerly import a list of files with a glob pattern.</span>
+   <span class="s2">*</span>
+   <span class="s2">* Overload 2: Module generic provided</span>
+   <span class="s2">*/</span>
+  <span class="s1">&lt;M&gt;(</span>
+    <span class="s1">glob: string | string[]</span><span class="s0">,</span>
+    <span class="s1">options?: Omit&lt;ImportGlobOptions&lt;boolean</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">, </span><span class="s4">'eager'</span><span class="s1">&gt;</span><span class="s0">,</span>
+  <span class="s1">): Record&lt;string</span><span class="s0">, </span><span class="s1">M&gt;</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

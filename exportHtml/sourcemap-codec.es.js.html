@@ -1,0 +1,145 @@
+<html>
+<head>
+<title>sourcemap-codec.es.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+sourcemap-codec.es.js</font>
+</center></td></tr></table>
+<pre><span class="s0">var </span><span class="s1">charToInteger = {}</span><span class="s0">;</span>
+<span class="s0">var </span><span class="s1">chars = </span><span class="s2">'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='</span><span class="s0">;</span>
+<span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">i = </span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; chars.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+    <span class="s1">charToInteger[chars.charCodeAt(i)] = i</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">decode(mappings) {</span>
+    <span class="s0">var </span><span class="s1">decoded = []</span><span class="s0">;</span>
+    <span class="s0">var </span><span class="s1">line = []</span><span class="s0">;</span>
+    <span class="s0">var </span><span class="s1">segment = [</span>
+        <span class="s3">0</span><span class="s0">,</span>
+        <span class="s3">0</span><span class="s0">,</span>
+        <span class="s3">0</span><span class="s0">,</span>
+        <span class="s3">0</span><span class="s0">,</span>
+        <span class="s3">0</span><span class="s0">,</span>
+    <span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">var </span><span class="s1">j = </span><span class="s3">0</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">i = </span><span class="s3">0</span><span class="s0">, </span><span class="s1">shift = </span><span class="s3">0</span><span class="s0">, </span><span class="s1">value = </span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; mappings.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s0">var </span><span class="s1">c = mappings.charCodeAt(i)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(c === </span><span class="s3">44</span><span class="s1">) { </span><span class="s4">// &quot;,&quot;</span>
+            <span class="s1">segmentify(line</span><span class="s0">, </span><span class="s1">segment</span><span class="s0">, </span><span class="s1">j)</span><span class="s0">;</span>
+            <span class="s1">j = </span><span class="s3">0</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(c === </span><span class="s3">59</span><span class="s1">) { </span><span class="s4">// &quot;;&quot;</span>
+            <span class="s1">segmentify(line</span><span class="s0">, </span><span class="s1">segment</span><span class="s0">, </span><span class="s1">j)</span><span class="s0">;</span>
+            <span class="s1">j = </span><span class="s3">0</span><span class="s0">;</span>
+            <span class="s1">decoded.push(line)</span><span class="s0">;</span>
+            <span class="s1">line = []</span><span class="s0">;</span>
+            <span class="s1">segment[</span><span class="s3">0</span><span class="s1">] = </span><span class="s3">0</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s0">var </span><span class="s1">integer = charToInteger[c]</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(integer === undefined) {</span>
+                <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">'Invalid character (' </span><span class="s1">+ String.fromCharCode(c) + </span><span class="s2">')'</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">var </span><span class="s1">hasContinuationBit = integer &amp; </span><span class="s3">32</span><span class="s0">;</span>
+            <span class="s1">integer &amp;= </span><span class="s3">31</span><span class="s0">;</span>
+            <span class="s1">value += integer &lt;&lt; shift</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(hasContinuationBit) {</span>
+                <span class="s1">shift += </span><span class="s3">5</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s0">var </span><span class="s1">shouldNegate = value &amp; </span><span class="s3">1</span><span class="s0">;</span>
+                <span class="s1">value &gt;&gt;&gt;= </span><span class="s3">1</span><span class="s0">;</span>
+                <span class="s0">if </span><span class="s1">(shouldNegate) {</span>
+                    <span class="s1">value = value === </span><span class="s3">0 </span><span class="s1">? -</span><span class="s3">0x80000000 </span><span class="s1">: -value</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s1">segment[j] += value</span><span class="s0">;</span>
+                <span class="s1">j++</span><span class="s0">;</span>
+                <span class="s1">value = shift = </span><span class="s3">0</span><span class="s0">; </span><span class="s4">// reset</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">segmentify(line</span><span class="s0">, </span><span class="s1">segment</span><span class="s0">, </span><span class="s1">j)</span><span class="s0">;</span>
+    <span class="s1">decoded.push(line)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">decoded</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">segmentify(line</span><span class="s0">, </span><span class="s1">segment</span><span class="s0">, </span><span class="s1">j) {</span>
+    <span class="s4">// This looks ugly, but we're creating specialized arrays with a specific</span>
+    <span class="s4">// length. This is much faster than creating a new array (which v8 expands to</span>
+    <span class="s4">// a capacity of 17 after pushing the first item), or slicing out a subarray</span>
+    <span class="s4">// (which is slow). Length 4 is assumed to be the most frequent, followed by</span>
+    <span class="s4">// length 5 (since not everything will have an associated name), followed by</span>
+    <span class="s4">// length 1 (it's probably rare for a source substring to not have an</span>
+    <span class="s4">// associated segment data).</span>
+    <span class="s0">if </span><span class="s1">(j === </span><span class="s3">4</span><span class="s1">)</span>
+        <span class="s1">line.push([segment[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">2</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">3</span><span class="s1">]])</span><span class="s0">;</span>
+    <span class="s0">else if </span><span class="s1">(j === </span><span class="s3">5</span><span class="s1">)</span>
+        <span class="s1">line.push([segment[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">2</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">3</span><span class="s1">]</span><span class="s0">, </span><span class="s1">segment[</span><span class="s3">4</span><span class="s1">]])</span><span class="s0">;</span>
+    <span class="s0">else if </span><span class="s1">(j === </span><span class="s3">1</span><span class="s1">)</span>
+        <span class="s1">line.push([segment[</span><span class="s3">0</span><span class="s1">]])</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">encode(decoded) {</span>
+    <span class="s0">var </span><span class="s1">sourceFileIndex = </span><span class="s3">0</span><span class="s0">; </span><span class="s4">// second field</span>
+    <span class="s0">var </span><span class="s1">sourceCodeLine = </span><span class="s3">0</span><span class="s0">; </span><span class="s4">// third field</span>
+    <span class="s0">var </span><span class="s1">sourceCodeColumn = </span><span class="s3">0</span><span class="s0">; </span><span class="s4">// fourth field</span>
+    <span class="s0">var </span><span class="s1">nameIndex = </span><span class="s3">0</span><span class="s0">; </span><span class="s4">// fifth field</span>
+    <span class="s0">var </span><span class="s1">mappings = </span><span class="s2">''</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">i = </span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; decoded.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s0">var </span><span class="s1">line = decoded[i]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(i &gt; </span><span class="s3">0</span><span class="s1">)</span>
+            <span class="s1">mappings += </span><span class="s2">';'</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(line.length === </span><span class="s3">0</span><span class="s1">)</span>
+            <span class="s0">continue;</span>
+        <span class="s0">var </span><span class="s1">generatedCodeColumn = </span><span class="s3">0</span><span class="s0">; </span><span class="s4">// first field</span>
+        <span class="s0">var </span><span class="s1">lineMappings = []</span><span class="s0">;</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">var </span><span class="s1">_i = </span><span class="s3">0</span><span class="s0">, </span><span class="s1">line_1 = line</span><span class="s0">; </span><span class="s1">_i &lt; line_1.length</span><span class="s0">; </span><span class="s1">_i++) {</span>
+            <span class="s0">var </span><span class="s1">segment = line_1[_i]</span><span class="s0">;</span>
+            <span class="s0">var </span><span class="s1">segmentMappings = encodeInteger(segment[</span><span class="s3">0</span><span class="s1">] - generatedCodeColumn)</span><span class="s0">;</span>
+            <span class="s1">generatedCodeColumn = segment[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(segment.length &gt; </span><span class="s3">1</span><span class="s1">) {</span>
+                <span class="s1">segmentMappings +=</span>
+                    <span class="s1">encodeInteger(segment[</span><span class="s3">1</span><span class="s1">] - sourceFileIndex) +</span>
+                        <span class="s1">encodeInteger(segment[</span><span class="s3">2</span><span class="s1">] - sourceCodeLine) +</span>
+                        <span class="s1">encodeInteger(segment[</span><span class="s3">3</span><span class="s1">] - sourceCodeColumn)</span><span class="s0">;</span>
+                <span class="s1">sourceFileIndex = segment[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">;</span>
+                <span class="s1">sourceCodeLine = segment[</span><span class="s3">2</span><span class="s1">]</span><span class="s0">;</span>
+                <span class="s1">sourceCodeColumn = segment[</span><span class="s3">3</span><span class="s1">]</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(segment.length === </span><span class="s3">5</span><span class="s1">) {</span>
+                <span class="s1">segmentMappings += encodeInteger(segment[</span><span class="s3">4</span><span class="s1">] - nameIndex)</span><span class="s0">;</span>
+                <span class="s1">nameIndex = segment[</span><span class="s3">4</span><span class="s1">]</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s1">lineMappings.push(segmentMappings)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s1">mappings += lineMappings.join(</span><span class="s2">','</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">mappings</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">encodeInteger(num) {</span>
+    <span class="s0">var </span><span class="s1">result = </span><span class="s2">''</span><span class="s0">;</span>
+    <span class="s1">num = num &lt; </span><span class="s3">0 </span><span class="s1">? (-num &lt;&lt; </span><span class="s3">1</span><span class="s1">) | </span><span class="s3">1 </span><span class="s1">: num &lt;&lt; </span><span class="s3">1</span><span class="s0">;</span>
+    <span class="s0">do </span><span class="s1">{</span>
+        <span class="s0">var </span><span class="s1">clamped = num &amp; </span><span class="s3">31</span><span class="s0">;</span>
+        <span class="s1">num &gt;&gt;&gt;= </span><span class="s3">5</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(num &gt; </span><span class="s3">0</span><span class="s1">) {</span>
+            <span class="s1">clamped |= </span><span class="s3">32</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s1">result += chars[clamped]</span><span class="s0">;</span>
+    <span class="s1">} </span><span class="s0">while </span><span class="s1">(num &gt; </span><span class="s3">0</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">result</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ decode</span><span class="s0">, </span><span class="s1">encode }</span><span class="s0">;</span>
+<span class="s4">//# sourceMappingURL=sourcemap-codec.es.js.map</span>
+</pre>
+</body>
+</html>

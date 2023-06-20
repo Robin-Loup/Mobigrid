@@ -1,0 +1,338 @@
+<html>
+<head>
+<title>compiler-sfc.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+compiler-sfc.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{ parse as babelParse } from </span><span class="s2">'@babel/parser'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ BindingMetadata } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ CodegenResult } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ CompilerError } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ CompilerOptions } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ElementNode } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ extractIdentifiers } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ generateCodeFrame } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ isInDestructureAssignment } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ isStaticProperty } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ LazyResult } from </span><span class="s2">'postcss'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">MagicString from </span><span class="s2">'magic-string'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ParserOptions } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ ParserPlugin } from </span><span class="s2">'@babel/parser'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RawSourceMap } from </span><span class="s2">'source-map'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ Result } from </span><span class="s2">'postcss'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ RootNode } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ shouldTransform as shouldTransformRef } from </span><span class="s2">'@vue/reactivity-transform'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ SourceLocation } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ Statement } from </span><span class="s2">'@babel/types'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ transform as transformRef } from </span><span class="s2">'@vue/reactivity-transform'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ transformAST as transformRefAST } from </span><span class="s2">'@vue/reactivity-transform'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ walkIdentifiers } from </span><span class="s2">'@vue/compiler-core'</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">AssetURLOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* If base is provided, instead of transforming relative asset urls into</span>
+     <span class="s3">* imports, they will be directly rewritten to absolute urls.</span>
+     <span class="s3">*/</span>
+    <span class="s1">base?: string | </span><span class="s0">null;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* If true, also processes absolute urls.</span>
+     <span class="s3">*/</span>
+    <span class="s1">includeAbsolute?: boolean</span><span class="s0">;</span>
+    <span class="s1">tags?: AssetURLTagConfig</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">AssetURLTagConfig {</span>
+    <span class="s1">[name: string]: string[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ babelParse }</span>
+
+<span class="s0">export </span><span class="s1">{ BindingMetadata }</span>
+
+<span class="s0">export </span><span class="s1">{ CompilerError }</span>
+
+<span class="s0">export </span><span class="s1">{ CompilerOptions }</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Compile `&lt;script setup&gt;`</span>
+ <span class="s3">* It requires the whole SFC descriptor because we need to handle and merge</span>
+ <span class="s3">* normal `&lt;script&gt;` + `&lt;script setup&gt;` if both are present.</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">compileScript(sfc: SFCDescriptor</span><span class="s0">, </span><span class="s1">options: SFCScriptCompileOptions): SFCScriptBlock</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">compileStyle(options: SFCStyleCompileOptions): SFCStyleCompileResults</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">compileStyleAsync(options: SFCAsyncStyleCompileOptions): Promise&lt;SFCStyleCompileResults&gt;</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">compileTemplate(options: SFCTemplateCompileOptions): SFCTemplateCompileResults</span><span class="s0">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Aligns with postcss-modules</span>
+ <span class="s3">* https://github.com/css-modules/postcss-modules</span>
+ <span class="s3">*/</span>
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">CSSModulesOptions {</span>
+    <span class="s1">scopeBehaviour?: </span><span class="s2">'global' </span><span class="s1">| </span><span class="s2">'local'</span><span class="s0">;</span>
+    <span class="s1">generateScopedName?: string | ((name: string</span><span class="s0">, </span><span class="s1">filename: string</span><span class="s0">, </span><span class="s1">css: string) =&gt; string)</span><span class="s0">;</span>
+    <span class="s1">hashPrefix?: string</span><span class="s0">;</span>
+    <span class="s1">localsConvention?: </span><span class="s2">'camelCase' </span><span class="s1">| </span><span class="s2">'camelCaseOnly' </span><span class="s1">| </span><span class="s2">'dashes' </span><span class="s1">| </span><span class="s2">'dashesOnly'</span><span class="s0">;</span>
+    <span class="s1">exportGlobals?: boolean</span><span class="s0">;</span>
+    <span class="s1">globalModulePaths?: RegExp[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ extractIdentifiers }</span>
+
+<span class="s0">export </span><span class="s1">{ generateCodeFrame }</span>
+
+<span class="s1">declare </span><span class="s0">interface </span><span class="s1">ImportBinding {</span>
+    <span class="s1">isType: boolean</span><span class="s0">;</span>
+    <span class="s1">imported: string</span><span class="s0">;</span>
+    <span class="s1">local: string</span><span class="s0">;</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">isFromSetup: boolean</span><span class="s0">;</span>
+    <span class="s1">isUsedInTemplate: boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ isInDestructureAssignment }</span>
+
+<span class="s0">export </span><span class="s1">{ isStaticProperty }</span>
+
+<span class="s0">export </span><span class="s1">{ MagicString }</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">parse(source: string</span><span class="s0">, </span><span class="s1">{ sourceMap</span><span class="s0">, </span><span class="s1">filename</span><span class="s0">, </span><span class="s1">sourceRoot</span><span class="s0">, </span><span class="s1">pad</span><span class="s0">, </span><span class="s1">ignoreEmpty</span><span class="s0">, </span><span class="s1">compiler }?: SFCParseOptions): SFCParseResult</span><span class="s0">;</span>
+
+<span class="s1">declare type PreprocessLang = </span><span class="s2">'less' </span><span class="s1">| </span><span class="s2">'sass' </span><span class="s1">| </span><span class="s2">'scss' </span><span class="s1">| </span><span class="s2">'styl' </span><span class="s1">| </span><span class="s2">'stylus'</span><span class="s0">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Utility for rewriting `export default` in a script block into a variable</span>
+ <span class="s3">* declaration so that we can inject things into it</span>
+ <span class="s3">*/</span>
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">function </span><span class="s1">rewriteDefault(input: string</span><span class="s0">, </span><span class="s1">as: string</span><span class="s0">, </span><span class="s1">parserPlugins?: ParserPlugin[]): string</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCAsyncStyleCompileOptions </span><span class="s0">extends </span><span class="s1">SFCStyleCompileOptions {</span>
+    <span class="s1">isAsync?: boolean</span><span class="s0">;</span>
+    <span class="s1">modules?: boolean</span><span class="s0">;</span>
+    <span class="s1">modulesOptions?: CSSModulesOptions</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCBlock {</span>
+    <span class="s1">type: string</span><span class="s0">;</span>
+    <span class="s1">content: string</span><span class="s0">;</span>
+    <span class="s1">attrs: Record&lt;string</span><span class="s0">, </span><span class="s1">string | </span><span class="s0">true</span><span class="s1">&gt;</span><span class="s0">;</span>
+    <span class="s1">loc: SourceLocation</span><span class="s0">;</span>
+    <span class="s1">map?: RawSourceMap</span><span class="s0">;</span>
+    <span class="s1">lang?: string</span><span class="s0">;</span>
+    <span class="s1">src?: string</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCDescriptor {</span>
+    <span class="s1">filename: string</span><span class="s0">;</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">template: SFCTemplateBlock | </span><span class="s0">null;</span>
+    <span class="s1">script: SFCScriptBlock | </span><span class="s0">null;</span>
+    <span class="s1">scriptSetup: SFCScriptBlock | </span><span class="s0">null;</span>
+    <span class="s1">styles: SFCStyleBlock[]</span><span class="s0">;</span>
+    <span class="s1">customBlocks: SFCBlock[]</span><span class="s0">;</span>
+    <span class="s1">cssVars: string[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* whether the SFC uses :slotted() modifier.</span>
+     <span class="s3">* this is used as a compiler optimization hint.</span>
+     <span class="s3">*/</span>
+    <span class="s1">slotted: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* compare with an existing descriptor to determine whether HMR should perform</span>
+     <span class="s3">* a reload vs. re-render.</span>
+     <span class="s3">*</span>
+     <span class="s3">* Note: this comparison assumes the prev/next script are already identical,</span>
+     <span class="s3">* and only checks the special case where &lt;script setup lang=&quot;ts&quot;&gt; unused import</span>
+     <span class="s3">* pruning result changes due to template changes.</span>
+     <span class="s3">*/</span>
+    <span class="s1">shouldForceReload: (prevImports: Record&lt;string</span><span class="s0">, </span><span class="s1">ImportBinding&gt;) =&gt; boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCParseOptions {</span>
+    <span class="s1">filename?: string</span><span class="s0">;</span>
+    <span class="s1">sourceMap?: boolean</span><span class="s0">;</span>
+    <span class="s1">sourceRoot?: string</span><span class="s0">;</span>
+    <span class="s1">pad?: boolean | </span><span class="s2">'line' </span><span class="s1">| </span><span class="s2">'space'</span><span class="s0">;</span>
+    <span class="s1">ignoreEmpty?: boolean</span><span class="s0">;</span>
+    <span class="s1">compiler?: TemplateCompiler</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCParseResult {</span>
+    <span class="s1">descriptor: SFCDescriptor</span><span class="s0">;</span>
+    <span class="s1">errors: (CompilerError | SyntaxError)[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCScriptBlock </span><span class="s0">extends </span><span class="s1">SFCBlock {</span>
+    <span class="s1">type: </span><span class="s2">'script'</span><span class="s0">;</span>
+    <span class="s1">setup?: string | boolean</span><span class="s0">;</span>
+    <span class="s1">bindings?: BindingMetadata</span><span class="s0">;</span>
+    <span class="s1">imports?: Record&lt;string</span><span class="s0">, </span><span class="s1">ImportBinding&gt;</span><span class="s0">;</span>
+    <span class="s1">scriptAst?: Statement[]</span><span class="s0">;</span>
+    <span class="s1">scriptSetupAst?: Statement[]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCScriptCompileOptions {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Scope ID for prefixing injected CSS variables.</span>
+     <span class="s3">* This must be consistent with the `id` passed to `compileStyle`.</span>
+     <span class="s3">*/</span>
+    <span class="s1">id: string</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Production mode. Used to determine whether to generate hashed CSS variables</span>
+     <span class="s3">*/</span>
+    <span class="s1">isProd?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Enable/disable source map. Defaults to true.</span>
+     <span class="s3">*/</span>
+    <span class="s1">sourceMap?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* https://babeljs.io/docs/en/babel-parser#plugins</span>
+     <span class="s3">*/</span>
+    <span class="s1">babelParserPlugins?: ParserPlugin[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* (Experimental) Enable syntax transform for using refs without `.value` and</span>
+     <span class="s3">* using destructured props with reactivity</span>
+     <span class="s3">*/</span>
+    <span class="s1">reactivityTransform?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* (Experimental) Enable syntax transform for using refs without `.value`</span>
+     <span class="s3">* https://github.com/vuejs/rfcs/discussions/369</span>
+     <span class="s3">* </span><span class="s4">@deprecated </span><span class="s3">now part of `reactivityTransform`</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">false</span>
+     <span class="s3">*/</span>
+    <span class="s1">refTransform?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* (Experimental) Enable syntax transform for destructuring from defineProps()</span>
+     <span class="s3">* https://github.com/vuejs/rfcs/discussions/394</span>
+     <span class="s3">* </span><span class="s4">@deprecated </span><span class="s3">now part of `reactivityTransform`</span>
+     <span class="s3">* </span><span class="s4">@default </span><span class="s3">false</span>
+     <span class="s3">*/</span>
+    <span class="s1">propsDestructureTransform?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* </span><span class="s4">@deprecated </span><span class="s3">use `reactivityTransform` instead.</span>
+     <span class="s3">*/</span>
+    <span class="s1">refSugar?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Compile the template and inline the resulting render function</span>
+     <span class="s3">* directly inside setup().</span>
+     <span class="s3">* - Only affects `&lt;script setup&gt;`</span>
+     <span class="s3">* - This should only be used in production because it prevents the template</span>
+     <span class="s3">* from being hot-reloaded separately from component state.</span>
+     <span class="s3">*/</span>
+    <span class="s1">inlineTemplate?: boolean</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Options for template compilation when inlining. Note these are options that</span>
+     <span class="s3">* would normally be passed to `compiler-sfc`'s own `compileTemplate()`, not</span>
+     <span class="s3">* options passed to `compiler-dom`.</span>
+     <span class="s3">*/</span>
+    <span class="s1">templateOptions?: Partial&lt;SFCTemplateCompileOptions&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCStyleBlock </span><span class="s0">extends </span><span class="s1">SFCBlock {</span>
+    <span class="s1">type: </span><span class="s2">'style'</span><span class="s0">;</span>
+    <span class="s1">scoped?: boolean</span><span class="s0">;</span>
+    <span class="s1">module?: string | boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCStyleCompileOptions {</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">filename: string</span><span class="s0">;</span>
+    <span class="s1">id: string</span><span class="s0">;</span>
+    <span class="s1">scoped?: boolean</span><span class="s0">;</span>
+    <span class="s1">trim?: boolean</span><span class="s0">;</span>
+    <span class="s1">isProd?: boolean</span><span class="s0">;</span>
+    <span class="s1">inMap?: RawSourceMap</span><span class="s0">;</span>
+    <span class="s1">preprocessLang?: PreprocessLang</span><span class="s0">;</span>
+    <span class="s1">preprocessOptions?: any</span><span class="s0">;</span>
+    <span class="s1">preprocessCustomRequire?: (id: string) =&gt; any</span><span class="s0">;</span>
+    <span class="s1">postcssOptions?: any</span><span class="s0">;</span>
+    <span class="s1">postcssPlugins?: any[]</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* </span><span class="s4">@deprecated </span><span class="s3">use `inMap` instead.</span>
+     <span class="s3">*/</span>
+    <span class="s1">map?: RawSourceMap</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCStyleCompileResults {</span>
+    <span class="s1">code: string</span><span class="s0">;</span>
+    <span class="s1">map: RawSourceMap | undefined</span><span class="s0">;</span>
+    <span class="s1">rawResult: Result | LazyResult | undefined</span><span class="s0">;</span>
+    <span class="s1">errors: Error[]</span><span class="s0">;</span>
+    <span class="s1">modules?: Record&lt;string</span><span class="s0">, </span><span class="s1">string&gt;</span><span class="s0">;</span>
+    <span class="s1">dependencies: Set&lt;string&gt;</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCTemplateBlock </span><span class="s0">extends </span><span class="s1">SFCBlock {</span>
+    <span class="s1">type: </span><span class="s2">'template'</span><span class="s0">;</span>
+    <span class="s1">ast: ElementNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCTemplateCompileOptions {</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">filename: string</span><span class="s0">;</span>
+    <span class="s1">id: string</span><span class="s0">;</span>
+    <span class="s1">scoped?: boolean</span><span class="s0">;</span>
+    <span class="s1">slotted?: boolean</span><span class="s0">;</span>
+    <span class="s1">isProd?: boolean</span><span class="s0">;</span>
+    <span class="s1">ssr?: boolean</span><span class="s0">;</span>
+    <span class="s1">ssrCssVars?: string[]</span><span class="s0">;</span>
+    <span class="s1">inMap?: RawSourceMap</span><span class="s0">;</span>
+    <span class="s1">compiler?: TemplateCompiler</span><span class="s0">;</span>
+    <span class="s1">compilerOptions?: CompilerOptions</span><span class="s0">;</span>
+    <span class="s1">preprocessLang?: string</span><span class="s0">;</span>
+    <span class="s1">preprocessOptions?: any</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* In some cases, compiler-sfc may not be inside the project root (e.g. when</span>
+     <span class="s3">* linked or globally installed). In such cases a custom `require` can be</span>
+     <span class="s3">* passed to correctly resolve the preprocessors.</span>
+     <span class="s3">*/</span>
+    <span class="s1">preprocessCustomRequire?: (id: string) =&gt; any</span><span class="s0">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Configure what tags/attributes to transform into asset url imports,</span>
+     <span class="s3">* or disable the transform altogether with `false`.</span>
+     <span class="s3">*/</span>
+    <span class="s1">transformAssetUrls?: AssetURLOptions | AssetURLTagConfig | boolean</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">SFCTemplateCompileResults {</span>
+    <span class="s1">code: string</span><span class="s0">;</span>
+    <span class="s1">ast?: RootNode</span><span class="s0">;</span>
+    <span class="s1">preamble?: string</span><span class="s0">;</span>
+    <span class="s1">source: string</span><span class="s0">;</span>
+    <span class="s1">tips: string[]</span><span class="s0">;</span>
+    <span class="s1">errors: (string | CompilerError)[]</span><span class="s0">;</span>
+    <span class="s1">map?: RawSourceMap</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ shouldTransformRef }</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">interface </span><span class="s1">TemplateCompiler {</span>
+    <span class="s1">compile(template: string</span><span class="s0">, </span><span class="s1">options: CompilerOptions): CodegenResult</span><span class="s0">;</span>
+    <span class="s1">parse(template: string</span><span class="s0">, </span><span class="s1">options: ParserOptions): RootNode</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">export </span><span class="s1">{ transformRef }</span>
+
+<span class="s0">export </span><span class="s1">{ transformRefAST }</span>
+
+<span class="s0">export </span><span class="s1">declare </span><span class="s0">const </span><span class="s1">walk: any</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ walkIdentifiers }</span>
+
+<span class="s0">export </span><span class="s1">{ }</span>
+</pre>
+</body>
+</html>

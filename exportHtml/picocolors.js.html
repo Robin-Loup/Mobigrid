@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>picocolors.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+picocolors.js</font>
+</center></td></tr></table>
+<pre><span class="s0">let </span><span class="s1">tty = require(</span><span class="s2">&quot;tty&quot;</span><span class="s1">)</span>
+
+<span class="s0">let </span><span class="s1">isColorSupported =</span>
+	<span class="s1">!(</span><span class="s2">&quot;NO_COLOR&quot; </span><span class="s0">in </span><span class="s1">process.env || process.argv.includes(</span><span class="s2">&quot;--no-color&quot;</span><span class="s1">)) &amp;&amp;</span>
+	<span class="s1">(</span><span class="s2">&quot;FORCE_COLOR&quot; </span><span class="s0">in </span><span class="s1">process.env ||</span>
+		<span class="s1">process.argv.includes(</span><span class="s2">&quot;--color&quot;</span><span class="s1">) ||</span>
+		<span class="s1">process.platform === </span><span class="s2">&quot;win32&quot; </span><span class="s1">||</span>
+		<span class="s1">(tty.isatty(</span><span class="s3">1</span><span class="s1">) &amp;&amp; process.env.TERM !== </span><span class="s2">&quot;dumb&quot;</span><span class="s1">) ||</span>
+		<span class="s2">&quot;CI&quot; </span><span class="s0">in </span><span class="s1">process.env)</span>
+
+<span class="s0">let </span><span class="s1">formatter =</span>
+	<span class="s1">(open</span><span class="s0">, </span><span class="s1">close</span><span class="s0">, </span><span class="s1">replace = open) =&gt;</span>
+	<span class="s1">input =&gt; {</span>
+		<span class="s0">let </span><span class="s1">string = </span><span class="s2">&quot;&quot; </span><span class="s1">+ input</span>
+		<span class="s0">let </span><span class="s1">index = string.indexOf(close</span><span class="s0">, </span><span class="s1">open.length)</span>
+		<span class="s0">return </span><span class="s1">~index</span>
+			<span class="s1">? open + replaceClose(string</span><span class="s0">, </span><span class="s1">close</span><span class="s0">, </span><span class="s1">replace</span><span class="s0">, </span><span class="s1">index) + close</span>
+			<span class="s1">: open + string + close</span>
+	<span class="s1">}</span>
+
+<span class="s0">let </span><span class="s1">replaceClose = (string</span><span class="s0">, </span><span class="s1">close</span><span class="s0">, </span><span class="s1">replace</span><span class="s0">, </span><span class="s1">index) =&gt; {</span>
+	<span class="s0">let </span><span class="s1">start = string.substring(</span><span class="s3">0</span><span class="s0">, </span><span class="s1">index) + replace</span>
+	<span class="s0">let </span><span class="s1">end = string.substring(index + close.length)</span>
+	<span class="s0">let </span><span class="s1">nextIndex = end.indexOf(close)</span>
+	<span class="s0">return </span><span class="s1">~nextIndex ? start + replaceClose(end</span><span class="s0">, </span><span class="s1">close</span><span class="s0">, </span><span class="s1">replace</span><span class="s0">, </span><span class="s1">nextIndex) : start + end</span>
+<span class="s1">}</span>
+
+<span class="s0">let </span><span class="s1">createColors = (enabled = isColorSupported) =&gt; ({</span>
+	<span class="s1">isColorSupported: enabled</span><span class="s0">,</span>
+	<span class="s1">reset: enabled ? s =&gt; </span><span class="s2">`</span><span class="s0">\x1b</span><span class="s2">[0m</span><span class="s1">${s}</span><span class="s0">\x1b</span><span class="s2">[0m` </span><span class="s1">: String</span><span class="s0">,</span>
+	<span class="s1">bold: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[1m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[22m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[22m</span><span class="s0">\x1b</span><span class="s2">[1m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">dim: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[2m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[22m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[22m</span><span class="s0">\x1b</span><span class="s2">[2m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">italic: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[3m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[23m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">underline: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[4m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[24m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">inverse: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[7m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[27m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">hidden: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[8m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[28m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">strikethrough: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[9m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[29m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">black: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[30m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">red: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[31m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">green: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[32m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">yellow: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[33m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">blue: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[34m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">magenta: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[35m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">cyan: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[36m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">white: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[37m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">gray: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[90m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[39m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgBlack: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[40m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgRed: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[41m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgGreen: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[42m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgYellow: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[43m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgBlue: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[44m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgMagenta: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[45m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgCyan: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[46m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+	<span class="s1">bgWhite: enabled ? formatter(</span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[47m&quot;</span><span class="s0">, </span><span class="s2">&quot;</span><span class="s0">\x1b</span><span class="s2">[49m&quot;</span><span class="s1">) : String</span><span class="s0">,</span>
+<span class="s1">})</span>
+
+<span class="s1">module.exports = createColors()</span>
+<span class="s1">module.exports.createColors = createColors</span>
+</pre>
+</body>
+</html>

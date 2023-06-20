@@ -1,0 +1,1036 @@
+<html>
+<head>
+<title>server-renderer.esm-bundler.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+.s5 { color: #629755; font-style: italic;}
+.s6 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+server-renderer.esm-bundler.js</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">{ createVNode</span><span class="s0">, </span><span class="s1">ssrContextKey</span><span class="s0">, </span><span class="s1">warn as warn$1</span><span class="s0">, </span><span class="s1">Fragment</span><span class="s0">, </span><span class="s1">Static</span><span class="s0">, </span><span class="s1">Comment</span><span class="s0">, </span><span class="s1">Text</span><span class="s0">, </span><span class="s1">mergeProps</span><span class="s0">, </span><span class="s1">ssrUtils</span><span class="s0">, </span><span class="s1">createApp</span><span class="s0">, </span><span class="s1">initDirectivesForSSR } from </span><span class="s2">'vue'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ makeMap</span><span class="s0">, </span><span class="s1">isOn</span><span class="s0">, </span><span class="s1">isSVGTag</span><span class="s0">, </span><span class="s1">propsToAttrMap</span><span class="s0">, </span><span class="s1">isBooleanAttr</span><span class="s0">, </span><span class="s1">includeBooleanAttr</span><span class="s0">, </span><span class="s1">isSSRSafeAttrName</span><span class="s0">, </span><span class="s1">escapeHtml</span><span class="s0">, </span><span class="s1">normalizeClass</span><span class="s0">, </span><span class="s1">isString</span><span class="s0">, </span><span class="s1">normalizeStyle</span><span class="s0">, </span><span class="s1">stringifyStyle</span><span class="s0">, </span><span class="s1">isArray</span><span class="s0">, </span><span class="s1">toDisplayString</span><span class="s0">, </span><span class="s1">isFunction</span><span class="s0">, </span><span class="s1">isObject</span><span class="s0">, </span><span class="s1">looseEqual</span><span class="s0">, </span><span class="s1">looseIndexOf</span><span class="s0">, </span><span class="s1">isPromise</span><span class="s0">, </span><span class="s1">NOOP</span><span class="s0">, </span><span class="s1">escapeHtmlComment</span><span class="s0">, </span><span class="s1">isVoidTag } from </span><span class="s2">'@vue/shared'</span><span class="s0">;</span>
+<span class="s0">export </span><span class="s1">{ includeBooleanAttr as ssrIncludeBooleanAttr } from </span><span class="s2">'@vue/shared'</span><span class="s0">;</span>
+
+<span class="s3">// leading comma for empty string &quot;&quot;</span>
+<span class="s0">const </span><span class="s1">shouldIgnoreProp = makeMap(</span><span class="s2">`,key,ref,innerHTML,textContent,ref_key,ref_for`</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">ssrRenderAttrs(props</span><span class="s0">, </span><span class="s1">tag) {</span>
+    <span class="s0">let </span><span class="s1">ret = </span><span class="s2">''</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">key </span><span class="s0">in </span><span class="s1">props) {</span>
+        <span class="s0">if </span><span class="s1">(shouldIgnoreProp(key) ||</span>
+            <span class="s1">isOn(key) ||</span>
+            <span class="s1">(tag === </span><span class="s2">'textarea' </span><span class="s1">&amp;&amp; key === </span><span class="s2">'value'</span><span class="s1">)) {</span>
+            <span class="s0">continue;</span>
+        <span class="s1">}</span>
+        <span class="s0">const </span><span class="s1">value = props[key]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(key === </span><span class="s2">'class'</span><span class="s1">) {</span>
+            <span class="s1">ret += </span><span class="s2">` class=&quot;</span><span class="s1">${ssrRenderClass(value)}</span><span class="s2">&quot;`</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(key === </span><span class="s2">'style'</span><span class="s1">) {</span>
+            <span class="s1">ret += </span><span class="s2">` style=&quot;</span><span class="s1">${ssrRenderStyle(value)}</span><span class="s2">&quot;`</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s1">ret += ssrRenderDynamicAttr(key</span><span class="s0">, </span><span class="s1">value</span><span class="s0">, </span><span class="s1">tag)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">ret</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s3">// render an attr with dynamic (unknown) key.</span>
+<span class="s0">function </span><span class="s1">ssrRenderDynamicAttr(key</span><span class="s0">, </span><span class="s1">value</span><span class="s0">, </span><span class="s1">tag) {</span>
+    <span class="s0">if </span><span class="s1">(!isRenderableValue(value)) {</span>
+        <span class="s0">return </span><span class="s2">``</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">attrKey = tag &amp;&amp; (tag.indexOf(</span><span class="s2">'-'</span><span class="s1">) &gt; </span><span class="s4">0 </span><span class="s1">|| isSVGTag(tag))</span>
+        <span class="s1">? key </span><span class="s3">// preserve raw name on custom elements and svg</span>
+        <span class="s1">: propsToAttrMap[key] || key.toLowerCase()</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(isBooleanAttr(attrKey)) {</span>
+        <span class="s0">return </span><span class="s1">includeBooleanAttr(value) ? </span><span class="s2">` </span><span class="s1">${attrKey}</span><span class="s2">` </span><span class="s1">: </span><span class="s2">``</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(isSSRSafeAttrName(attrKey)) {</span>
+        <span class="s0">return </span><span class="s1">value === </span><span class="s2">'' </span><span class="s1">? </span><span class="s2">` </span><span class="s1">${attrKey}</span><span class="s2">` </span><span class="s1">: </span><span class="s2">` </span><span class="s1">${attrKey}</span><span class="s2">=&quot;</span><span class="s1">${escapeHtml(value)}</span><span class="s2">&quot;`</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">console.warn(</span><span class="s2">`[@vue/server-renderer] Skipped rendering unsafe attribute name: </span><span class="s1">${attrKey}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s2">``</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s3">// Render a v-bind attr with static key. The key is pre-processed at compile</span>
+<span class="s3">// time and we only need to check and escape value.</span>
+<span class="s0">function </span><span class="s1">ssrRenderAttr(key</span><span class="s0">, </span><span class="s1">value) {</span>
+    <span class="s0">if </span><span class="s1">(!isRenderableValue(value)) {</span>
+        <span class="s0">return </span><span class="s2">``</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s2">` </span><span class="s1">${key}</span><span class="s2">=&quot;</span><span class="s1">${escapeHtml(value)}</span><span class="s2">&quot;`</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">isRenderableValue(value) {</span>
+    <span class="s0">if </span><span class="s1">(value == </span><span class="s0">null</span><span class="s1">) {</span>
+        <span class="s0">return false;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">type = </span><span class="s0">typeof </span><span class="s1">value</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">type === </span><span class="s2">'string' </span><span class="s1">|| type === </span><span class="s2">'number' </span><span class="s1">|| type === </span><span class="s2">'boolean'</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">ssrRenderClass(raw) {</span>
+    <span class="s0">return </span><span class="s1">escapeHtml(normalizeClass(raw))</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">ssrRenderStyle(raw) {</span>
+    <span class="s0">if </span><span class="s1">(!raw) {</span>
+        <span class="s0">return </span><span class="s2">''</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(isString(raw)) {</span>
+        <span class="s0">return </span><span class="s1">escapeHtml(raw)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">styles = normalizeStyle(raw)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">escapeHtml(stringifyStyle(styles))</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrRenderComponent(comp</span><span class="s0">, </span><span class="s1">props = </span><span class="s0">null, </span><span class="s1">children = </span><span class="s0">null, </span><span class="s1">parentComponent = </span><span class="s0">null, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">return </span><span class="s1">renderComponentVNode(createVNode(comp</span><span class="s0">, </span><span class="s1">props</span><span class="s0">, </span><span class="s1">children)</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrRenderSlot(slots</span><span class="s0">, </span><span class="s1">slotName</span><span class="s0">, </span><span class="s1">slotProps</span><span class="s0">, </span><span class="s1">fallbackRenderFn</span><span class="s0">, </span><span class="s1">push</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId) {</span>
+    <span class="s3">// template-compiled slots are always rendered as fragments</span>
+    <span class="s1">push(</span><span class="s2">`&lt;!--[--&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">ssrRenderSlotInner(slots</span><span class="s0">, </span><span class="s1">slotName</span><span class="s0">, </span><span class="s1">slotProps</span><span class="s0">, </span><span class="s1">fallbackRenderFn</span><span class="s0">, </span><span class="s1">push</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+    <span class="s1">push(</span><span class="s2">`&lt;!--]--&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">ssrRenderSlotInner(slots</span><span class="s0">, </span><span class="s1">slotName</span><span class="s0">, </span><span class="s1">slotProps</span><span class="s0">, </span><span class="s1">fallbackRenderFn</span><span class="s0">, </span><span class="s1">push</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId</span><span class="s0">, </span><span class="s1">transition) {</span>
+    <span class="s0">const </span><span class="s1">slotFn = slots[slotName]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(slotFn) {</span>
+        <span class="s0">const </span><span class="s1">slotBuffer = []</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">bufferedPush = (item) =&gt; {</span>
+            <span class="s1">slotBuffer.push(item)</span><span class="s0">;</span>
+        <span class="s1">}</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">ret = slotFn(slotProps</span><span class="s0">, </span><span class="s1">bufferedPush</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId ? </span><span class="s2">' ' </span><span class="s1">+ slotScopeId : </span><span class="s2">''</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(isArray(ret)) {</span>
+            <span class="s3">// normal slot</span>
+            <span class="s1">renderVNodeChildren(push</span><span class="s0">, </span><span class="s1">ret</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s3">// ssr slot.</span>
+            <span class="s3">// check if the slot renders all comments, in which case use the fallback</span>
+            <span class="s0">let </span><span class="s1">isEmptySlot = </span><span class="s0">true;</span>
+            <span class="s0">if </span><span class="s1">(transition) {</span>
+                <span class="s1">isEmptySlot = </span><span class="s0">false;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; slotBuffer.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+                    <span class="s0">if </span><span class="s1">(!isComment(slotBuffer[i])) {</span>
+                        <span class="s1">isEmptySlot = </span><span class="s0">false;</span>
+                        <span class="s0">break;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(isEmptySlot) {</span>
+                <span class="s0">if </span><span class="s1">(fallbackRenderFn) {</span>
+                    <span class="s1">fallbackRenderFn()</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; slotBuffer.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+                    <span class="s1">push(slotBuffer[i])</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(fallbackRenderFn) {</span>
+        <span class="s1">fallbackRenderFn()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">const </span><span class="s1">commentTestRE = </span><span class="s4">/^&lt;!--.*--&gt;$/s</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">commentRE = </span><span class="s4">/&lt;!--[^]*?--&gt;/gm</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">isComment(item) {</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">item !== </span><span class="s2">'string' </span><span class="s1">|| !commentTestRE.test(item))</span>
+        <span class="s0">return false;</span>
+    <span class="s3">// if item is '&lt;!----&gt;' or '&lt;!--[--&gt;' or '&lt;!--]--&gt;', return true directly</span>
+    <span class="s0">if </span><span class="s1">(item.length &lt;= </span><span class="s4">8</span><span class="s1">)</span>
+        <span class="s0">return true;</span>
+    <span class="s0">return </span><span class="s1">!item.replace(commentRE</span><span class="s0">, </span><span class="s2">''</span><span class="s1">).trim()</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrRenderTeleport(parentPush</span><span class="s0">, </span><span class="s1">contentRenderFn</span><span class="s0">, </span><span class="s1">target</span><span class="s0">, </span><span class="s1">disabled</span><span class="s0">, </span><span class="s1">parentComponent) {</span>
+    <span class="s1">parentPush(</span><span class="s2">'&lt;!--teleport start--&gt;'</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">context = parentComponent.appContext.provides[ssrContextKey]</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">teleportBuffers = context.__teleportBuffers || (context.__teleportBuffers = {})</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">targetBuffer = teleportBuffers[target] || (teleportBuffers[target] = [])</span><span class="s0">;</span>
+    <span class="s3">// record current index of the target buffer to handle nested teleports</span>
+    <span class="s3">// since the parent needs to be rendered before the child</span>
+    <span class="s0">const </span><span class="s1">bufferIndex = targetBuffer.length</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">teleportContent</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(disabled) {</span>
+        <span class="s1">contentRenderFn(parentPush)</span><span class="s0">;</span>
+        <span class="s1">teleportContent = </span><span class="s2">`&lt;!--teleport anchor--&gt;`</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s0">const </span><span class="s1">{ getBuffer</span><span class="s0">, </span><span class="s1">push } = createBuffer()</span><span class="s0">;</span>
+        <span class="s1">contentRenderFn(push)</span><span class="s0">;</span>
+        <span class="s1">push(</span><span class="s2">`&lt;!--teleport anchor--&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">teleportContent = getBuffer()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s1">targetBuffer.splice(bufferIndex</span><span class="s0">, </span><span class="s4">0</span><span class="s0">, </span><span class="s1">teleportContent)</span><span class="s0">;</span>
+    <span class="s1">parentPush(</span><span class="s2">'&lt;!--teleport end--&gt;'</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrInterpolate(value) {</span>
+    <span class="s0">return </span><span class="s1">escapeHtml(toDisplayString(value))</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">'iterate' </span><span class="s1">: </span><span class="s2">''</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">Symbol((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? </span><span class="s2">'Map key iterate' </span><span class="s1">: </span><span class="s2">''</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">let </span><span class="s1">shouldTrack = </span><span class="s0">true;</span>
+<span class="s0">const </span><span class="s1">trackStack = []</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">pauseTracking() {</span>
+    <span class="s1">trackStack.push(shouldTrack)</span><span class="s0">;</span>
+    <span class="s1">shouldTrack = </span><span class="s0">false;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">resetTracking() {</span>
+    <span class="s0">const </span><span class="s1">last = trackStack.pop()</span><span class="s0">;</span>
+    <span class="s1">shouldTrack = last === undefined ? </span><span class="s0">true </span><span class="s1">: last</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">toRaw(observed) {</span>
+    <span class="s0">const </span><span class="s1">raw = observed &amp;&amp; observed[</span><span class="s2">&quot;__v_raw&quot; </span><span class="s3">/* ReactiveFlags.RAW */</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">raw ? toRaw(raw) : observed</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">isRef(r) {</span>
+    <span class="s0">return </span><span class="s1">!!(r &amp;&amp; r.__v_isRef === </span><span class="s0">true</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">stack = []</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">pushWarningContext(vnode) {</span>
+    <span class="s1">stack.push(vnode)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">popWarningContext() {</span>
+    <span class="s1">stack.pop()</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">warn(msg</span><span class="s0">, </span><span class="s1">...args) {</span>
+    <span class="s0">if </span><span class="s1">(!(process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">))</span>
+        <span class="s0">return;</span>
+    <span class="s3">// avoid props formatting or warn handler tracking deps that might be mutated</span>
+    <span class="s3">// during patch, leading to infinite recursion.</span>
+    <span class="s1">pauseTracking()</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">instance = stack.length ? stack[stack.length - </span><span class="s4">1</span><span class="s1">].component : </span><span class="s0">null;</span>
+    <span class="s0">const </span><span class="s1">appWarnHandler = instance &amp;&amp; instance.appContext.config.warnHandler</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">trace = getComponentTrace()</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(appWarnHandler) {</span>
+        <span class="s1">callWithErrorHandling(appWarnHandler</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s4">11 </span><span class="s3">/* ErrorCodes.APP_WARN_HANDLER */</span><span class="s0">, </span><span class="s1">[</span>
+            <span class="s1">msg + args.join(</span><span class="s2">''</span><span class="s1">)</span><span class="s0">,</span>
+            <span class="s1">instance &amp;&amp; instance.proxy</span><span class="s0">,</span>
+            <span class="s1">trace</span>
+                <span class="s1">.map(({ vnode }) =&gt; </span><span class="s2">`at &lt;</span><span class="s1">${formatComponentName(instance</span><span class="s0">, </span><span class="s1">vnode.type)}</span><span class="s2">&gt;`</span><span class="s1">)</span>
+                <span class="s1">.join(</span><span class="s2">'</span><span class="s0">\n</span><span class="s2">'</span><span class="s1">)</span><span class="s0">,</span>
+            <span class="s1">trace</span>
+        <span class="s1">])</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s0">const </span><span class="s1">warnArgs = [</span><span class="s2">`[Vue warn]: </span><span class="s1">${msg}</span><span class="s2">`</span><span class="s0">, </span><span class="s1">...args]</span><span class="s0">;</span>
+        <span class="s3">/* istanbul ignore if */</span>
+        <span class="s0">if </span><span class="s1">(trace.length &amp;&amp;</span>
+            <span class="s3">// avoid spamming console during tests</span>
+            <span class="s1">!</span><span class="s0">false</span><span class="s1">) {</span>
+            <span class="s1">warnArgs.push(</span><span class="s2">`</span><span class="s0">\n</span><span class="s2">`</span><span class="s0">, </span><span class="s1">...formatTrace(trace))</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s1">console.warn(...warnArgs)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s1">resetTracking()</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">getComponentTrace() {</span>
+    <span class="s0">let </span><span class="s1">currentVNode = stack[stack.length - </span><span class="s4">1</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!currentVNode) {</span>
+        <span class="s0">return </span><span class="s1">[]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s3">// we can't just use the stack because it will be incomplete during updates</span>
+    <span class="s3">// that did not start from the root. Re-construct the parent chain using</span>
+    <span class="s3">// instance parent pointers.</span>
+    <span class="s0">const </span><span class="s1">normalizedStack = []</span><span class="s0">;</span>
+    <span class="s0">while </span><span class="s1">(currentVNode) {</span>
+        <span class="s0">const </span><span class="s1">last = normalizedStack[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(last &amp;&amp; last.vnode === currentVNode) {</span>
+            <span class="s1">last.recurseCount++</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s1">normalizedStack.push({</span>
+                <span class="s1">vnode: currentVNode</span><span class="s0">,</span>
+                <span class="s1">recurseCount: </span><span class="s4">0</span>
+            <span class="s1">})</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">const </span><span class="s1">parentInstance = currentVNode.component &amp;&amp; currentVNode.component.parent</span><span class="s0">;</span>
+        <span class="s1">currentVNode = parentInstance &amp;&amp; parentInstance.vnode</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">normalizedStack</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s3">/* istanbul ignore next */</span>
+<span class="s0">function </span><span class="s1">formatTrace(trace) {</span>
+    <span class="s0">const </span><span class="s1">logs = []</span><span class="s0">;</span>
+    <span class="s1">trace.forEach((entry</span><span class="s0">, </span><span class="s1">i) =&gt; {</span>
+        <span class="s1">logs.push(...(i === </span><span class="s4">0 </span><span class="s1">? [] : [</span><span class="s2">`</span><span class="s0">\n</span><span class="s2">`</span><span class="s1">])</span><span class="s0">, </span><span class="s1">...formatTraceEntry(entry))</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">logs</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">formatTraceEntry({ vnode</span><span class="s0">, </span><span class="s1">recurseCount }) {</span>
+    <span class="s0">const </span><span class="s1">postfix = recurseCount &gt; </span><span class="s4">0 </span><span class="s1">? </span><span class="s2">`... (</span><span class="s1">${recurseCount} </span><span class="s2">recursive calls)` </span><span class="s1">: </span><span class="s2">``</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">isRoot = vnode.component ? vnode.component.parent == </span><span class="s0">null </span><span class="s1">: </span><span class="s0">false;</span>
+    <span class="s0">const </span><span class="s1">open = </span><span class="s2">` at &lt;</span><span class="s1">${formatComponentName(vnode.component</span><span class="s0">, </span><span class="s1">vnode.type</span><span class="s0">, </span><span class="s1">isRoot)}</span><span class="s2">`</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">close = </span><span class="s2">`&gt;` </span><span class="s1">+ postfix</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">vnode.props</span>
+        <span class="s1">? [open</span><span class="s0">, </span><span class="s1">...formatProps(vnode.props)</span><span class="s0">, </span><span class="s1">close]</span>
+        <span class="s1">: [open + close]</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s3">/* istanbul ignore next */</span>
+<span class="s0">function </span><span class="s1">formatProps(props) {</span>
+    <span class="s0">const </span><span class="s1">res = []</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">keys = Object.keys(props)</span><span class="s0">;</span>
+    <span class="s1">keys.slice(</span><span class="s4">0</span><span class="s0">, </span><span class="s4">3</span><span class="s1">).forEach(key =&gt; {</span>
+        <span class="s1">res.push(...formatProp(key</span><span class="s0">, </span><span class="s1">props[key]))</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(keys.length &gt; </span><span class="s4">3</span><span class="s1">) {</span>
+        <span class="s1">res.push(</span><span class="s2">` ...`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">res</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s3">/* istanbul ignore next */</span>
+<span class="s0">function </span><span class="s1">formatProp(key</span><span class="s0">, </span><span class="s1">value</span><span class="s0">, </span><span class="s1">raw) {</span>
+    <span class="s0">if </span><span class="s1">(isString(value)) {</span>
+        <span class="s1">value = JSON.stringify(value)</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">raw ? value : [</span><span class="s2">`</span><span class="s1">${key}</span><span class="s2">=</span><span class="s1">${value}</span><span class="s2">`</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">value === </span><span class="s2">'number' </span><span class="s1">||</span>
+        <span class="s0">typeof </span><span class="s1">value === </span><span class="s2">'boolean' </span><span class="s1">||</span>
+        <span class="s1">value == </span><span class="s0">null</span><span class="s1">) {</span>
+        <span class="s0">return </span><span class="s1">raw ? value : [</span><span class="s2">`</span><span class="s1">${key}</span><span class="s2">=</span><span class="s1">${value}</span><span class="s2">`</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(isRef(value)) {</span>
+        <span class="s1">value = formatProp(key</span><span class="s0">, </span><span class="s1">toRaw(value.value)</span><span class="s0">, true</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">raw ? value : [</span><span class="s2">`</span><span class="s1">${key}</span><span class="s2">=Ref&lt;`</span><span class="s0">, </span><span class="s1">value</span><span class="s0">, </span><span class="s2">`&gt;`</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(isFunction(value)) {</span>
+        <span class="s0">return </span><span class="s1">[</span><span class="s2">`</span><span class="s1">${key}</span><span class="s2">=fn</span><span class="s1">${value.name ? </span><span class="s2">`&lt;</span><span class="s1">${value.name}</span><span class="s2">&gt;` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">}</span><span class="s2">`</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">value = toRaw(value)</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">raw ? value : [</span><span class="s2">`</span><span class="s1">${key}</span><span class="s2">=`</span><span class="s0">, </span><span class="s1">value]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">ErrorTypeStrings = {</span>
+    <span class="s1">[</span><span class="s2">&quot;sp&quot; </span><span class="s3">/* LifecycleHooks.SERVER_PREFETCH */</span><span class="s1">]: </span><span class="s2">'serverPrefetch hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;bc&quot; </span><span class="s3">/* LifecycleHooks.BEFORE_CREATE */</span><span class="s1">]: </span><span class="s2">'beforeCreate hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;c&quot; </span><span class="s3">/* LifecycleHooks.CREATED */</span><span class="s1">]: </span><span class="s2">'created hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;bm&quot; </span><span class="s3">/* LifecycleHooks.BEFORE_MOUNT */</span><span class="s1">]: </span><span class="s2">'beforeMount hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;m&quot; </span><span class="s3">/* LifecycleHooks.MOUNTED */</span><span class="s1">]: </span><span class="s2">'mounted hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;bu&quot; </span><span class="s3">/* LifecycleHooks.BEFORE_UPDATE */</span><span class="s1">]: </span><span class="s2">'beforeUpdate hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;u&quot; </span><span class="s3">/* LifecycleHooks.UPDATED */</span><span class="s1">]: </span><span class="s2">'updated'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;bum&quot; </span><span class="s3">/* LifecycleHooks.BEFORE_UNMOUNT */</span><span class="s1">]: </span><span class="s2">'beforeUnmount hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;um&quot; </span><span class="s3">/* LifecycleHooks.UNMOUNTED */</span><span class="s1">]: </span><span class="s2">'unmounted hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;a&quot; </span><span class="s3">/* LifecycleHooks.ACTIVATED */</span><span class="s1">]: </span><span class="s2">'activated hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;da&quot; </span><span class="s3">/* LifecycleHooks.DEACTIVATED */</span><span class="s1">]: </span><span class="s2">'deactivated hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;ec&quot; </span><span class="s3">/* LifecycleHooks.ERROR_CAPTURED */</span><span class="s1">]: </span><span class="s2">'errorCaptured hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;rtc&quot; </span><span class="s3">/* LifecycleHooks.RENDER_TRACKED */</span><span class="s1">]: </span><span class="s2">'renderTracked hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s2">&quot;rtg&quot; </span><span class="s3">/* LifecycleHooks.RENDER_TRIGGERED */</span><span class="s1">]: </span><span class="s2">'renderTriggered hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">0 </span><span class="s3">/* ErrorCodes.SETUP_FUNCTION */</span><span class="s1">]: </span><span class="s2">'setup function'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">1 </span><span class="s3">/* ErrorCodes.RENDER_FUNCTION */</span><span class="s1">]: </span><span class="s2">'render function'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">2 </span><span class="s3">/* ErrorCodes.WATCH_GETTER */</span><span class="s1">]: </span><span class="s2">'watcher getter'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">3 </span><span class="s3">/* ErrorCodes.WATCH_CALLBACK */</span><span class="s1">]: </span><span class="s2">'watcher callback'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">4 </span><span class="s3">/* ErrorCodes.WATCH_CLEANUP */</span><span class="s1">]: </span><span class="s2">'watcher cleanup function'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">5 </span><span class="s3">/* ErrorCodes.NATIVE_EVENT_HANDLER */</span><span class="s1">]: </span><span class="s2">'native event handler'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">6 </span><span class="s3">/* ErrorCodes.COMPONENT_EVENT_HANDLER */</span><span class="s1">]: </span><span class="s2">'component event handler'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">7 </span><span class="s3">/* ErrorCodes.VNODE_HOOK */</span><span class="s1">]: </span><span class="s2">'vnode hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">8 </span><span class="s3">/* ErrorCodes.DIRECTIVE_HOOK */</span><span class="s1">]: </span><span class="s2">'directive hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">9 </span><span class="s3">/* ErrorCodes.TRANSITION_HOOK */</span><span class="s1">]: </span><span class="s2">'transition hook'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">10 </span><span class="s3">/* ErrorCodes.APP_ERROR_HANDLER */</span><span class="s1">]: </span><span class="s2">'app errorHandler'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">11 </span><span class="s3">/* ErrorCodes.APP_WARN_HANDLER */</span><span class="s1">]: </span><span class="s2">'app warnHandler'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">12 </span><span class="s3">/* ErrorCodes.FUNCTION_REF */</span><span class="s1">]: </span><span class="s2">'ref function'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">13 </span><span class="s3">/* ErrorCodes.ASYNC_COMPONENT_LOADER */</span><span class="s1">]: </span><span class="s2">'async component loader'</span><span class="s0">,</span>
+    <span class="s1">[</span><span class="s4">14 </span><span class="s3">/* ErrorCodes.SCHEDULER */</span><span class="s1">]: </span><span class="s2">'scheduler flush. This is likely a Vue internals bug. ' </span><span class="s1">+</span>
+        <span class="s2">'Please open an issue at https://new-issue.vuejs.org/?repo=vuejs/core'</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">callWithErrorHandling(fn</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s1">type</span><span class="s0">, </span><span class="s1">args) {</span>
+    <span class="s0">let </span><span class="s1">res</span><span class="s0">;</span>
+    <span class="s0">try </span><span class="s1">{</span>
+        <span class="s1">res = args ? fn(...args) : fn()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">catch </span><span class="s1">(err) {</span>
+        <span class="s1">handleError(err</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s1">type)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">res</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">handleError(err</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s1">type</span><span class="s0">, </span><span class="s1">throwInDev = </span><span class="s0">true</span><span class="s1">) {</span>
+    <span class="s0">const </span><span class="s1">contextVNode = instance ? instance.vnode : </span><span class="s0">null;</span>
+    <span class="s0">if </span><span class="s1">(instance) {</span>
+        <span class="s0">let </span><span class="s1">cur = instance.parent</span><span class="s0">;</span>
+        <span class="s3">// the exposed instance is the render proxy to keep it consistent with 2.x</span>
+        <span class="s0">const </span><span class="s1">exposedInstance = instance.proxy</span><span class="s0">;</span>
+        <span class="s3">// in production the hook receives only the error code</span>
+        <span class="s0">const </span><span class="s1">errorInfo = (process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) ? ErrorTypeStrings[type] : type</span><span class="s0">;</span>
+        <span class="s0">while </span><span class="s1">(cur) {</span>
+            <span class="s0">const </span><span class="s1">errorCapturedHooks = cur.ec</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(errorCapturedHooks) {</span>
+                <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; errorCapturedHooks.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+                    <span class="s0">if </span><span class="s1">(errorCapturedHooks[i](err</span><span class="s0">, </span><span class="s1">exposedInstance</span><span class="s0">, </span><span class="s1">errorInfo) === </span><span class="s0">false</span><span class="s1">) {</span>
+                        <span class="s0">return;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s1">cur = cur.parent</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s3">// app-level handling</span>
+        <span class="s0">const </span><span class="s1">appErrorHandler = instance.appContext.config.errorHandler</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(appErrorHandler) {</span>
+            <span class="s1">callWithErrorHandling(appErrorHandler</span><span class="s0">, null, </span><span class="s4">10 </span><span class="s3">/* ErrorCodes.APP_ERROR_HANDLER */</span><span class="s0">, </span><span class="s1">[err</span><span class="s0">, </span><span class="s1">exposedInstance</span><span class="s0">, </span><span class="s1">errorInfo])</span><span class="s0">;</span>
+            <span class="s0">return;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s1">logError(err</span><span class="s0">, </span><span class="s1">type</span><span class="s0">, </span><span class="s1">contextVNode</span><span class="s0">, </span><span class="s1">throwInDev)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">logError(err</span><span class="s0">, </span><span class="s1">type</span><span class="s0">, </span><span class="s1">contextVNode</span><span class="s0">, </span><span class="s1">throwInDev = </span><span class="s0">true</span><span class="s1">) {</span>
+    <span class="s0">if </span><span class="s1">((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">)) {</span>
+        <span class="s0">const </span><span class="s1">info = ErrorTypeStrings[type]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(contextVNode) {</span>
+            <span class="s1">pushWarningContext(contextVNode)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s1">warn(</span><span class="s2">`Unhandled error</span><span class="s1">${info ? </span><span class="s2">` during execution of </span><span class="s1">${info}</span><span class="s2">` </span><span class="s1">: </span><span class="s2">``</span><span class="s1">}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(contextVNode) {</span>
+            <span class="s1">popWarningContext()</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s3">// crash in dev by default so it's more noticeable</span>
+        <span class="s0">if </span><span class="s1">(throwInDev) {</span>
+            <span class="s0">throw </span><span class="s1">err</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s1">console.error(err)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s3">// recover in prod to reduce the impact on end-user</span>
+        <span class="s1">console.error(err)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">classifyRE = </span><span class="s4">/(?:^|[-_])(\w)/g</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">classify = (str) =&gt; str.replace(classifyRE</span><span class="s0">, </span><span class="s1">c =&gt; c.toUpperCase()).replace(</span><span class="s4">/[-_]/g</span><span class="s0">, </span><span class="s2">''</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">getComponentName(Component</span><span class="s0">, </span><span class="s1">includeInferred = </span><span class="s0">true</span><span class="s1">) {</span>
+    <span class="s0">return </span><span class="s1">isFunction(Component)</span>
+        <span class="s1">? Component.displayName || Component.name</span>
+        <span class="s1">: Component.name || (includeInferred &amp;&amp; Component.__name)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s3">/* istanbul ignore next */</span>
+<span class="s0">function </span><span class="s1">formatComponentName(instance</span><span class="s0">, </span><span class="s1">Component</span><span class="s0">, </span><span class="s1">isRoot = </span><span class="s0">false</span><span class="s1">) {</span>
+    <span class="s0">let </span><span class="s1">name = getComponentName(Component)</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!name &amp;&amp; Component.__file) {</span>
+        <span class="s0">const </span><span class="s1">match = Component.__file.match(</span><span class="s4">/([^/\\]+)\.\w+$/</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(match) {</span>
+            <span class="s1">name = match[</span><span class="s4">1</span><span class="s1">]</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(!name &amp;&amp; instance &amp;&amp; instance.parent) {</span>
+        <span class="s3">// try to infer the name based on reverse resolution</span>
+        <span class="s0">const </span><span class="s1">inferFromRegistry = (registry) =&gt; {</span>
+            <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">key </span><span class="s0">in </span><span class="s1">registry) {</span>
+                <span class="s0">if </span><span class="s1">(registry[key] === Component) {</span>
+                    <span class="s0">return </span><span class="s1">key</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span><span class="s0">;</span>
+        <span class="s1">name =</span>
+            <span class="s1">inferFromRegistry(instance.components ||</span>
+                <span class="s1">instance.parent.type.components) || inferFromRegistry(instance.appContext.components)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">name ? classify(name) : isRoot ? </span><span class="s2">`App` </span><span class="s1">: </span><span class="s2">`Anonymous`</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrRenderList(source</span><span class="s0">, </span><span class="s1">renderItem) {</span>
+    <span class="s0">if </span><span class="s1">(isArray(source) || isString(source)) {</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">, </span><span class="s1">l = source.length</span><span class="s0">; </span><span class="s1">i &lt; l</span><span class="s0">; </span><span class="s1">i++) {</span>
+            <span class="s1">renderItem(source[i]</span><span class="s0">, </span><span class="s1">i)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">source === </span><span class="s2">'number'</span><span class="s1">) {</span>
+        <span class="s0">if </span><span class="s1">((process.env.NODE_ENV !== </span><span class="s2">'production'</span><span class="s1">) &amp;&amp; !Number.isInteger(source)) {</span>
+            <span class="s1">warn(</span><span class="s2">`The v-for range expect an integer value but got </span><span class="s1">${source}</span><span class="s2">.`</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">return;</span>
+        <span class="s1">}</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; source</span><span class="s0">; </span><span class="s1">i++) {</span>
+            <span class="s1">renderItem(i + </span><span class="s4">1</span><span class="s0">, </span><span class="s1">i)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">else if </span><span class="s1">(isObject(source)) {</span>
+        <span class="s0">if </span><span class="s1">(source[Symbol.iterator]) {</span>
+            <span class="s0">const </span><span class="s1">arr = Array.from(source)</span><span class="s0">;</span>
+            <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">, </span><span class="s1">l = arr.length</span><span class="s0">; </span><span class="s1">i &lt; l</span><span class="s0">; </span><span class="s1">i++) {</span>
+                <span class="s1">renderItem(arr[i]</span><span class="s0">, </span><span class="s1">i)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s0">const </span><span class="s1">keys = Object.keys(source)</span><span class="s0">;</span>
+            <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">, </span><span class="s1">l = keys.length</span><span class="s0">; </span><span class="s1">i &lt; l</span><span class="s0">; </span><span class="s1">i++) {</span>
+                <span class="s0">const </span><span class="s1">key = keys[i]</span><span class="s0">;</span>
+                <span class="s1">renderItem(source[key]</span><span class="s0">, </span><span class="s1">key</span><span class="s0">, </span><span class="s1">i)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">async </span><span class="s0">function </span><span class="s1">ssrRenderSuspense(push</span><span class="s0">, </span><span class="s1">{ </span><span class="s0">default</span><span class="s1">: renderContent }) {</span>
+    <span class="s0">if </span><span class="s1">(renderContent) {</span>
+        <span class="s1">renderContent()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">push(</span><span class="s2">`&lt;!----&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrGetDirectiveProps(instance</span><span class="s0">, </span><span class="s1">dir</span><span class="s0">, </span><span class="s1">value</span><span class="s0">, </span><span class="s1">arg</span><span class="s0">, </span><span class="s1">modifiers = {}) {</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">dir !== </span><span class="s2">'function' </span><span class="s1">&amp;&amp; dir.getSSRProps) {</span>
+        <span class="s0">return </span><span class="s1">(dir.getSSRProps({</span>
+            <span class="s1">dir</span><span class="s0">,</span>
+            <span class="s1">instance</span><span class="s0">,</span>
+            <span class="s1">value</span><span class="s0">,</span>
+            <span class="s1">oldValue: undefined</span><span class="s0">,</span>
+            <span class="s1">arg</span><span class="s0">,</span>
+            <span class="s1">modifiers</span>
+        <span class="s1">}</span><span class="s0">, null</span><span class="s1">) || {})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{}</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">ssrLooseEqual = looseEqual</span><span class="s0">;</span>
+<span class="s0">function </span><span class="s1">ssrLooseContain(arr</span><span class="s0">, </span><span class="s1">value) {</span>
+    <span class="s0">return </span><span class="s1">looseIndexOf(arr</span><span class="s0">, </span><span class="s1">value) &gt; -</span><span class="s4">1</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s3">// for &lt;input :type=&quot;type&quot; v-model=&quot;model&quot; value=&quot;value&quot;&gt;</span>
+<span class="s0">function </span><span class="s1">ssrRenderDynamicModel(type</span><span class="s0">, </span><span class="s1">model</span><span class="s0">, </span><span class="s1">value) {</span>
+    <span class="s0">switch </span><span class="s1">(type) {</span>
+        <span class="s0">case </span><span class="s2">'radio'</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">looseEqual(model</span><span class="s0">, </span><span class="s1">value) ? </span><span class="s2">' checked' </span><span class="s1">: </span><span class="s2">''</span><span class="s0">;</span>
+        <span class="s0">case </span><span class="s2">'checkbox'</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">(isArray(model) ? ssrLooseContain(model</span><span class="s0">, </span><span class="s1">value) : model)</span>
+                <span class="s1">? </span><span class="s2">' checked'</span>
+                <span class="s1">: </span><span class="s2">''</span><span class="s0">;</span>
+        <span class="s0">default</span><span class="s1">:</span>
+            <span class="s3">// text types</span>
+            <span class="s0">return </span><span class="s1">ssrRenderAttr(</span><span class="s2">'value'</span><span class="s0">, </span><span class="s1">model)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s3">// for &lt;input v-bind=&quot;obj&quot; v-model=&quot;model&quot;&gt;</span>
+<span class="s0">function </span><span class="s1">ssrGetDynamicModelProps(existingProps = {}</span><span class="s0">, </span><span class="s1">model) {</span>
+    <span class="s0">const </span><span class="s1">{ type</span><span class="s0">, </span><span class="s1">value } = existingProps</span><span class="s0">;</span>
+    <span class="s0">switch </span><span class="s1">(type) {</span>
+        <span class="s0">case </span><span class="s2">'radio'</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">looseEqual(model</span><span class="s0">, </span><span class="s1">value) ? { checked: </span><span class="s0">true </span><span class="s1">} : </span><span class="s0">null;</span>
+        <span class="s0">case </span><span class="s2">'checkbox'</span><span class="s1">:</span>
+            <span class="s0">return </span><span class="s1">(isArray(model) ? ssrLooseContain(model</span><span class="s0">, </span><span class="s1">value) : model)</span>
+                <span class="s1">? { checked: </span><span class="s0">true </span><span class="s1">}</span>
+                <span class="s1">: </span><span class="s0">null;</span>
+        <span class="s0">default</span><span class="s1">:</span>
+            <span class="s3">// text types</span>
+            <span class="s0">return </span><span class="s1">{ value: model }</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">ssrCompile(template</span><span class="s0">, </span><span class="s1">instance) {</span>
+    <span class="s3">// TODO: this branch should now work in ESM builds, enable it in a minor</span>
+    <span class="s1">{</span>
+        <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">`On-the-fly template compilation is not supported in the ESM build of ` </span><span class="s1">+</span>
+            <span class="s2">`@vue/server-renderer. All templates must be pre-compiled into ` </span><span class="s1">+</span>
+            <span class="s2">`render functions.`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">{ createComponentInstance</span><span class="s0">, </span><span class="s1">setCurrentRenderingInstance</span><span class="s0">, </span><span class="s1">setupComponent</span><span class="s0">, </span><span class="s1">renderComponentRoot</span><span class="s0">, </span><span class="s1">normalizeVNode } = ssrUtils</span><span class="s0">;</span>
+<span class="s3">// Each component has a buffer array.</span>
+<span class="s3">// A buffer array can contain one of the following:</span>
+<span class="s3">// - plain string</span>
+<span class="s3">// - A resolved buffer (recursive arrays of strings that can be unrolled</span>
+<span class="s3">//   synchronously)</span>
+<span class="s3">// - An async buffer (a Promise that resolves to a resolved buffer)</span>
+<span class="s0">function </span><span class="s1">createBuffer() {</span>
+    <span class="s0">let </span><span class="s1">appendable = </span><span class="s0">false;</span>
+    <span class="s0">const </span><span class="s1">buffer = []</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">{</span>
+        <span class="s1">getBuffer() {</span>
+            <span class="s3">// Return static buffer and await on items during unroll stage</span>
+            <span class="s0">return </span><span class="s1">buffer</span><span class="s0">;</span>
+        <span class="s1">}</span><span class="s0">,</span>
+        <span class="s1">push(item) {</span>
+            <span class="s0">const </span><span class="s1">isStringItem = isString(item)</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(appendable &amp;&amp; isStringItem) {</span>
+                <span class="s1">buffer[buffer.length - </span><span class="s4">1</span><span class="s1">] += item</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">buffer.push(item)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s1">appendable = isStringItem</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(isPromise(item) || (isArray(item) &amp;&amp; item.hasAsync)) {</span>
+                <span class="s3">// promise, or child buffer with async, mark as async.</span>
+                <span class="s3">// this allows skipping unnecessary await ticks during unroll stage</span>
+                <span class="s1">buffer.hasAsync = </span><span class="s0">true;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderComponentVNode(vnode</span><span class="s0">, </span><span class="s1">parentComponent = </span><span class="s0">null, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">const </span><span class="s1">instance = createComponentInstance(vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, null</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">res = setupComponent(instance</span><span class="s0">, true </span><span class="s3">/* isSSR */</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">hasAsyncSetup = isPromise(res)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">prefetches = instance.sp</span><span class="s0">; </span><span class="s3">/* LifecycleHooks.SERVER_PREFETCH */</span>
+    <span class="s0">if </span><span class="s1">(hasAsyncSetup || prefetches) {</span>
+        <span class="s0">let </span><span class="s1">p = hasAsyncSetup</span>
+            <span class="s1">? res</span>
+            <span class="s1">: Promise.resolve()</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(prefetches) {</span>
+            <span class="s1">p = p</span>
+                <span class="s1">.then(() =&gt; Promise.all(prefetches.map(prefetch =&gt; prefetch.call(instance.proxy))))</span>
+                <span class="s3">// Note: error display is already done by the wrapped lifecycle hook function.</span>
+                <span class="s1">.catch(() =&gt; { })</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s1">p.then(() =&gt; renderComponentSubTree(instance</span><span class="s0">, </span><span class="s1">slotScopeId))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s0">return </span><span class="s1">renderComponentSubTree(instance</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderComponentSubTree(instance</span><span class="s0">, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">const </span><span class="s1">comp = instance.type</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">{ getBuffer</span><span class="s0">, </span><span class="s1">push } = createBuffer()</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(isFunction(comp)) {</span>
+        <span class="s0">let </span><span class="s1">root = renderComponentRoot(instance)</span><span class="s0">;</span>
+        <span class="s3">// #5817 scope ID attrs not falling through if functional component doesn't</span>
+        <span class="s3">// have props</span>
+        <span class="s0">if </span><span class="s1">(!comp.props) {</span>
+            <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">key </span><span class="s0">in </span><span class="s1">instance.attrs) {</span>
+                <span class="s0">if </span><span class="s1">(key.startsWith(</span><span class="s2">`data-v-`</span><span class="s1">)) {</span>
+                    <span class="s1">(root.props || (root.props = {}))[key] = </span><span class="s2">``</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s1">renderVNode(push</span><span class="s0">, </span><span class="s1">(instance.subTree = root)</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s0">if </span><span class="s1">((!instance.render || instance.render === NOOP) &amp;&amp;</span>
+            <span class="s1">!instance.ssrRender &amp;&amp;</span>
+            <span class="s1">!comp.ssrRender &amp;&amp;</span>
+            <span class="s1">isString(comp.template)) {</span>
+            <span class="s1">comp.ssrRender = ssrCompile(comp.template)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s3">// perf: enable caching of computed getters during render</span>
+        <span class="s3">// since there cannot be state mutations during render.</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">e of instance.scope.effects) {</span>
+            <span class="s0">if </span><span class="s1">(e.computed)</span>
+                <span class="s1">e.computed._cacheable = </span><span class="s0">true;</span>
+        <span class="s1">}</span>
+        <span class="s0">const </span><span class="s1">ssrRender = instance.ssrRender || comp.ssrRender</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(ssrRender) {</span>
+            <span class="s3">// optimized</span>
+            <span class="s3">// resolve fallthrough attrs</span>
+            <span class="s0">let </span><span class="s1">attrs = instance.inheritAttrs !== </span><span class="s0">false </span><span class="s1">? instance.attrs : undefined</span><span class="s0">;</span>
+            <span class="s0">let </span><span class="s1">hasCloned = </span><span class="s0">false;</span>
+            <span class="s0">let </span><span class="s1">cur = instance</span><span class="s0">;</span>
+            <span class="s0">while </span><span class="s1">(</span><span class="s0">true</span><span class="s1">) {</span>
+                <span class="s0">const </span><span class="s1">scopeId = cur.vnode.scopeId</span><span class="s0">;</span>
+                <span class="s0">if </span><span class="s1">(scopeId) {</span>
+                    <span class="s0">if </span><span class="s1">(!hasCloned) {</span>
+                        <span class="s1">attrs = { ...attrs }</span><span class="s0">;</span>
+                        <span class="s1">hasCloned = </span><span class="s0">true;</span>
+                    <span class="s1">}</span>
+                    <span class="s1">attrs[scopeId] = </span><span class="s2">''</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s0">const </span><span class="s1">parent = cur.parent</span><span class="s0">;</span>
+                <span class="s0">if </span><span class="s1">(parent &amp;&amp; parent.subTree &amp;&amp; parent.subTree === cur.vnode) {</span>
+                    <span class="s3">// parent is a non-SSR compiled component and is rendering this</span>
+                    <span class="s3">// component as root. inherit its scopeId if present.</span>
+                    <span class="s1">cur = parent</span><span class="s0">;</span>
+                <span class="s1">}</span>
+                <span class="s0">else </span><span class="s1">{</span>
+                    <span class="s0">break;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(slotScopeId) {</span>
+                <span class="s0">if </span><span class="s1">(!hasCloned)</span>
+                    <span class="s1">attrs = { ...attrs }</span><span class="s0">;</span>
+                <span class="s1">attrs[slotScopeId.trim()] = </span><span class="s2">''</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s3">// set current rendering instance for asset resolution</span>
+            <span class="s0">const </span><span class="s1">prev = setCurrentRenderingInstance(instance)</span><span class="s0">;</span>
+            <span class="s0">try </span><span class="s1">{</span>
+                <span class="s1">ssrRender(instance.proxy</span><span class="s0">, </span><span class="s1">push</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s1">attrs</span><span class="s0">, </span>
+                <span class="s3">// compiler-optimized bindings</span>
+                <span class="s1">instance.props</span><span class="s0">, </span><span class="s1">instance.setupState</span><span class="s0">, </span><span class="s1">instance.data</span><span class="s0">, </span><span class="s1">instance.ctx)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">finally </span><span class="s1">{</span>
+                <span class="s1">setCurrentRenderingInstance(prev)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">else if </span><span class="s1">(instance.render &amp;&amp; instance.render !== NOOP) {</span>
+            <span class="s1">renderVNode(push</span><span class="s0">, </span><span class="s1">(instance.subTree = renderComponentRoot(instance))</span><span class="s0">, </span><span class="s1">instance</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s0">const </span><span class="s1">componentName = comp.name || comp.__file || </span><span class="s2">`&lt;Anonymous&gt;`</span><span class="s0">;</span>
+            <span class="s1">warn$1(</span><span class="s2">`Component </span><span class="s1">${componentName} </span><span class="s2">is missing template or render function.`</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">push(</span><span class="s2">`&lt;!----&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">getBuffer()</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderVNode(push</span><span class="s0">, </span><span class="s1">vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">const </span><span class="s1">{ type</span><span class="s0">, </span><span class="s1">shapeFlag</span><span class="s0">, </span><span class="s1">children } = vnode</span><span class="s0">;</span>
+    <span class="s0">switch </span><span class="s1">(type) {</span>
+        <span class="s0">case </span><span class="s1">Text:</span>
+            <span class="s1">push(escapeHtml(children))</span><span class="s0">;</span>
+            <span class="s0">break;</span>
+        <span class="s0">case </span><span class="s1">Comment:</span>
+            <span class="s1">push(children ? </span><span class="s2">`&lt;!--</span><span class="s1">${escapeHtmlComment(children)}</span><span class="s2">--&gt;` </span><span class="s1">: </span><span class="s2">`&lt;!----&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">break;</span>
+        <span class="s0">case </span><span class="s1">Static:</span>
+            <span class="s1">push(children)</span><span class="s0">;</span>
+            <span class="s0">break;</span>
+        <span class="s0">case </span><span class="s1">Fragment:</span>
+            <span class="s0">if </span><span class="s1">(vnode.slotScopeIds) {</span>
+                <span class="s1">slotScopeId =</span>
+                    <span class="s1">(slotScopeId ? slotScopeId + </span><span class="s2">' ' </span><span class="s1">: </span><span class="s2">''</span><span class="s1">) + vnode.slotScopeIds.join(</span><span class="s2">' '</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s1">push(</span><span class="s2">`&lt;!--[--&gt;`</span><span class="s1">)</span><span class="s0">; </span><span class="s3">// open</span>
+            <span class="s1">renderVNodeChildren(push</span><span class="s0">, </span><span class="s1">children</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+            <span class="s1">push(</span><span class="s2">`&lt;!--]--&gt;`</span><span class="s1">)</span><span class="s0">; </span><span class="s3">// close</span>
+            <span class="s0">break;</span>
+        <span class="s0">default</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">(shapeFlag &amp; </span><span class="s4">1 </span><span class="s3">/* ShapeFlags.ELEMENT */</span><span class="s1">) {</span>
+                <span class="s1">renderElementVNode(push</span><span class="s0">, </span><span class="s1">vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(shapeFlag &amp; </span><span class="s4">6 </span><span class="s3">/* ShapeFlags.COMPONENT */</span><span class="s1">) {</span>
+                <span class="s1">push(renderComponentVNode(vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId))</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(shapeFlag &amp; </span><span class="s4">64 </span><span class="s3">/* ShapeFlags.TELEPORT */</span><span class="s1">) {</span>
+                <span class="s1">renderTeleportVNode(push</span><span class="s0">, </span><span class="s1">vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(shapeFlag &amp; </span><span class="s4">128 </span><span class="s3">/* ShapeFlags.SUSPENSE */</span><span class="s1">) {</span>
+                <span class="s1">renderVNode(push</span><span class="s0">, </span><span class="s1">vnode.ssContent</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">warn$1(</span><span class="s2">'[@vue/server-renderer] Invalid VNode type:'</span><span class="s0">, </span><span class="s1">type</span><span class="s0">, </span><span class="s2">`(</span><span class="s1">${</span><span class="s0">typeof </span><span class="s1">type}</span><span class="s2">)`</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderVNodeChildren(push</span><span class="s0">, </span><span class="s1">children</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; children.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s1">renderVNode(push</span><span class="s0">, </span><span class="s1">normalizeVNode(children[i])</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderElementVNode(push</span><span class="s0">, </span><span class="s1">vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">const </span><span class="s1">tag = vnode.type</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">{ props</span><span class="s0">, </span><span class="s1">children</span><span class="s0">, </span><span class="s1">shapeFlag</span><span class="s0">, </span><span class="s1">scopeId</span><span class="s0">, </span><span class="s1">dirs } = vnode</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">openTag = </span><span class="s2">`&lt;</span><span class="s1">${tag}</span><span class="s2">`</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(dirs) {</span>
+        <span class="s1">props = applySSRDirectives(vnode</span><span class="s0">, </span><span class="s1">props</span><span class="s0">, </span><span class="s1">dirs)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(props) {</span>
+        <span class="s1">openTag += ssrRenderAttrs(props</span><span class="s0">, </span><span class="s1">tag)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(scopeId) {</span>
+        <span class="s1">openTag += </span><span class="s2">` </span><span class="s1">${scopeId}</span><span class="s2">`</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s3">// inherit parent chain scope id if this is the root node</span>
+    <span class="s0">let </span><span class="s1">curParent = parentComponent</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">curVnode = vnode</span><span class="s0">;</span>
+    <span class="s0">while </span><span class="s1">(curParent &amp;&amp; curVnode === curParent.subTree) {</span>
+        <span class="s1">curVnode = curParent.vnode</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(curVnode.scopeId) {</span>
+            <span class="s1">openTag += </span><span class="s2">` </span><span class="s1">${curVnode.scopeId}</span><span class="s2">`</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s1">curParent = curParent.parent</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(slotScopeId) {</span>
+        <span class="s1">openTag += </span><span class="s2">` </span><span class="s1">${slotScopeId}</span><span class="s2">`</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s1">push(openTag + </span><span class="s2">`&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!isVoidTag(tag)) {</span>
+        <span class="s0">let </span><span class="s1">hasChildrenOverride = </span><span class="s0">false;</span>
+        <span class="s0">if </span><span class="s1">(props) {</span>
+            <span class="s0">if </span><span class="s1">(props.innerHTML) {</span>
+                <span class="s1">hasChildrenOverride = </span><span class="s0">true;</span>
+                <span class="s1">push(props.innerHTML)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(props.textContent) {</span>
+                <span class="s1">hasChildrenOverride = </span><span class="s0">true;</span>
+                <span class="s1">push(escapeHtml(props.textContent))</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(tag === </span><span class="s2">'textarea' </span><span class="s1">&amp;&amp; props.value) {</span>
+                <span class="s1">hasChildrenOverride = </span><span class="s0">true;</span>
+                <span class="s1">push(escapeHtml(props.value))</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">if </span><span class="s1">(!hasChildrenOverride) {</span>
+            <span class="s0">if </span><span class="s1">(shapeFlag &amp; </span><span class="s4">8 </span><span class="s3">/* ShapeFlags.TEXT_CHILDREN */</span><span class="s1">) {</span>
+                <span class="s1">push(escapeHtml(children))</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else if </span><span class="s1">(shapeFlag &amp; </span><span class="s4">16 </span><span class="s3">/* ShapeFlags.ARRAY_CHILDREN */</span><span class="s1">) {</span>
+                <span class="s1">renderVNodeChildren(push</span><span class="s0">, </span><span class="s1">children</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s1">push(</span><span class="s2">`&lt;/</span><span class="s1">${tag}</span><span class="s2">&gt;`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">applySSRDirectives(vnode</span><span class="s0">, </span><span class="s1">rawProps</span><span class="s0">, </span><span class="s1">dirs) {</span>
+    <span class="s0">const </span><span class="s1">toMerge = []</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; dirs.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s0">const </span><span class="s1">binding = dirs[i]</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">{ dir: { getSSRProps } } = binding</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(getSSRProps) {</span>
+            <span class="s0">const </span><span class="s1">props = getSSRProps(binding</span><span class="s0">, </span><span class="s1">vnode)</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(props)</span>
+                <span class="s1">toMerge.push(props)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">mergeProps(rawProps || {}</span><span class="s0">, </span><span class="s1">...toMerge)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderTeleportVNode(push</span><span class="s0">, </span><span class="s1">vnode</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId) {</span>
+    <span class="s0">const </span><span class="s1">target = vnode.props &amp;&amp; vnode.props.to</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">disabled = vnode.props &amp;&amp; vnode.props.disabled</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!target) {</span>
+        <span class="s0">if </span><span class="s1">(!disabled) {</span>
+            <span class="s1">warn$1(</span><span class="s2">`[@vue/server-renderer] Teleport is missing target prop.`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s1">[]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(!isString(target)) {</span>
+        <span class="s1">warn$1(</span><span class="s2">`[@vue/server-renderer] Teleport target must be a query selector string.`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">return </span><span class="s1">[]</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s1">ssrRenderTeleport(push</span><span class="s0">, </span><span class="s1">push =&gt; {</span>
+        <span class="s1">renderVNodeChildren(push</span><span class="s0">, </span><span class="s1">vnode.children</span><span class="s0">, </span><span class="s1">parentComponent</span><span class="s0">, </span><span class="s1">slotScopeId)</span><span class="s0">;</span>
+    <span class="s1">}</span><span class="s0">, </span><span class="s1">target</span><span class="s0">, </span><span class="s1">disabled || disabled === </span><span class="s2">''</span><span class="s0">, </span><span class="s1">parentComponent)</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">{ isVNode: isVNode$1 } = ssrUtils</span><span class="s0">;</span>
+<span class="s1">async </span><span class="s0">function </span><span class="s1">unrollBuffer$1(buffer) {</span>
+    <span class="s0">if </span><span class="s1">(buffer.hasAsync) {</span>
+        <span class="s0">let </span><span class="s1">ret = </span><span class="s2">''</span><span class="s0">;</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; buffer.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+            <span class="s0">let </span><span class="s1">item = buffer[i]</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(isPromise(item)) {</span>
+                <span class="s1">item = </span><span class="s0">await </span><span class="s1">item</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(isString(item)) {</span>
+                <span class="s1">ret += item</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">ret += </span><span class="s0">await </span><span class="s1">unrollBuffer$1(item)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+        <span class="s0">return </span><span class="s1">ret</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s3">// sync buffer can be more efficiently unrolled without unnecessary await</span>
+        <span class="s3">// ticks</span>
+        <span class="s0">return </span><span class="s1">unrollBufferSync$1(buffer)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">unrollBufferSync$1(buffer) {</span>
+    <span class="s0">let </span><span class="s1">ret = </span><span class="s2">''</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; buffer.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s0">let </span><span class="s1">item = buffer[i]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(isString(item)) {</span>
+            <span class="s1">ret += item</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s3">// since this is a sync buffer, child buffers are never promises</span>
+            <span class="s1">ret += unrollBufferSync$1(item)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">ret</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s1">async </span><span class="s0">function </span><span class="s1">renderToString(input</span><span class="s0">, </span><span class="s1">context = {}) {</span>
+    <span class="s0">if </span><span class="s1">(isVNode$1(input)) {</span>
+        <span class="s3">// raw vnode, wrap with app (for context)</span>
+        <span class="s0">return </span><span class="s1">renderToString(createApp({ render: () =&gt; input })</span><span class="s0">, </span><span class="s1">context)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s3">// rendering an app</span>
+    <span class="s0">const </span><span class="s1">vnode = createVNode(input._component</span><span class="s0">, </span><span class="s1">input._props)</span><span class="s0">;</span>
+    <span class="s1">vnode.appContext = input._context</span><span class="s0">;</span>
+    <span class="s3">// provide the ssr context to the tree</span>
+    <span class="s1">input.provide(ssrContextKey</span><span class="s0">, </span><span class="s1">context)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">buffer = </span><span class="s0">await </span><span class="s1">renderComponentVNode(vnode)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">result = </span><span class="s0">await </span><span class="s1">unrollBuffer$1(buffer)</span><span class="s0">;</span>
+    <span class="s0">await </span><span class="s1">resolveTeleports(context)</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(context.__watcherHandles) {</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">unwatch of context.__watcherHandles) {</span>
+            <span class="s1">unwatch()</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">result</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s1">async </span><span class="s0">function </span><span class="s1">resolveTeleports(context) {</span>
+    <span class="s0">if </span><span class="s1">(context.__teleportBuffers) {</span>
+        <span class="s1">context.teleports = context.teleports || {}</span><span class="s0">;</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">key </span><span class="s0">in </span><span class="s1">context.__teleportBuffers) {</span>
+            <span class="s3">// note: it's OK to await sequentially here because the Promises were</span>
+            <span class="s3">// created eagerly in parallel.</span>
+            <span class="s1">context.teleports[key] = </span><span class="s0">await </span><span class="s1">unrollBuffer$1(</span><span class="s0">await </span><span class="s1">Promise.all([context.__teleportBuffers[key]]))</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">{ isVNode } = ssrUtils</span><span class="s0">;</span>
+<span class="s1">async </span><span class="s0">function </span><span class="s1">unrollBuffer(buffer</span><span class="s0">, </span><span class="s1">stream) {</span>
+    <span class="s0">if </span><span class="s1">(buffer.hasAsync) {</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; buffer.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+            <span class="s0">let </span><span class="s1">item = buffer[i]</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(isPromise(item)) {</span>
+                <span class="s1">item = </span><span class="s0">await </span><span class="s1">item</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(isString(item)) {</span>
+                <span class="s1">stream.push(item)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s0">await </span><span class="s1">unrollBuffer(item</span><span class="s0">, </span><span class="s1">stream)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">else </span><span class="s1">{</span>
+        <span class="s3">// sync buffer can be more efficiently unrolled without unnecessary await</span>
+        <span class="s3">// ticks</span>
+        <span class="s1">unrollBufferSync(buffer</span><span class="s0">, </span><span class="s1">stream)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">unrollBufferSync(buffer</span><span class="s0">, </span><span class="s1">stream) {</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s0">; </span><span class="s1">i &lt; buffer.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+        <span class="s0">let </span><span class="s1">item = buffer[i]</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(isString(item)) {</span>
+            <span class="s1">stream.push(item)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">else </span><span class="s1">{</span>
+            <span class="s3">// since this is a sync buffer, child buffers are never promises</span>
+            <span class="s1">unrollBufferSync(item</span><span class="s0">, </span><span class="s1">stream)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderToSimpleStream(input</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">stream) {</span>
+    <span class="s0">if </span><span class="s1">(isVNode(input)) {</span>
+        <span class="s3">// raw vnode, wrap with app (for context)</span>
+        <span class="s0">return </span><span class="s1">renderToSimpleStream(createApp({ render: () =&gt; input })</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">stream)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s3">// rendering an app</span>
+    <span class="s0">const </span><span class="s1">vnode = createVNode(input._component</span><span class="s0">, </span><span class="s1">input._props)</span><span class="s0">;</span>
+    <span class="s1">vnode.appContext = input._context</span><span class="s0">;</span>
+    <span class="s3">// provide the ssr context to the tree</span>
+    <span class="s1">input.provide(ssrContextKey</span><span class="s0">, </span><span class="s1">context)</span><span class="s0">;</span>
+    <span class="s1">Promise.resolve(renderComponentVNode(vnode))</span>
+        <span class="s1">.then(buffer =&gt; unrollBuffer(buffer</span><span class="s0">, </span><span class="s1">stream))</span>
+        <span class="s1">.then(() =&gt; resolveTeleports(context))</span>
+        <span class="s1">.then(() =&gt; {</span>
+        <span class="s0">if </span><span class="s1">(context.__watcherHandles) {</span>
+            <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">unwatch of context.__watcherHandles) {</span>
+                <span class="s1">unwatch()</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">})</span>
+        <span class="s1">.then(() =&gt; stream.push(</span><span class="s0">null</span><span class="s1">))</span>
+        <span class="s1">.catch(error =&gt; {</span>
+        <span class="s1">stream.destroy(error)</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">stream</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s5">/**</span>
+ <span class="s5">* </span><span class="s6">@deprecated</span>
+ <span class="s5">*/</span>
+<span class="s0">function </span><span class="s1">renderToStream(input</span><span class="s0">, </span><span class="s1">context = {}) {</span>
+    <span class="s1">console.warn(</span><span class="s2">`[@vue/server-renderer] renderToStream is deprecated - use renderToNodeStream instead.`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">renderToNodeStream(input</span><span class="s0">, </span><span class="s1">context)</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderToNodeStream(input</span><span class="s0">, </span><span class="s1">context = {}) {</span>
+    <span class="s1">{</span>
+        <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">`ESM build of renderToStream() does not support renderToNodeStream(). ` </span><span class="s1">+</span>
+            <span class="s2">`Use pipeToNodeWritable() with an existing Node.js Writable stream ` </span><span class="s1">+</span>
+            <span class="s2">`instance instead.`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">pipeToNodeWritable(input</span><span class="s0">, </span><span class="s1">context = {}</span><span class="s0">, </span><span class="s1">writable) {</span>
+    <span class="s1">renderToSimpleStream(input</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">{</span>
+        <span class="s1">push(content) {</span>
+            <span class="s0">if </span><span class="s1">(content != </span><span class="s0">null</span><span class="s1">) {</span>
+                <span class="s1">writable.write(content)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">writable.end()</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span><span class="s0">,</span>
+        <span class="s1">destroy(err) {</span>
+            <span class="s1">writable.destroy(err)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">renderToWebStream(input</span><span class="s0">, </span><span class="s1">context = {}) {</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">ReadableStream !== </span><span class="s2">'function'</span><span class="s1">) {</span>
+        <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">`ReadableStream constructor is not available in the global scope. ` </span><span class="s1">+</span>
+            <span class="s2">`If the target environment does support web streams, consider using ` </span><span class="s1">+</span>
+            <span class="s2">`pipeToWebWritable() with an existing WritableStream instance instead.`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">encoder = </span><span class="s0">new </span><span class="s1">TextEncoder()</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">cancelled = </span><span class="s0">false;</span>
+    <span class="s0">return new </span><span class="s1">ReadableStream({</span>
+        <span class="s1">start(controller) {</span>
+            <span class="s1">renderToSimpleStream(input</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">{</span>
+                <span class="s1">push(content) {</span>
+                    <span class="s0">if </span><span class="s1">(cancelled)</span>
+                        <span class="s0">return;</span>
+                    <span class="s0">if </span><span class="s1">(content != </span><span class="s0">null</span><span class="s1">) {</span>
+                        <span class="s1">controller.enqueue(encoder.encode(content))</span><span class="s0">;</span>
+                    <span class="s1">}</span>
+                    <span class="s0">else </span><span class="s1">{</span>
+                        <span class="s1">controller.close()</span><span class="s0">;</span>
+                    <span class="s1">}</span>
+                <span class="s1">}</span><span class="s0">,</span>
+                <span class="s1">destroy(err) {</span>
+                    <span class="s1">controller.error(err)</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">})</span><span class="s0">;</span>
+        <span class="s1">}</span><span class="s0">,</span>
+        <span class="s1">cancel() {</span>
+            <span class="s1">cancelled = </span><span class="s0">true;</span>
+        <span class="s1">}</span>
+    <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s0">function </span><span class="s1">pipeToWebWritable(input</span><span class="s0">, </span><span class="s1">context = {}</span><span class="s0">, </span><span class="s1">writable) {</span>
+    <span class="s0">const </span><span class="s1">writer = writable.getWriter()</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">encoder = </span><span class="s0">new </span><span class="s1">TextEncoder()</span><span class="s0">;</span>
+    <span class="s3">// #4287 CloudFlare workers do not implement `ready` property</span>
+    <span class="s0">let </span><span class="s1">hasReady = </span><span class="s0">false;</span>
+    <span class="s0">try </span><span class="s1">{</span>
+        <span class="s1">hasReady = isPromise(writer.ready)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">catch </span><span class="s1">(e) { }</span>
+    <span class="s1">renderToSimpleStream(input</span><span class="s0">, </span><span class="s1">context</span><span class="s0">, </span><span class="s1">{</span>
+        <span class="s1">async push(content) {</span>
+            <span class="s0">if </span><span class="s1">(hasReady) {</span>
+                <span class="s0">await </span><span class="s1">writer.ready</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">if </span><span class="s1">(content != </span><span class="s0">null</span><span class="s1">) {</span>
+                <span class="s0">return </span><span class="s1">writer.write(encoder.encode(content))</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s0">return </span><span class="s1">writer.close()</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span><span class="s0">,</span>
+        <span class="s1">destroy(err) {</span>
+            <span class="s3">// TODO better error handling?</span>
+            <span class="s1">console.log(err)</span><span class="s0">;</span>
+            <span class="s1">writer.close()</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s1">initDirectivesForSSR()</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ pipeToNodeWritable</span><span class="s0">, </span><span class="s1">pipeToWebWritable</span><span class="s0">, </span><span class="s1">renderToNodeStream</span><span class="s0">, </span><span class="s1">renderToSimpleStream</span><span class="s0">, </span><span class="s1">renderToStream</span><span class="s0">, </span><span class="s1">renderToString</span><span class="s0">, </span><span class="s1">renderToWebStream</span><span class="s0">, </span><span class="s1">ssrGetDirectiveProps</span><span class="s0">, </span><span class="s1">ssrGetDynamicModelProps</span><span class="s0">, </span><span class="s1">ssrInterpolate</span><span class="s0">, </span><span class="s1">ssrLooseContain</span><span class="s0">, </span><span class="s1">ssrLooseEqual</span><span class="s0">, </span><span class="s1">ssrRenderAttr</span><span class="s0">, </span><span class="s1">ssrRenderAttrs</span><span class="s0">, </span><span class="s1">ssrRenderClass</span><span class="s0">, </span><span class="s1">ssrRenderComponent</span><span class="s0">, </span><span class="s1">ssrRenderDynamicAttr</span><span class="s0">, </span><span class="s1">ssrRenderDynamicModel</span><span class="s0">, </span><span class="s1">ssrRenderList</span><span class="s0">, </span><span class="s1">ssrRenderSlot</span><span class="s0">, </span><span class="s1">ssrRenderSlotInner</span><span class="s0">, </span><span class="s1">ssrRenderStyle</span><span class="s0">, </span><span class="s1">ssrRenderSuspense</span><span class="s0">, </span><span class="s1">ssrRenderTeleport</span><span class="s0">, </span><span class="s1">renderVNode as ssrRenderVNode }</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

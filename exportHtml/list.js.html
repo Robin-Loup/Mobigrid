@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>list.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+list.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span>
+
+<span class="s2">let </span><span class="s1">list = {</span>
+  <span class="s1">split(string</span><span class="s2">, </span><span class="s1">separators</span><span class="s2">, </span><span class="s1">last) {</span>
+    <span class="s2">let </span><span class="s1">array = []</span>
+    <span class="s2">let </span><span class="s1">current = </span><span class="s0">''</span>
+    <span class="s2">let </span><span class="s1">split = </span><span class="s2">false</span>
+
+    <span class="s2">let </span><span class="s1">func = </span><span class="s3">0</span>
+    <span class="s2">let </span><span class="s1">inQuote = </span><span class="s2">false</span>
+    <span class="s2">let </span><span class="s1">prevQuote = </span><span class="s0">''</span>
+    <span class="s2">let </span><span class="s1">escape = </span><span class="s2">false</span>
+
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">letter of string) {</span>
+      <span class="s2">if </span><span class="s1">(escape) {</span>
+        <span class="s1">escape = </span><span class="s2">false</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(letter === </span><span class="s0">'</span><span class="s2">\\</span><span class="s0">'</span><span class="s1">) {</span>
+        <span class="s1">escape = </span><span class="s2">true</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(inQuote) {</span>
+        <span class="s2">if </span><span class="s1">(letter === prevQuote) {</span>
+          <span class="s1">inQuote = </span><span class="s2">false</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(letter === </span><span class="s0">'&quot;' </span><span class="s1">|| letter === </span><span class="s0">&quot;'&quot;</span><span class="s1">) {</span>
+        <span class="s1">inQuote = </span><span class="s2">true</span>
+        <span class="s1">prevQuote = letter</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(letter === </span><span class="s0">'('</span><span class="s1">) {</span>
+        <span class="s1">func += </span><span class="s3">1</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(letter === </span><span class="s0">')'</span><span class="s1">) {</span>
+        <span class="s2">if </span><span class="s1">(func &gt; </span><span class="s3">0</span><span class="s1">) func -= </span><span class="s3">1</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(func === </span><span class="s3">0</span><span class="s1">) {</span>
+        <span class="s2">if </span><span class="s1">(separators.includes(letter)) split = </span><span class="s2">true</span>
+      <span class="s1">}</span>
+
+      <span class="s2">if </span><span class="s1">(split) {</span>
+        <span class="s2">if </span><span class="s1">(current !== </span><span class="s0">''</span><span class="s1">) array.push(current.trim())</span>
+        <span class="s1">current = </span><span class="s0">''</span>
+        <span class="s1">split = </span><span class="s2">false</span>
+      <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">current += letter</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">if </span><span class="s1">(last || current !== </span><span class="s0">''</span><span class="s1">) array.push(current.trim())</span>
+    <span class="s2">return </span><span class="s1">array</span>
+  <span class="s1">}</span><span class="s2">,</span>
+
+  <span class="s1">space(string) {</span>
+    <span class="s2">let </span><span class="s1">spaces = [</span><span class="s0">' '</span><span class="s2">, </span><span class="s0">'</span><span class="s2">\n</span><span class="s0">'</span><span class="s2">, </span><span class="s0">'</span><span class="s2">\t</span><span class="s0">'</span><span class="s1">]</span>
+    <span class="s2">return </span><span class="s1">list.split(string</span><span class="s2">, </span><span class="s1">spaces)</span>
+  <span class="s1">}</span><span class="s2">,</span>
+
+  <span class="s1">comma(string) {</span>
+    <span class="s2">return </span><span class="s1">list.split(string</span><span class="s2">, </span><span class="s1">[</span><span class="s0">','</span><span class="s1">]</span><span class="s2">, true</span><span class="s1">)</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">module.exports = list</span>
+<span class="s1">list.default = list</span>
+</pre>
+</body>
+</html>

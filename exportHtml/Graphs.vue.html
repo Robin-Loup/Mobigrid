@@ -1,0 +1,160 @@
+<html>
+<head>
+<title>Graphs.vue</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #e8bf6a;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bababa;}
+.s3 { color: #a5c261;}
+.s4 { color: #cc7832;}
+.s5 { color: #6a8759;}
+.s6 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Graphs.vue</font>
+</center></td></tr></table>
+<pre><span class="s0">&lt;template&gt;</span>
+    <span class="s0">&lt;h1&gt;</span><span class="s1">{{ name }}</span><span class="s0">&lt;/h1&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance1</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA1 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance2</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA2 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance3</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA3 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance4</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA4 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance5</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA5 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance6</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA6 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance7</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA7 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance8</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA8 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance9</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA9 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance10</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA10 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance11</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA11 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance12</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA12 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance13</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA13 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance14</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA14 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance15</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA15 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">ambiance16</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphA16 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">tyness21</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphT21 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">tyness22</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphT22 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">squid31</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphS31 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">squid32</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphS32 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">squid33</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphS33 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">v-if</span><span class="s3">=&quot;</span><span class="s1">squid34</span><span class="s3">&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;GraphS34 </span><span class="s2">:from</span><span class="s3">=&quot;</span><span class="s1">from</span><span class="s3">&quot; </span><span class="s2">:to</span><span class="s3">=&quot;</span><span class="s1">to</span><span class="s3">&quot;</span><span class="s0">/&gt;</span>
+    <span class="s0">&lt;/div&gt;</span>
+<span class="s0">&lt;/template&gt;</span>
+
+<span class="s0">&lt;script&gt;</span>
+<span class="s4">import </span><span class="s1">GraphA1 from </span><span class="s5">&quot;@/components/Graphs/GraphA1.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA2 from </span><span class="s5">&quot;@/components/Graphs/GraphA2.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA3 from </span><span class="s5">&quot;@/components/Graphs/GraphA3.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA4 from </span><span class="s5">&quot;@/components/Graphs/GraphA4.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA5 from </span><span class="s5">&quot;@/components/Graphs/GraphA5.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA6 from </span><span class="s5">&quot;@/components/Graphs/GraphA6.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA7 from </span><span class="s5">&quot;@/components/Graphs/GraphA7.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA8 from </span><span class="s5">&quot;@/components/Graphs/GraphA8.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA9 from </span><span class="s5">&quot;@/components/Graphs/GraphA9.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA10 from </span><span class="s5">&quot;@/components/Graphs/GraphA10.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA11 from </span><span class="s5">&quot;@/components/Graphs/GraphA11.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA12 from </span><span class="s5">&quot;@/components/Graphs/GraphA12.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA13 from </span><span class="s5">&quot;@/components/Graphs/GraphA13.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA14 from </span><span class="s5">&quot;@/components/Graphs/GraphA14.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA15 from </span><span class="s5">&quot;@/components/Graphs/GraphA15.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphA16 from </span><span class="s5">&quot;@/components/Graphs/GraphA16.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphT21 from </span><span class="s5">&quot;@/components/Graphs/GraphT21.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphT22 from </span><span class="s5">&quot;@/components/Graphs/GraphT22.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphS31 from </span><span class="s5">&quot;@/components/Graphs/GraphS31.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphS32 from </span><span class="s5">&quot;@/components/Graphs/GraphS32.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphS33 from </span><span class="s5">&quot;@/components/Graphs/GraphS33.vue&quot;</span><span class="s4">;</span>
+<span class="s4">import </span><span class="s1">GraphS34 from </span><span class="s5">&quot;@/components/Graphs/GraphS34.vue&quot;</span><span class="s4">;</span>
+<span class="s4">export default </span><span class="s1">{</span>
+    <span class="s1">name: </span><span class="s5">&quot;Graphs&quot;</span><span class="s4">,</span>
+    <span class="s1">components: {GraphA1</span><span class="s4">, </span><span class="s1">GraphA2</span><span class="s4">, </span><span class="s1">GraphA3</span><span class="s4">, </span><span class="s1">GraphA4</span><span class="s4">, </span><span class="s1">GraphA5</span><span class="s4">, </span><span class="s1">GraphA6</span><span class="s4">, </span><span class="s1">GraphA7</span><span class="s4">, </span><span class="s1">GraphA8</span><span class="s4">, </span><span class="s1">GraphA9</span><span class="s4">, </span><span class="s1">GraphA10</span><span class="s4">,</span>
+        <span class="s1">GraphA11</span><span class="s4">, </span><span class="s1">GraphA12</span><span class="s4">, </span><span class="s1">GraphA13</span><span class="s4">, </span><span class="s1">GraphA14</span><span class="s4">, </span><span class="s1">GraphA15</span><span class="s4">, </span><span class="s1">GraphA16</span><span class="s4">, </span><span class="s1">GraphT21</span><span class="s4">, </span><span class="s1">GraphT22</span><span class="s4">, </span><span class="s1">GraphS31</span><span class="s4">, </span><span class="s1">GraphS32</span><span class="s4">,</span>
+        <span class="s1">GraphS33</span><span class="s4">, </span><span class="s1">GraphS34}</span><span class="s4">,</span>
+    <span class="s1">props: {</span>
+        <span class="s1">name: String</span><span class="s4">,</span>
+        <span class="s1">from: String</span><span class="s4">,</span>
+        <span class="s1">to: String</span>
+    <span class="s1">}</span><span class="s4">,</span>
+    <span class="s1">data() {</span>
+        <span class="s4">return </span><span class="s1">{</span>
+            <span class="s1">ambiance1: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance1&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance2: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance2&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance3: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance3&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance4: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance4&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance5: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance5&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance6: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance6&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance7: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance7&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance8: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance8&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance9: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance9&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance10: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance10&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance11: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance11&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance12: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance12&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance13: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance13&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance14: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance14&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance15: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance15&quot;</span><span class="s4">,</span>
+            <span class="s1">ambiance16: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;ambiance16&quot;</span><span class="s4">,</span>
+            <span class="s1">tyness21: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;tyness21&quot;</span><span class="s4">,</span>
+            <span class="s1">tyness22: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;tyness22&quot;</span><span class="s4">,</span>
+            <span class="s1">squid31: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;squid31&quot;</span><span class="s4">,</span>
+            <span class="s1">squid32: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;squid32&quot;</span><span class="s4">,</span>
+            <span class="s1">squid33: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;squid33&quot;</span><span class="s4">,</span>
+            <span class="s1">squid34: </span><span class="s4">this</span><span class="s1">.name == </span><span class="s5">&quot;squid34&quot;</span><span class="s4">,</span>
+            <span class="s1">counter: </span><span class="s6">0</span><span class="s4">,</span>
+        <span class="s1">}</span><span class="s4">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s4">;</span>
+<span class="s0">&lt;/script&gt;</span>
+
+<span class="s0">&lt;style&gt;</span>
+<span class="s0">iframe</span><span class="s1">{</span>
+    <span class="s2">margin</span><span class="s1">: </span><span class="s6">10</span><span class="s3">px</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s0">&lt;/style&gt;</span></pre>
+</body>
+</html>

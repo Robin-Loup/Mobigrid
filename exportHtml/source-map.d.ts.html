@@ -1,0 +1,135 @@
+<html>
+<head>
+<title>source-map.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #a9b7c6;}
+.s1 { color: #6a8759;}
+.s2 { color: #cc7832;}
+.s3 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+source-map.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">declare module </span><span class="s1">'source-map-js' </span><span class="s0">{ </span>
+    <span class="s2">export interface </span><span class="s0">StartOfSourceMap {</span>
+        <span class="s0">file?: string</span><span class="s2">;</span>
+        <span class="s0">sourceRoot?: string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">RawSourceMap </span><span class="s2">extends </span><span class="s0">StartOfSourceMap {</span>
+        <span class="s0">version: string</span><span class="s2">;</span>
+        <span class="s0">sources: string[]</span><span class="s2">;</span>
+        <span class="s0">names: string[]</span><span class="s2">;</span>
+        <span class="s0">sourcesContent?: string[]</span><span class="s2">;</span>
+        <span class="s0">mappings: string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">Position {</span>
+        <span class="s0">line: number</span><span class="s2">;</span>
+        <span class="s0">column: number</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">LineRange </span><span class="s2">extends </span><span class="s0">Position {</span>
+        <span class="s0">lastColumn: number</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">FindPosition </span><span class="s2">extends </span><span class="s0">Position {</span>
+        <span class="s3">// SourceMapConsumer.GREATEST_LOWER_BOUND or SourceMapConsumer.LEAST_UPPER_BOUND</span>
+        <span class="s0">bias?: number</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">SourceFindPosition </span><span class="s2">extends </span><span class="s0">FindPosition {</span>
+        <span class="s0">source: string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">MappedPosition </span><span class="s2">extends </span><span class="s0">Position {</span>
+        <span class="s0">source: string</span><span class="s2">;</span>
+        <span class="s0">name?: string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">MappingItem {</span>
+        <span class="s0">source: string</span><span class="s2">;</span>
+        <span class="s0">generatedLine: number</span><span class="s2">;</span>
+        <span class="s0">generatedColumn: number</span><span class="s2">;</span>
+        <span class="s0">originalLine: number</span><span class="s2">;</span>
+        <span class="s0">originalColumn: number</span><span class="s2">;</span>
+        <span class="s0">name: string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export class </span><span class="s0">SourceMapConsumer {</span>
+        <span class="s2">static </span><span class="s0">GENERATED_ORDER: number</span><span class="s2">;</span>
+        <span class="s2">static </span><span class="s0">ORIGINAL_ORDER: number</span><span class="s2">;</span>
+
+        <span class="s2">static </span><span class="s0">GREATEST_LOWER_BOUND: number</span><span class="s2">;</span>
+        <span class="s2">static </span><span class="s0">LEAST_UPPER_BOUND: number</span><span class="s2">;</span>
+
+        <span class="s0">constructor(rawSourceMap: RawSourceMap)</span><span class="s2">;</span>
+        <span class="s0">computeColumnSpans(): </span><span class="s2">void;</span>
+        <span class="s0">originalPositionFor(generatedPosition: FindPosition): MappedPosition</span><span class="s2">;</span>
+        <span class="s0">generatedPositionFor(originalPosition: SourceFindPosition): LineRange</span><span class="s2">;</span>
+        <span class="s0">allGeneratedPositionsFor(originalPosition: MappedPosition): Position[]</span><span class="s2">;</span>
+        <span class="s0">hasContentsOfAllSources(): boolean</span><span class="s2">;</span>
+        <span class="s0">sourceContentFor(source: string</span><span class="s2">, </span><span class="s0">returnNullOnMissing?: boolean): string</span><span class="s2">;</span>
+        <span class="s0">eachMapping(callback: (mapping: MappingItem) =&gt; </span><span class="s2">void, </span><span class="s0">context?: any</span><span class="s2">, </span><span class="s0">order?: number): </span><span class="s2">void;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">Mapping {</span>
+        <span class="s0">generated: Position</span><span class="s2">;</span>
+        <span class="s0">original: Position</span><span class="s2">;</span>
+        <span class="s0">source: string</span><span class="s2">;</span>
+        <span class="s0">name?: string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export class </span><span class="s0">SourceMapGenerator {</span>
+        <span class="s0">constructor(startOfSourceMap?: StartOfSourceMap)</span><span class="s2">;</span>
+        <span class="s2">static </span><span class="s0">fromSourceMap(sourceMapConsumer: SourceMapConsumer): SourceMapGenerator</span><span class="s2">;</span>
+        <span class="s0">addMapping(mapping: Mapping): </span><span class="s2">void;</span>
+        <span class="s0">setSourceContent(sourceFile: string</span><span class="s2">, </span><span class="s0">sourceContent: string): </span><span class="s2">void;</span>
+        <span class="s0">applySourceMap(sourceMapConsumer: SourceMapConsumer</span><span class="s2">, </span><span class="s0">sourceFile?: string</span><span class="s2">, </span><span class="s0">sourceMapPath?: string): </span><span class="s2">void;</span>
+        <span class="s0">toString(): string</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export interface </span><span class="s0">CodeWithSourceMap {</span>
+        <span class="s0">code: string</span><span class="s2">;</span>
+        <span class="s0">map: SourceMapGenerator</span><span class="s2">;</span>
+    <span class="s0">}</span>
+
+    <span class="s2">export class </span><span class="s0">SourceNode {</span>
+        <span class="s0">constructor()</span><span class="s2">;</span>
+        <span class="s0">constructor(line: number</span><span class="s2">, </span><span class="s0">column: number</span><span class="s2">, </span><span class="s0">source: string)</span><span class="s2">;</span>
+        <span class="s0">constructor(line: number</span><span class="s2">, </span><span class="s0">column: number</span><span class="s2">, </span><span class="s0">source: string</span><span class="s2">, </span><span class="s0">chunk?: string</span><span class="s2">, </span><span class="s0">name?: string)</span><span class="s2">;</span>
+        <span class="s2">static </span><span class="s0">fromStringWithSourceMap(code: string</span><span class="s2">, </span><span class="s0">sourceMapConsumer: SourceMapConsumer</span><span class="s2">, </span><span class="s0">relativePath?: string): SourceNode</span><span class="s2">;</span>
+        <span class="s0">add(chunk: string): </span><span class="s2">void;</span>
+        <span class="s0">prepend(chunk: string): </span><span class="s2">void;</span>
+        <span class="s0">setSourceContent(sourceFile: string</span><span class="s2">, </span><span class="s0">sourceContent: string): </span><span class="s2">void;</span>
+        <span class="s0">walk(fn: (chunk: string</span><span class="s2">, </span><span class="s0">mapping: MappedPosition) =&gt; </span><span class="s2">void</span><span class="s0">): </span><span class="s2">void;</span>
+        <span class="s0">walkSourceContents(fn: (file: string</span><span class="s2">, </span><span class="s0">content: string) =&gt; </span><span class="s2">void</span><span class="s0">): </span><span class="s2">void;</span>
+        <span class="s0">join(sep: string): SourceNode</span><span class="s2">;</span>
+        <span class="s0">replaceRight(pattern: string</span><span class="s2">, </span><span class="s0">replacement: string): SourceNode</span><span class="s2">;</span>
+        <span class="s0">toString(): string</span><span class="s2">;</span>
+        <span class="s0">toStringWithSourceMap(startOfSourceMap?: StartOfSourceMap): CodeWithSourceMap</span><span class="s2">;</span>
+    <span class="s0">}</span>
+<span class="s0">}</span>
+
+<span class="s0">declare module </span><span class="s1">'source-map-js/lib/source-map-generator' </span><span class="s0">{</span>
+    <span class="s2">import </span><span class="s0">{ SourceMapGenerator } from </span><span class="s1">'source-map-js'</span>
+    <span class="s2">export </span><span class="s0">{ SourceMapGenerator }</span>
+<span class="s0">}</span>
+
+<span class="s0">declare module </span><span class="s1">'source-map-js/lib/source-map-consumer' </span><span class="s0">{</span>
+    <span class="s2">import </span><span class="s0">{ SourceMapConsumer } from </span><span class="s1">'source-map-js'</span>
+    <span class="s2">export </span><span class="s0">{ SourceMapConsumer }</span>
+<span class="s0">}</span>
+
+<span class="s0">declare module </span><span class="s1">'source-map-js/lib/source-node' </span><span class="s0">{</span>
+    <span class="s2">import </span><span class="s0">{ SourceNode } from </span><span class="s1">'source-map-js'</span>
+    <span class="s2">export </span><span class="s0">{ SourceNode }</span>
+<span class="s0">}</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,1687 @@
+<html>
+<head>
+<title>runtime-dom.cjs.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #cc7832;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+.s5 { color: #629755; font-style: italic;}
+.s6 { color: #629755; font-weight: bold; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+runtime-dom.cjs.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span><span class="s1">;</span>
+
+<span class="s2">Object.defineProperty(exports</span><span class="s1">, </span><span class="s0">'__esModule'</span><span class="s1">, </span><span class="s2">{ value: </span><span class="s1">true </span><span class="s2">})</span><span class="s1">;</span>
+
+<span class="s1">var </span><span class="s2">runtimeCore = require(</span><span class="s0">'@vue/runtime-core'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">var </span><span class="s2">shared = require(</span><span class="s0">'@vue/shared'</span><span class="s2">)</span><span class="s1">;</span>
+
+<span class="s1">const </span><span class="s2">svgNS = </span><span class="s0">'http://www.w3.org/2000/svg'</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">doc = (</span><span class="s1">typeof </span><span class="s2">document !== </span><span class="s0">'undefined' </span><span class="s2">? document : </span><span class="s1">null</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">templateContainer = doc &amp;&amp; </span><span class="s3">/*#__PURE__*/ </span><span class="s2">doc.createElement(</span><span class="s0">'template'</span><span class="s2">)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">nodeOps = {</span>
+    <span class="s2">insert: (child</span><span class="s1">, </span><span class="s2">parent</span><span class="s1">, </span><span class="s2">anchor) =&gt; {</span>
+        <span class="s2">parent.insertBefore(child</span><span class="s1">, </span><span class="s2">anchor || </span><span class="s1">null</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">remove: child =&gt; {</span>
+        <span class="s1">const </span><span class="s2">parent = child.parentNode</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(parent) {</span>
+            <span class="s2">parent.removeChild(child)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">createElement: (tag</span><span class="s1">, </span><span class="s2">isSVG</span><span class="s1">, </span><span class="s2">is</span><span class="s1">, </span><span class="s2">props) =&gt; {</span>
+        <span class="s1">const </span><span class="s2">el = isSVG</span>
+            <span class="s2">? doc.createElementNS(svgNS</span><span class="s1">, </span><span class="s2">tag)</span>
+            <span class="s2">: doc.createElement(tag</span><span class="s1">, </span><span class="s2">is ? { is } : undefined)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(tag === </span><span class="s0">'select' </span><span class="s2">&amp;&amp; props &amp;&amp; props.multiple != </span><span class="s1">null</span><span class="s2">) {</span>
+            <span class="s2">el.setAttribute(</span><span class="s0">'multiple'</span><span class="s1">, </span><span class="s2">props.multiple)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">el</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">createText: text =&gt; doc.createTextNode(text)</span><span class="s1">,</span>
+    <span class="s2">createComment: text =&gt; doc.createComment(text)</span><span class="s1">,</span>
+    <span class="s2">setText: (node</span><span class="s1">, </span><span class="s2">text) =&gt; {</span>
+        <span class="s2">node.nodeValue = text</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">setElementText: (el</span><span class="s1">, </span><span class="s2">text) =&gt; {</span>
+        <span class="s2">el.textContent = text</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">parentNode: node =&gt; node.parentNode</span><span class="s1">,</span>
+    <span class="s2">nextSibling: node =&gt; node.nextSibling</span><span class="s1">,</span>
+    <span class="s2">querySelector: selector =&gt; doc.querySelector(selector)</span><span class="s1">,</span>
+    <span class="s2">setScopeId(el</span><span class="s1">, </span><span class="s2">id) {</span>
+        <span class="s2">el.setAttribute(id</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s3">// __UNSAFE__</span>
+    <span class="s3">// Reason: innerHTML.</span>
+    <span class="s3">// Static content here can only come from compiled templates.</span>
+    <span class="s3">// As long as the user only uses trusted templates, this is safe.</span>
+    <span class="s2">insertStaticContent(content</span><span class="s1">, </span><span class="s2">parent</span><span class="s1">, </span><span class="s2">anchor</span><span class="s1">, </span><span class="s2">isSVG</span><span class="s1">, </span><span class="s2">start</span><span class="s1">, </span><span class="s2">end) {</span>
+        <span class="s3">// &lt;parent&gt; before | first ... last | anchor &lt;/parent&gt;</span>
+        <span class="s1">const </span><span class="s2">before = anchor ? anchor.previousSibling : parent.lastChild</span><span class="s1">;</span>
+        <span class="s3">// #5308 can only take cached path if:</span>
+        <span class="s3">// - has a single root node</span>
+        <span class="s3">// - nextSibling info is still available</span>
+        <span class="s1">if </span><span class="s2">(start &amp;&amp; (start === end || start.nextSibling)) {</span>
+            <span class="s3">// cached</span>
+            <span class="s1">while </span><span class="s2">(</span><span class="s1">true</span><span class="s2">) {</span>
+                <span class="s2">parent.insertBefore(start.cloneNode(</span><span class="s1">true</span><span class="s2">)</span><span class="s1">, </span><span class="s2">anchor)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(start === end || !(start = start.nextSibling))</span>
+                    <span class="s1">break;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s3">// fresh insert</span>
+            <span class="s2">templateContainer.innerHTML = isSVG ? </span><span class="s0">`&lt;svg&gt;</span><span class="s2">${content}</span><span class="s0">&lt;/svg&gt;` </span><span class="s2">: content</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">template = templateContainer.content</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(isSVG) {</span>
+                <span class="s3">// remove outer svg wrapper</span>
+                <span class="s1">const </span><span class="s2">wrapper = template.firstChild</span><span class="s1">;</span>
+                <span class="s1">while </span><span class="s2">(wrapper.firstChild) {</span>
+                    <span class="s2">template.appendChild(wrapper.firstChild)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s2">template.removeChild(wrapper)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">parent.insertBefore(template</span><span class="s1">, </span><span class="s2">anchor)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">[</span>
+            <span class="s3">// first</span>
+            <span class="s2">before ? before.nextSibling : parent.firstChild</span><span class="s1">,</span>
+            <span class="s3">// last</span>
+            <span class="s2">anchor ? anchor.previousSibling : parent.lastChild</span>
+        <span class="s2">]</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s3">// compiler should normalize class + :class bindings on the same element</span>
+<span class="s3">// into a single binding ['staticClass', dynamic]</span>
+<span class="s1">function </span><span class="s2">patchClass(el</span><span class="s1">, </span><span class="s2">value</span><span class="s1">, </span><span class="s2">isSVG) {</span>
+    <span class="s3">// directly setting className should be faster than setAttribute in theory</span>
+    <span class="s3">// if this is an element during a transition, take the temporary transition</span>
+    <span class="s3">// classes into account.</span>
+    <span class="s1">const </span><span class="s2">transitionClasses = el._vtc</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(transitionClasses) {</span>
+        <span class="s2">value = (value ? [value</span><span class="s1">, </span><span class="s2">...transitionClasses] : [...transitionClasses]).join(</span><span class="s0">' '</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(value == </span><span class="s1">null</span><span class="s2">) {</span>
+        <span class="s2">el.removeAttribute(</span><span class="s0">'class'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(isSVG) {</span>
+        <span class="s2">el.setAttribute(</span><span class="s0">'class'</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s2">el.className = value</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">patchStyle(el</span><span class="s1">, </span><span class="s2">prev</span><span class="s1">, </span><span class="s2">next) {</span>
+    <span class="s1">const </span><span class="s2">style = el.style</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">isCssString = shared.isString(next)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(next &amp;&amp; !isCssString) {</span>
+        <span class="s1">if </span><span class="s2">(prev &amp;&amp; !shared.isString(prev)) {</span>
+            <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key </span><span class="s1">in </span><span class="s2">prev) {</span>
+                <span class="s1">if </span><span class="s2">(next[key] == </span><span class="s1">null</span><span class="s2">) {</span>
+                    <span class="s2">setStyle(style</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key </span><span class="s1">in </span><span class="s2">next) {</span>
+            <span class="s2">setStyle(style</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">next[key])</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">const </span><span class="s2">currentDisplay = style.display</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(isCssString) {</span>
+            <span class="s1">if </span><span class="s2">(prev !== next) {</span>
+                <span class="s2">style.cssText = next</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(prev) {</span>
+            <span class="s2">el.removeAttribute(</span><span class="s0">'style'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s3">// indicates that the `display` of the element is controlled by `v-show`,</span>
+        <span class="s3">// so we always keep the current `display` value regardless of the `style`</span>
+        <span class="s3">// value, thus handing over control to `v-show`.</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s0">'_vod' </span><span class="s1">in </span><span class="s2">el) {</span>
+            <span class="s2">style.display = currentDisplay</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">semicolonRE = </span><span class="s4">/[^\\];\s*$/</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">importantRE = </span><span class="s4">/\s*!important$/</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">setStyle(style</span><span class="s1">, </span><span class="s2">name</span><span class="s1">, </span><span class="s2">val) {</span>
+    <span class="s1">if </span><span class="s2">(shared.isArray(val)) {</span>
+        <span class="s2">val.forEach(v =&gt; setStyle(style</span><span class="s1">, </span><span class="s2">name</span><span class="s1">, </span><span class="s2">v))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">if </span><span class="s2">(val == </span><span class="s1">null</span><span class="s2">)</span>
+            <span class="s2">val = </span><span class="s0">''</span><span class="s1">;</span>
+        <span class="s2">{</span>
+            <span class="s1">if </span><span class="s2">(semicolonRE.test(val)) {</span>
+                <span class="s2">runtimeCore.warn(</span><span class="s0">`Unexpected semicolon at the end of '</span><span class="s2">${name}</span><span class="s0">' style value: '</span><span class="s2">${val}</span><span class="s0">'`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(name.startsWith(</span><span class="s0">'--'</span><span class="s2">)) {</span>
+            <span class="s3">// custom property definition</span>
+            <span class="s2">style.setProperty(name</span><span class="s1">, </span><span class="s2">val)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s1">const </span><span class="s2">prefixed = autoPrefix(style</span><span class="s1">, </span><span class="s2">name)</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(importantRE.test(val)) {</span>
+                <span class="s3">// !important</span>
+                <span class="s2">style.setProperty(shared.hyphenate(prefixed)</span><span class="s1">, </span><span class="s2">val.replace(importantRE</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">, </span><span class="s0">'important'</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">style[prefixed] = val</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">prefixes = [</span><span class="s0">'Webkit'</span><span class="s1">, </span><span class="s0">'Moz'</span><span class="s1">, </span><span class="s0">'ms'</span><span class="s2">]</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">prefixCache = {}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">autoPrefix(style</span><span class="s1">, </span><span class="s2">rawName) {</span>
+    <span class="s1">const </span><span class="s2">cached = prefixCache[rawName]</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(cached) {</span>
+        <span class="s1">return </span><span class="s2">cached</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">let </span><span class="s2">name = runtimeCore.camelize(rawName)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(name !== </span><span class="s0">'filter' </span><span class="s2">&amp;&amp; name </span><span class="s1">in </span><span class="s2">style) {</span>
+        <span class="s1">return </span><span class="s2">(prefixCache[rawName] = name)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s2">name = shared.capitalize(name)</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; prefixes.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+        <span class="s1">const </span><span class="s2">prefixed = prefixes[i] + name</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(prefixed </span><span class="s1">in </span><span class="s2">style) {</span>
+            <span class="s1">return </span><span class="s2">(prefixCache[rawName] = prefixed)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">rawName</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">xlinkNS = </span><span class="s0">'http://www.w3.org/1999/xlink'</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">patchAttr(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">value</span><span class="s1">, </span><span class="s2">isSVG</span><span class="s1">, </span><span class="s2">instance) {</span>
+    <span class="s1">if </span><span class="s2">(isSVG &amp;&amp; key.startsWith(</span><span class="s0">'xlink:'</span><span class="s2">)) {</span>
+        <span class="s1">if </span><span class="s2">(value == </span><span class="s1">null</span><span class="s2">) {</span>
+            <span class="s2">el.removeAttributeNS(xlinkNS</span><span class="s1">, </span><span class="s2">key.slice(</span><span class="s4">6</span><span class="s1">, </span><span class="s2">key.length))</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">el.setAttributeNS(xlinkNS</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s3">// note we are only checking boolean attributes that don't have a</span>
+        <span class="s3">// corresponding dom prop of the same name here.</span>
+        <span class="s1">const </span><span class="s2">isBoolean = shared.isSpecialBooleanAttr(key)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(value == </span><span class="s1">null </span><span class="s2">|| (isBoolean &amp;&amp; !shared.includeBooleanAttr(value))) {</span>
+            <span class="s2">el.removeAttribute(key)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">el.setAttribute(key</span><span class="s1">, </span><span class="s2">isBoolean ? </span><span class="s0">'' </span><span class="s2">: value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s3">// __UNSAFE__</span>
+<span class="s3">// functions. The user is responsible for using them with only trusted content.</span>
+<span class="s1">function </span><span class="s2">patchDOMProp(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">value</span><span class="s1">, </span>
+<span class="s3">// the following args are passed only due to potential innerHTML/textContent</span>
+<span class="s3">// overriding existing VNodes, in which case the old tree must be properly</span>
+<span class="s3">// unmounted.</span>
+<span class="s2">prevChildren</span><span class="s1">, </span><span class="s2">parentComponent</span><span class="s1">, </span><span class="s2">parentSuspense</span><span class="s1">, </span><span class="s2">unmountChildren) {</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'innerHTML' </span><span class="s2">|| key === </span><span class="s0">'textContent'</span><span class="s2">) {</span>
+        <span class="s1">if </span><span class="s2">(prevChildren) {</span>
+            <span class="s2">unmountChildren(prevChildren</span><span class="s1">, </span><span class="s2">parentComponent</span><span class="s1">, </span><span class="s2">parentSuspense)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s2">el[key] = value == </span><span class="s1">null </span><span class="s2">? </span><span class="s0">'' </span><span class="s2">: value</span><span class="s1">;</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'value' </span><span class="s2">&amp;&amp;</span>
+        <span class="s2">el.tagName !== </span><span class="s0">'PROGRESS' </span><span class="s2">&amp;&amp;</span>
+        <span class="s3">// custom elements may use _value internally</span>
+        <span class="s2">!el.tagName.includes(</span><span class="s0">'-'</span><span class="s2">)) {</span>
+        <span class="s3">// store value as _value as well since</span>
+        <span class="s3">// non-string values will be stringified.</span>
+        <span class="s2">el._value = value</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">newValue = value == </span><span class="s1">null </span><span class="s2">? </span><span class="s0">'' </span><span class="s2">: value</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(el.value !== newValue ||</span>
+            <span class="s3">// #4956: always set for OPTION elements because its value falls back to</span>
+            <span class="s3">// textContent if no value attribute is present. And setting .value for</span>
+            <span class="s3">// OPTION has no side effect</span>
+            <span class="s2">el.tagName === </span><span class="s0">'OPTION'</span><span class="s2">) {</span>
+            <span class="s2">el.value = newValue</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(value == </span><span class="s1">null</span><span class="s2">) {</span>
+            <span class="s2">el.removeAttribute(key)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">let </span><span class="s2">needRemove = </span><span class="s1">false;</span>
+    <span class="s1">if </span><span class="s2">(value === </span><span class="s0">'' </span><span class="s2">|| value == </span><span class="s1">null</span><span class="s2">) {</span>
+        <span class="s1">const </span><span class="s2">type = </span><span class="s1">typeof </span><span class="s2">el[key]</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(type === </span><span class="s0">'boolean'</span><span class="s2">) {</span>
+            <span class="s3">// e.g. &lt;select multiple&gt; compiles to { multiple: '' }</span>
+            <span class="s2">value = shared.includeBooleanAttr(value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(value == </span><span class="s1">null </span><span class="s2">&amp;&amp; type === </span><span class="s0">'string'</span><span class="s2">) {</span>
+            <span class="s3">// e.g. &lt;div :id=&quot;null&quot;&gt;</span>
+            <span class="s2">value = </span><span class="s0">''</span><span class="s1">;</span>
+            <span class="s2">needRemove = </span><span class="s1">true;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(type === </span><span class="s0">'number'</span><span class="s2">) {</span>
+            <span class="s3">// e.g. &lt;img :width=&quot;null&quot;&gt;</span>
+            <span class="s2">value = </span><span class="s4">0</span><span class="s1">;</span>
+            <span class="s2">needRemove = </span><span class="s1">true;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s3">// some properties perform value validation and throw,</span>
+    <span class="s3">// some properties has getter, no setter, will error in 'use strict'</span>
+    <span class="s3">// eg. &lt;select :type=&quot;null&quot;&gt;&lt;/select&gt; &lt;select :willValidate=&quot;null&quot;&gt;&lt;/select&gt;</span>
+    <span class="s1">try </span><span class="s2">{</span>
+        <span class="s2">el[key] = value</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">catch </span><span class="s2">(e) {</span>
+        <span class="s3">// do not warn if value is auto-coerced from nullish values</span>
+        <span class="s1">if </span><span class="s2">(!needRemove) {</span>
+            <span class="s2">runtimeCore.warn(</span><span class="s0">`Failed setting prop &quot;</span><span class="s2">${key}</span><span class="s0">&quot; on &lt;</span><span class="s2">${el.tagName.toLowerCase()}</span><span class="s0">&gt;: ` </span><span class="s2">+</span>
+                <span class="s0">`value </span><span class="s2">${value} </span><span class="s0">is invalid.`</span><span class="s1">, </span><span class="s2">e)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">needRemove &amp;&amp; el.removeAttribute(key)</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s2">event</span><span class="s1">, </span><span class="s2">handler</span><span class="s1">, </span><span class="s2">options) {</span>
+    <span class="s2">el.addEventListener(event</span><span class="s1">, </span><span class="s2">handler</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">removeEventListener(el</span><span class="s1">, </span><span class="s2">event</span><span class="s1">, </span><span class="s2">handler</span><span class="s1">, </span><span class="s2">options) {</span>
+    <span class="s2">el.removeEventListener(event</span><span class="s1">, </span><span class="s2">handler</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">patchEvent(el</span><span class="s1">, </span><span class="s2">rawName</span><span class="s1">, </span><span class="s2">prevValue</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">instance = </span><span class="s1">null</span><span class="s2">) {</span>
+    <span class="s3">// vei = vue event invokers</span>
+    <span class="s1">const </span><span class="s2">invokers = el._vei || (el._vei = {})</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">existingInvoker = invokers[rawName]</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(nextValue &amp;&amp; existingInvoker) {</span>
+        <span class="s3">// patch</span>
+        <span class="s2">existingInvoker.value = nextValue</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">const </span><span class="s2">[name</span><span class="s1">, </span><span class="s2">options] = parseName(rawName)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(nextValue) {</span>
+            <span class="s3">// add</span>
+            <span class="s1">const </span><span class="s2">invoker = (invokers[rawName] = createInvoker(nextValue</span><span class="s1">, </span><span class="s2">instance))</span><span class="s1">;</span>
+            <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s2">name</span><span class="s1">, </span><span class="s2">invoker</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(existingInvoker) {</span>
+            <span class="s3">// remove</span>
+            <span class="s2">removeEventListener(el</span><span class="s1">, </span><span class="s2">name</span><span class="s1">, </span><span class="s2">existingInvoker</span><span class="s1">, </span><span class="s2">options)</span><span class="s1">;</span>
+            <span class="s2">invokers[rawName] = undefined</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">optionsModifierRE = </span><span class="s4">/(?:Once|Passive|Capture)$/</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">parseName(name) {</span>
+    <span class="s1">let </span><span class="s2">options</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(optionsModifierRE.test(name)) {</span>
+        <span class="s2">options = {}</span><span class="s1">;</span>
+        <span class="s1">let </span><span class="s2">m</span><span class="s1">;</span>
+        <span class="s1">while </span><span class="s2">((m = name.match(optionsModifierRE))) {</span>
+            <span class="s2">name = name.slice(</span><span class="s4">0</span><span class="s1">, </span><span class="s2">name.length - m[</span><span class="s4">0</span><span class="s2">].length)</span><span class="s1">;</span>
+            <span class="s2">options[m[</span><span class="s4">0</span><span class="s2">].toLowerCase()] = </span><span class="s1">true;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">event = name[</span><span class="s4">2</span><span class="s2">] === </span><span class="s0">':' </span><span class="s2">? name.slice(</span><span class="s4">3</span><span class="s2">) : shared.hyphenate(name.slice(</span><span class="s4">2</span><span class="s2">))</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">[event</span><span class="s1">, </span><span class="s2">options]</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// To avoid the overhead of repeatedly calling Date.now(), we cache</span>
+<span class="s3">// and use the same timestamp for all event listeners attached in the same tick.</span>
+<span class="s1">let </span><span class="s2">cachedNow = </span><span class="s4">0</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">p = </span><span class="s3">/*#__PURE__*/ </span><span class="s2">Promise.resolve()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">getNow = () =&gt; cachedNow || (p.then(() =&gt; (cachedNow = </span><span class="s4">0</span><span class="s2">))</span><span class="s1">, </span><span class="s2">(cachedNow = Date.now()))</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">createInvoker(initialValue</span><span class="s1">, </span><span class="s2">instance) {</span>
+    <span class="s1">const </span><span class="s2">invoker = (e) =&gt; {</span>
+        <span class="s3">// async edge case vuejs/vue#6566</span>
+        <span class="s3">// inner click event triggers patch, event handler</span>
+        <span class="s3">// attached to outer element during patch, and triggered again. This</span>
+        <span class="s3">// happens because browsers fire microtask ticks between event propagation.</span>
+        <span class="s3">// this no longer happens for templates in Vue 3, but could still be</span>
+        <span class="s3">// theoretically possible for hand-written render functions.</span>
+        <span class="s3">// the solution: we save the timestamp when a handler is attached,</span>
+        <span class="s3">// and also attach the timestamp to any event that was handled by vue</span>
+        <span class="s3">// for the first time (to avoid inconsistent event timestamp implementations</span>
+        <span class="s3">// or events fired from iframes, e.g. #2513)</span>
+        <span class="s3">// The handler would only fire if the event passed to it was fired</span>
+        <span class="s3">// AFTER it was attached.</span>
+        <span class="s1">if </span><span class="s2">(!e._vts) {</span>
+            <span class="s2">e._vts = Date.now()</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(e._vts &lt;= invoker.attached) {</span>
+            <span class="s1">return;</span>
+        <span class="s2">}</span>
+        <span class="s2">runtimeCore.callWithAsyncErrorHandling(patchStopImmediatePropagation(e</span><span class="s1">, </span><span class="s2">invoker.value)</span><span class="s1">, </span><span class="s2">instance</span><span class="s1">, </span><span class="s4">5 </span><span class="s3">/* ErrorCodes.NATIVE_EVENT_HANDLER */</span><span class="s1">, </span><span class="s2">[e])</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">invoker.value = initialValue</span><span class="s1">;</span>
+    <span class="s2">invoker.attached = getNow()</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">invoker</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">patchStopImmediatePropagation(e</span><span class="s1">, </span><span class="s2">value) {</span>
+    <span class="s1">if </span><span class="s2">(shared.isArray(value)) {</span>
+        <span class="s1">const </span><span class="s2">originalStop = e.stopImmediatePropagation</span><span class="s1">;</span>
+        <span class="s2">e.stopImmediatePropagation = () =&gt; {</span>
+            <span class="s2">originalStop.call(e)</span><span class="s1">;</span>
+            <span class="s2">e._stopped = </span><span class="s1">true;</span>
+        <span class="s2">}</span><span class="s1">;</span>
+        <span class="s1">return </span><span class="s2">value.map(fn =&gt; (e) =&gt; !e._stopped &amp;&amp; fn &amp;&amp; fn(e))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">return </span><span class="s2">value</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">nativeOnRE = </span><span class="s4">/^on[a-z]/</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">patchProp = (el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">prevValue</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">isSVG = </span><span class="s1">false, </span><span class="s2">prevChildren</span><span class="s1">, </span><span class="s2">parentComponent</span><span class="s1">, </span><span class="s2">parentSuspense</span><span class="s1">, </span><span class="s2">unmountChildren) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'class'</span><span class="s2">) {</span>
+        <span class="s2">patchClass(el</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">isSVG)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(key === </span><span class="s0">'style'</span><span class="s2">) {</span>
+        <span class="s2">patchStyle(el</span><span class="s1">, </span><span class="s2">prevValue</span><span class="s1">, </span><span class="s2">nextValue)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(shared.isOn(key)) {</span>
+        <span class="s3">// ignore v-model listeners</span>
+        <span class="s1">if </span><span class="s2">(!shared.isModelListener(key)) {</span>
+            <span class="s2">patchEvent(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">prevValue</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">parentComponent)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(key[</span><span class="s4">0</span><span class="s2">] === </span><span class="s0">'.'</span>
+        <span class="s2">? ((key = key.slice(</span><span class="s4">1</span><span class="s2">))</span><span class="s1">, true</span><span class="s2">)</span>
+        <span class="s2">: key[</span><span class="s4">0</span><span class="s2">] === </span><span class="s0">'^'</span>
+            <span class="s2">? ((key = key.slice(</span><span class="s4">1</span><span class="s2">))</span><span class="s1">, false</span><span class="s2">)</span>
+            <span class="s2">: shouldSetAsProp(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">isSVG)) {</span>
+        <span class="s2">patchDOMProp(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">prevChildren</span><span class="s1">, </span><span class="s2">parentComponent</span><span class="s1">, </span><span class="s2">parentSuspense</span><span class="s1">, </span><span class="s2">unmountChildren)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s3">// special case for &lt;input v-model type=&quot;checkbox&quot;&gt; with</span>
+        <span class="s3">// :true-value &amp; :false-value</span>
+        <span class="s3">// store value as dom properties since non-string values will be</span>
+        <span class="s3">// stringified.</span>
+        <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'true-value'</span><span class="s2">) {</span>
+            <span class="s2">el._trueValue = nextValue</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(key === </span><span class="s0">'false-value'</span><span class="s2">) {</span>
+            <span class="s2">el._falseValue = nextValue</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s2">patchAttr(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">nextValue</span><span class="s1">, </span><span class="s2">isSVG)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">shouldSetAsProp(el</span><span class="s1">, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">value</span><span class="s1">, </span><span class="s2">isSVG) {</span>
+    <span class="s1">if </span><span class="s2">(isSVG) {</span>
+        <span class="s3">// most keys must be set as attribute on svg elements to work</span>
+        <span class="s3">// ...except innerHTML &amp; textContent</span>
+        <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'innerHTML' </span><span class="s2">|| key === </span><span class="s0">'textContent'</span><span class="s2">) {</span>
+            <span class="s1">return true;</span>
+        <span class="s2">}</span>
+        <span class="s3">// or native onclick with function values</span>
+        <span class="s1">if </span><span class="s2">(key </span><span class="s1">in </span><span class="s2">el &amp;&amp; nativeOnRE.test(key) &amp;&amp; shared.isFunction(value)) {</span>
+            <span class="s1">return true;</span>
+        <span class="s2">}</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s3">// these are enumerated attrs, however their corresponding DOM properties</span>
+    <span class="s3">// are actually booleans - this leads to setting it with a string &quot;false&quot;</span>
+    <span class="s3">// value leading it to be coerced to `true`, so we need to always treat</span>
+    <span class="s3">// them as attributes.</span>
+    <span class="s3">// Note that `contentEditable` doesn't have this problem: its DOM</span>
+    <span class="s3">// property is also enumerated string values.</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'spellcheck' </span><span class="s2">|| key === </span><span class="s0">'draggable' </span><span class="s2">|| key === </span><span class="s0">'translate'</span><span class="s2">) {</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s3">// #1787, #2840 form property on form elements is readonly and must be set as</span>
+    <span class="s3">// attribute.</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'form'</span><span class="s2">) {</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s3">// #1526 &lt;input list&gt; must be set as attribute</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'list' </span><span class="s2">&amp;&amp; el.tagName === </span><span class="s0">'INPUT'</span><span class="s2">) {</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s3">// #2766 &lt;textarea type&gt; must be set as attribute</span>
+    <span class="s1">if </span><span class="s2">(key === </span><span class="s0">'type' </span><span class="s2">&amp;&amp; el.tagName === </span><span class="s0">'TEXTAREA'</span><span class="s2">) {</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s3">// native onclick with string value, must be set as attribute</span>
+    <span class="s1">if </span><span class="s2">(nativeOnRE.test(key) &amp;&amp; shared.isString(value)) {</span>
+        <span class="s1">return false;</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">key </span><span class="s1">in </span><span class="s2">el</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">defineCustomElement(options</span><span class="s1">, </span><span class="s2">hydrate) {</span>
+    <span class="s1">const </span><span class="s2">Comp = runtimeCore.defineComponent(options)</span><span class="s1">;</span>
+    <span class="s1">class </span><span class="s2">VueCustomElement </span><span class="s1">extends </span><span class="s2">VueElement {</span>
+        <span class="s2">constructor(initialProps) {</span>
+            <span class="s1">super</span><span class="s2">(Comp</span><span class="s1">, </span><span class="s2">initialProps</span><span class="s1">, </span><span class="s2">hydrate)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">VueCustomElement.def = Comp</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">VueCustomElement</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">defineSSRCustomElement = ((options) =&gt; {</span>
+    <span class="s3">// @ts-ignore</span>
+    <span class="s1">return </span><span class="s2">defineCustomElement(options</span><span class="s1">, </span><span class="s2">hydrate)</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">BaseClass = (</span><span class="s1">typeof </span><span class="s2">HTMLElement !== </span><span class="s0">'undefined' </span><span class="s2">? HTMLElement : </span><span class="s1">class </span><span class="s2">{</span>
+<span class="s2">})</span><span class="s1">;</span>
+<span class="s1">class </span><span class="s2">VueElement </span><span class="s1">extends </span><span class="s2">BaseClass {</span>
+    <span class="s2">constructor(_def</span><span class="s1">, </span><span class="s2">_props = {}</span><span class="s1">, </span><span class="s2">hydrate) {</span>
+        <span class="s1">super</span><span class="s2">()</span><span class="s1">;</span>
+        <span class="s1">this</span><span class="s2">._def = _def</span><span class="s1">;</span>
+        <span class="s1">this</span><span class="s2">._props = _props</span><span class="s1">;</span>
+        <span class="s5">/**</span>
+         <span class="s5">* </span><span class="s6">@internal</span>
+         <span class="s5">*/</span>
+        <span class="s1">this</span><span class="s2">._instance = </span><span class="s1">null;</span>
+        <span class="s1">this</span><span class="s2">._connected = </span><span class="s1">false;</span>
+        <span class="s1">this</span><span class="s2">._resolved = </span><span class="s1">false;</span>
+        <span class="s1">this</span><span class="s2">._numberProps = </span><span class="s1">null;</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.shadowRoot &amp;&amp; hydrate) {</span>
+            <span class="s2">hydrate(</span><span class="s1">this</span><span class="s2">._createVNode()</span><span class="s1">, this</span><span class="s2">.shadowRoot)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">.shadowRoot) {</span>
+                <span class="s2">runtimeCore.warn(</span><span class="s0">`Custom element has pre-rendered declarative shadow root but is not ` </span><span class="s2">+</span>
+                    <span class="s0">`defined as hydratable. Use </span><span class="s1">\`</span><span class="s0">defineSSRCustomElement</span><span class="s1">\`</span><span class="s0">.`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">this</span><span class="s2">.attachShadow({ mode: </span><span class="s0">'open' </span><span class="s2">})</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(!</span><span class="s1">this</span><span class="s2">._def.__asyncLoader) {</span>
+                <span class="s3">// for sync component defs we can immediately resolve props</span>
+                <span class="s1">this</span><span class="s2">._resolveProps(</span><span class="s1">this</span><span class="s2">._def)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">connectedCallback() {</span>
+        <span class="s1">this</span><span class="s2">._connected = </span><span class="s1">true;</span>
+        <span class="s1">if </span><span class="s2">(!</span><span class="s1">this</span><span class="s2">._instance) {</span>
+            <span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">._resolved) {</span>
+                <span class="s1">this</span><span class="s2">._update()</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s1">this</span><span class="s2">._resolveDef()</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">disconnectedCallback() {</span>
+        <span class="s1">this</span><span class="s2">._connected = </span><span class="s1">false;</span>
+        <span class="s2">runtimeCore.nextTick(() =&gt; {</span>
+            <span class="s1">if </span><span class="s2">(!</span><span class="s1">this</span><span class="s2">._connected) {</span>
+                <span class="s2">render(</span><span class="s1">null, this</span><span class="s2">.shadowRoot)</span><span class="s1">;</span>
+                <span class="s1">this</span><span class="s2">._instance = </span><span class="s1">null;</span>
+            <span class="s2">}</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s5">/**</span>
+     <span class="s5">* resolve inner component definition (handle possible async component)</span>
+     <span class="s5">*/</span>
+    <span class="s2">_resolveDef() {</span>
+        <span class="s1">this</span><span class="s2">._resolved = </span><span class="s1">true;</span>
+        <span class="s3">// set initial attrs</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; </span><span class="s1">this</span><span class="s2">.attributes.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+            <span class="s1">this</span><span class="s2">._setAttr(</span><span class="s1">this</span><span class="s2">.attributes[i].name)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s3">// watch future attr changes</span>
+        <span class="s1">new </span><span class="s2">MutationObserver(mutations =&gt; {</span>
+            <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">m of mutations) {</span>
+                <span class="s1">this</span><span class="s2">._setAttr(m.attributeName)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}).observe(</span><span class="s1">this, </span><span class="s2">{ attributes: </span><span class="s1">true </span><span class="s2">})</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">resolve = (def</span><span class="s1">, </span><span class="s2">isAsync = </span><span class="s1">false</span><span class="s2">) =&gt; {</span>
+            <span class="s1">const </span><span class="s2">{ props</span><span class="s1">, </span><span class="s2">styles } = def</span><span class="s1">;</span>
+            <span class="s3">// cast Number-type props set before resolve</span>
+            <span class="s1">let </span><span class="s2">numberProps</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(props &amp;&amp; !shared.isArray(props)) {</span>
+                <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key </span><span class="s1">in </span><span class="s2">props) {</span>
+                    <span class="s1">const </span><span class="s2">opt = props[key]</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">(opt === Number || (opt &amp;&amp; opt.type === Number)) {</span>
+                        <span class="s1">if </span><span class="s2">(key </span><span class="s1">in this</span><span class="s2">._props) {</span>
+                            <span class="s1">this</span><span class="s2">._props[key] = shared.toNumber(</span><span class="s1">this</span><span class="s2">._props[key])</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s2">(numberProps || (numberProps = Object.create(</span><span class="s1">null</span><span class="s2">)))[shared.camelize(key)] = </span><span class="s1">true;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">this</span><span class="s2">._numberProps = numberProps</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(isAsync) {</span>
+                <span class="s3">// defining getter/setters on prototype</span>
+                <span class="s3">// for sync defs, this already happened in the constructor</span>
+                <span class="s1">this</span><span class="s2">._resolveProps(def)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s3">// apply CSS</span>
+            <span class="s1">this</span><span class="s2">._applyStyles(styles)</span><span class="s1">;</span>
+            <span class="s3">// initial render</span>
+            <span class="s1">this</span><span class="s2">._update()</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">asyncDef = </span><span class="s1">this</span><span class="s2">._def.__asyncLoader</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(asyncDef) {</span>
+            <span class="s2">asyncDef().then(def =&gt; resolve(def</span><span class="s1">, true</span><span class="s2">))</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">resolve(</span><span class="s1">this</span><span class="s2">._def)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">_resolveProps(def) {</span>
+        <span class="s1">const </span><span class="s2">{ props } = def</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">declaredPropKeys = shared.isArray(props) ? props : Object.keys(props || {})</span><span class="s1">;</span>
+        <span class="s3">// check if there are props set pre-upgrade or connect</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key of Object.keys(</span><span class="s1">this</span><span class="s2">)) {</span>
+            <span class="s1">if </span><span class="s2">(key[</span><span class="s4">0</span><span class="s2">] !== </span><span class="s0">'_' </span><span class="s2">&amp;&amp; declaredPropKeys.includes(key)) {</span>
+                <span class="s1">this</span><span class="s2">._setProp(key</span><span class="s1">, this</span><span class="s2">[key]</span><span class="s1">, true, false</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s3">// defining getter/setters on prototype</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key of declaredPropKeys.map(shared.camelize)) {</span>
+            <span class="s2">Object.defineProperty(</span><span class="s1">this, </span><span class="s2">key</span><span class="s1">, </span><span class="s2">{</span>
+                <span class="s2">get() {</span>
+                    <span class="s1">return this</span><span class="s2">._getProp(key)</span><span class="s1">;</span>
+                <span class="s2">}</span><span class="s1">,</span>
+                <span class="s2">set(val) {</span>
+                    <span class="s1">this</span><span class="s2">._setProp(key</span><span class="s1">, </span><span class="s2">val)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">_setAttr(key) {</span>
+        <span class="s1">let </span><span class="s2">value = </span><span class="s1">this</span><span class="s2">.getAttribute(key)</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">camelKey = shared.camelize(key)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">._numberProps &amp;&amp; </span><span class="s1">this</span><span class="s2">._numberProps[camelKey]) {</span>
+            <span class="s2">value = shared.toNumber(value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">this</span><span class="s2">._setProp(camelKey</span><span class="s1">, </span><span class="s2">value</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s5">/**</span>
+     <span class="s5">* </span><span class="s6">@internal</span>
+     <span class="s5">*/</span>
+    <span class="s2">_getProp(key) {</span>
+        <span class="s1">return this</span><span class="s2">._props[key]</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s5">/**</span>
+     <span class="s5">* </span><span class="s6">@internal</span>
+     <span class="s5">*/</span>
+    <span class="s2">_setProp(key</span><span class="s1">, </span><span class="s2">val</span><span class="s1">, </span><span class="s2">shouldReflect = </span><span class="s1">true, </span><span class="s2">shouldUpdate = </span><span class="s1">true</span><span class="s2">) {</span>
+        <span class="s1">if </span><span class="s2">(val !== </span><span class="s1">this</span><span class="s2">._props[key]) {</span>
+            <span class="s1">this</span><span class="s2">._props[key] = val</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(shouldUpdate &amp;&amp; </span><span class="s1">this</span><span class="s2">._instance) {</span>
+                <span class="s1">this</span><span class="s2">._update()</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s3">// reflect</span>
+            <span class="s1">if </span><span class="s2">(shouldReflect) {</span>
+                <span class="s1">if </span><span class="s2">(val === </span><span class="s1">true</span><span class="s2">) {</span>
+                    <span class="s1">this</span><span class="s2">.setAttribute(shared.hyphenate(key)</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">val === </span><span class="s0">'string' </span><span class="s2">|| </span><span class="s1">typeof </span><span class="s2">val === </span><span class="s0">'number'</span><span class="s2">) {</span>
+                    <span class="s1">this</span><span class="s2">.setAttribute(shared.hyphenate(key)</span><span class="s1">, </span><span class="s2">val + </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(!val) {</span>
+                    <span class="s1">this</span><span class="s2">.removeAttribute(shared.hyphenate(key))</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s2">_update() {</span>
+        <span class="s2">render(</span><span class="s1">this</span><span class="s2">._createVNode()</span><span class="s1">, this</span><span class="s2">.shadowRoot)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s2">_createVNode() {</span>
+        <span class="s1">const </span><span class="s2">vnode = runtimeCore.createVNode(</span><span class="s1">this</span><span class="s2">._def</span><span class="s1">, </span><span class="s2">shared.extend({}</span><span class="s1">, this</span><span class="s2">._props))</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!</span><span class="s1">this</span><span class="s2">._instance) {</span>
+            <span class="s2">vnode.ce = instance =&gt; {</span>
+                <span class="s1">this</span><span class="s2">._instance = instance</span><span class="s1">;</span>
+                <span class="s2">instance.isCE = </span><span class="s1">true;</span>
+                <span class="s3">// HMR</span>
+                <span class="s2">{</span>
+                    <span class="s2">instance.ceReload = newStyles =&gt; {</span>
+                        <span class="s3">// always reset styles</span>
+                        <span class="s1">if </span><span class="s2">(</span><span class="s1">this</span><span class="s2">._styles) {</span>
+                            <span class="s1">this</span><span class="s2">._styles.forEach(s =&gt; </span><span class="s1">this</span><span class="s2">.shadowRoot.removeChild(s))</span><span class="s1">;</span>
+                            <span class="s1">this</span><span class="s2">._styles.length = </span><span class="s4">0</span><span class="s1">;</span>
+                        <span class="s2">}</span>
+                        <span class="s1">this</span><span class="s2">._applyStyles(newStyles)</span><span class="s1">;</span>
+                        <span class="s1">this</span><span class="s2">._instance = </span><span class="s1">null;</span>
+                        <span class="s1">this</span><span class="s2">._update()</span><span class="s1">;</span>
+                    <span class="s2">}</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">const </span><span class="s2">dispatch = (event</span><span class="s1">, </span><span class="s2">args) =&gt; {</span>
+                    <span class="s1">this</span><span class="s2">.dispatchEvent(</span><span class="s1">new </span><span class="s2">CustomEvent(event</span><span class="s1">, </span><span class="s2">{</span>
+                        <span class="s2">detail: args</span>
+                    <span class="s2">}))</span><span class="s1">;</span>
+                <span class="s2">}</span><span class="s1">;</span>
+                <span class="s3">// intercept emit</span>
+                <span class="s2">instance.emit = (event</span><span class="s1">, </span><span class="s2">...args) =&gt; {</span>
+                    <span class="s3">// dispatch both the raw and hyphenated versions of an event</span>
+                    <span class="s3">// to match Vue behavior</span>
+                    <span class="s2">dispatch(event</span><span class="s1">, </span><span class="s2">args)</span><span class="s1">;</span>
+                    <span class="s1">if </span><span class="s2">(shared.hyphenate(event) !== event) {</span>
+                        <span class="s2">dispatch(shared.hyphenate(event)</span><span class="s1">, </span><span class="s2">args)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span><span class="s1">;</span>
+                <span class="s3">// locate nearest Vue custom element parent for provide/inject</span>
+                <span class="s1">let </span><span class="s2">parent = </span><span class="s1">this;</span>
+                <span class="s1">while </span><span class="s2">((parent =</span>
+                    <span class="s2">parent &amp;&amp; (parent.parentNode || parent.host))) {</span>
+                    <span class="s1">if </span><span class="s2">(parent </span><span class="s1">instanceof </span><span class="s2">VueElement) {</span>
+                        <span class="s2">instance.parent = parent._instance</span><span class="s1">;</span>
+                        <span class="s2">instance.provides = parent._instance.provides</span><span class="s1">;</span>
+                        <span class="s1">break;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">vnode</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s2">_applyStyles(styles) {</span>
+        <span class="s1">if </span><span class="s2">(styles) {</span>
+            <span class="s2">styles.forEach(css =&gt; {</span>
+                <span class="s1">const </span><span class="s2">s = document.createElement(</span><span class="s0">'style'</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">s.textContent = css</span><span class="s1">;</span>
+                <span class="s1">this</span><span class="s2">.shadowRoot.appendChild(s)</span><span class="s1">;</span>
+                <span class="s3">// record for HMR</span>
+                <span class="s2">{</span>
+                    <span class="s2">(</span><span class="s1">this</span><span class="s2">._styles || (</span><span class="s1">this</span><span class="s2">._styles = [])).push(s)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s1">function </span><span class="s2">useCssModule(name = </span><span class="s0">'$style'</span><span class="s2">) {</span>
+    <span class="s3">/* istanbul ignore else */</span>
+    <span class="s2">{</span>
+        <span class="s1">const </span><span class="s2">instance = runtimeCore.getCurrentInstance()</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!instance) {</span>
+            <span class="s2">runtimeCore.warn(</span><span class="s0">`useCssModule must be called inside setup()`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">return </span><span class="s2">shared.EMPTY_OBJ</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">const </span><span class="s2">modules = instance.type.__cssModules</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!modules) {</span>
+            <span class="s2">runtimeCore.warn(</span><span class="s0">`Current instance does not have CSS modules injected.`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">return </span><span class="s2">shared.EMPTY_OBJ</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">const </span><span class="s2">mod = modules[name]</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!mod) {</span>
+            <span class="s2">runtimeCore.warn(</span><span class="s0">`Current instance does not have CSS module named &quot;</span><span class="s2">${name}</span><span class="s0">&quot;.`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s1">return </span><span class="s2">shared.EMPTY_OBJ</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">mod</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+
+<span class="s5">/**</span>
+ <span class="s5">* Runtime helper for SFC's CSS variable injection feature.</span>
+ <span class="s5">* </span><span class="s6">@private</span>
+ <span class="s5">*/</span>
+<span class="s1">function </span><span class="s2">useCssVars(getter) {</span>
+    <span class="s1">return;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">TRANSITION = </span><span class="s0">'transition'</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">ANIMATION = </span><span class="s0">'animation'</span><span class="s1">;</span>
+<span class="s3">// DOM Transition is a higher-order-component based on the platform-agnostic</span>
+<span class="s3">// base Transition component, with DOM-specific logic.</span>
+<span class="s1">const </span><span class="s2">Transition = (props</span><span class="s1">, </span><span class="s2">{ slots }) =&gt; runtimeCore.h(runtimeCore.BaseTransition</span><span class="s1">, </span><span class="s2">resolveTransitionProps(props)</span><span class="s1">, </span><span class="s2">slots)</span><span class="s1">;</span>
+<span class="s2">Transition.displayName = </span><span class="s0">'Transition'</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">DOMTransitionPropsValidators = {</span>
+    <span class="s2">name: String</span><span class="s1">,</span>
+    <span class="s2">type: String</span><span class="s1">,</span>
+    <span class="s2">css: {</span>
+        <span class="s2">type: Boolean</span><span class="s1">,</span>
+        <span class="s1">default</span><span class="s2">: </span><span class="s1">true</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">duration: [String</span><span class="s1">, </span><span class="s2">Number</span><span class="s1">, </span><span class="s2">Object]</span><span class="s1">,</span>
+    <span class="s2">enterFromClass: String</span><span class="s1">,</span>
+    <span class="s2">enterActiveClass: String</span><span class="s1">,</span>
+    <span class="s2">enterToClass: String</span><span class="s1">,</span>
+    <span class="s2">appearFromClass: String</span><span class="s1">,</span>
+    <span class="s2">appearActiveClass: String</span><span class="s1">,</span>
+    <span class="s2">appearToClass: String</span><span class="s1">,</span>
+    <span class="s2">leaveFromClass: String</span><span class="s1">,</span>
+    <span class="s2">leaveActiveClass: String</span><span class="s1">,</span>
+    <span class="s2">leaveToClass: String</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">TransitionPropsValidators = (Transition.props =</span>
+    <span class="s3">/*#__PURE__*/ </span><span class="s2">shared.extend({}</span><span class="s1">, </span><span class="s2">runtimeCore.BaseTransition.props</span><span class="s1">, </span><span class="s2">DOMTransitionPropsValidators))</span><span class="s1">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* #3227 Incoming hooks may be merged into arrays when wrapping Transition</span>
+ <span class="s5">* with custom HOCs.</span>
+ <span class="s5">*/</span>
+<span class="s1">const </span><span class="s2">callHook = (hook</span><span class="s1">, </span><span class="s2">args = []) =&gt; {</span>
+    <span class="s1">if </span><span class="s2">(shared.isArray(hook)) {</span>
+        <span class="s2">hook.forEach(h =&gt; h(...args))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(hook) {</span>
+        <span class="s2">hook(...args)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* Check if a hook expects a callback (2nd arg), which means the user</span>
+ <span class="s5">* intends to explicitly control the end of the transition.</span>
+ <span class="s5">*/</span>
+<span class="s1">const </span><span class="s2">hasExplicitCallback = (hook) =&gt; {</span>
+    <span class="s1">return </span><span class="s2">hook</span>
+        <span class="s2">? shared.isArray(hook)</span>
+            <span class="s2">? hook.some(h =&gt; h.length &gt; </span><span class="s4">1</span><span class="s2">)</span>
+            <span class="s2">: hook.length &gt; </span><span class="s4">1</span>
+        <span class="s2">: </span><span class="s1">false;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">resolveTransitionProps(rawProps) {</span>
+    <span class="s1">const </span><span class="s2">baseProps = {}</span><span class="s1">;</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">const </span><span class="s2">key </span><span class="s1">in </span><span class="s2">rawProps) {</span>
+        <span class="s1">if </span><span class="s2">(!(key </span><span class="s1">in </span><span class="s2">DOMTransitionPropsValidators)) {</span>
+            <span class="s2">baseProps[key] = rawProps[key]</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(rawProps.css === </span><span class="s1">false</span><span class="s2">) {</span>
+        <span class="s1">return </span><span class="s2">baseProps</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ name = </span><span class="s0">'v'</span><span class="s1">, </span><span class="s2">type</span><span class="s1">, </span><span class="s2">duration</span><span class="s1">, </span><span class="s2">enterFromClass = </span><span class="s0">`</span><span class="s2">${name}</span><span class="s0">-enter-from`</span><span class="s1">, </span><span class="s2">enterActiveClass = </span><span class="s0">`</span><span class="s2">${name}</span><span class="s0">-enter-active`</span><span class="s1">, </span><span class="s2">enterToClass = </span><span class="s0">`</span><span class="s2">${name}</span><span class="s0">-enter-to`</span><span class="s1">, </span><span class="s2">appearFromClass = enterFromClass</span><span class="s1">, </span><span class="s2">appearActiveClass = enterActiveClass</span><span class="s1">, </span><span class="s2">appearToClass = enterToClass</span><span class="s1">, </span><span class="s2">leaveFromClass = </span><span class="s0">`</span><span class="s2">${name}</span><span class="s0">-leave-from`</span><span class="s1">, </span><span class="s2">leaveActiveClass = </span><span class="s0">`</span><span class="s2">${name}</span><span class="s0">-leave-active`</span><span class="s1">, </span><span class="s2">leaveToClass = </span><span class="s0">`</span><span class="s2">${name}</span><span class="s0">-leave-to` </span><span class="s2">} = rawProps</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">durations = normalizeDuration(duration)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">enterDuration = durations &amp;&amp; durations[</span><span class="s4">0</span><span class="s2">]</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">leaveDuration = durations &amp;&amp; durations[</span><span class="s4">1</span><span class="s2">]</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">{ onBeforeEnter</span><span class="s1">, </span><span class="s2">onEnter</span><span class="s1">, </span><span class="s2">onEnterCancelled</span><span class="s1">, </span><span class="s2">onLeave</span><span class="s1">, </span><span class="s2">onLeaveCancelled</span><span class="s1">, </span><span class="s2">onBeforeAppear = onBeforeEnter</span><span class="s1">, </span><span class="s2">onAppear = onEnter</span><span class="s1">, </span><span class="s2">onAppearCancelled = onEnterCancelled } = baseProps</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">finishEnter = (el</span><span class="s1">, </span><span class="s2">isAppear</span><span class="s1">, </span><span class="s2">done) =&gt; {</span>
+        <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">isAppear ? appearToClass : enterToClass)</span><span class="s1">;</span>
+        <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">isAppear ? appearActiveClass : enterActiveClass)</span><span class="s1">;</span>
+        <span class="s2">done &amp;&amp; done()</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">finishLeave = (el</span><span class="s1">, </span><span class="s2">done) =&gt; {</span>
+        <span class="s2">el._isLeaving = </span><span class="s1">false;</span>
+        <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveFromClass)</span><span class="s1">;</span>
+        <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveToClass)</span><span class="s1">;</span>
+        <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveActiveClass)</span><span class="s1">;</span>
+        <span class="s2">done &amp;&amp; done()</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">makeEnterHook = (isAppear) =&gt; {</span>
+        <span class="s1">return </span><span class="s2">(el</span><span class="s1">, </span><span class="s2">done) =&gt; {</span>
+            <span class="s1">const </span><span class="s2">hook = isAppear ? onAppear : onEnter</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">resolve = () =&gt; finishEnter(el</span><span class="s1">, </span><span class="s2">isAppear</span><span class="s1">, </span><span class="s2">done)</span><span class="s1">;</span>
+            <span class="s2">callHook(hook</span><span class="s1">, </span><span class="s2">[el</span><span class="s1">, </span><span class="s2">resolve])</span><span class="s1">;</span>
+            <span class="s2">nextFrame(() =&gt; {</span>
+                <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">isAppear ? appearFromClass : enterFromClass)</span><span class="s1">;</span>
+                <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">isAppear ? appearToClass : enterToClass)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(!hasExplicitCallback(hook)) {</span>
+                    <span class="s2">whenTransitionEnds(el</span><span class="s1">, </span><span class="s2">type</span><span class="s1">, </span><span class="s2">enterDuration</span><span class="s1">, </span><span class="s2">resolve)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">shared.extend(baseProps</span><span class="s1">, </span><span class="s2">{</span>
+        <span class="s2">onBeforeEnter(el) {</span>
+            <span class="s2">callHook(onBeforeEnter</span><span class="s1">, </span><span class="s2">[el])</span><span class="s1">;</span>
+            <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">enterFromClass)</span><span class="s1">;</span>
+            <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">enterActiveClass)</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">onBeforeAppear(el) {</span>
+            <span class="s2">callHook(onBeforeAppear</span><span class="s1">, </span><span class="s2">[el])</span><span class="s1">;</span>
+            <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">appearFromClass)</span><span class="s1">;</span>
+            <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">appearActiveClass)</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">onEnter: makeEnterHook(</span><span class="s1">false</span><span class="s2">)</span><span class="s1">,</span>
+        <span class="s2">onAppear: makeEnterHook(</span><span class="s1">true</span><span class="s2">)</span><span class="s1">,</span>
+        <span class="s2">onLeave(el</span><span class="s1">, </span><span class="s2">done) {</span>
+            <span class="s2">el._isLeaving = </span><span class="s1">true;</span>
+            <span class="s1">const </span><span class="s2">resolve = () =&gt; finishLeave(el</span><span class="s1">, </span><span class="s2">done)</span><span class="s1">;</span>
+            <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveFromClass)</span><span class="s1">;</span>
+            <span class="s3">// force reflow so *-leave-from classes immediately take effect (#2593)</span>
+            <span class="s2">forceReflow()</span><span class="s1">;</span>
+            <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveActiveClass)</span><span class="s1">;</span>
+            <span class="s2">nextFrame(() =&gt; {</span>
+                <span class="s1">if </span><span class="s2">(!el._isLeaving) {</span>
+                    <span class="s3">// cancelled</span>
+                    <span class="s1">return;</span>
+                <span class="s2">}</span>
+                <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveFromClass)</span><span class="s1">;</span>
+                <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">leaveToClass)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(!hasExplicitCallback(onLeave)) {</span>
+                    <span class="s2">whenTransitionEnds(el</span><span class="s1">, </span><span class="s2">type</span><span class="s1">, </span><span class="s2">leaveDuration</span><span class="s1">, </span><span class="s2">resolve)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">})</span><span class="s1">;</span>
+            <span class="s2">callHook(onLeave</span><span class="s1">, </span><span class="s2">[el</span><span class="s1">, </span><span class="s2">resolve])</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">onEnterCancelled(el) {</span>
+            <span class="s2">finishEnter(el</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">callHook(onEnterCancelled</span><span class="s1">, </span><span class="s2">[el])</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">onAppearCancelled(el) {</span>
+            <span class="s2">finishEnter(el</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">callHook(onAppearCancelled</span><span class="s1">, </span><span class="s2">[el])</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">,</span>
+        <span class="s2">onLeaveCancelled(el) {</span>
+            <span class="s2">finishLeave(el)</span><span class="s1">;</span>
+            <span class="s2">callHook(onLeaveCancelled</span><span class="s1">, </span><span class="s2">[el])</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">})</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">normalizeDuration(duration) {</span>
+    <span class="s1">if </span><span class="s2">(duration == </span><span class="s1">null</span><span class="s2">) {</span>
+        <span class="s1">return null;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(shared.isObject(duration)) {</span>
+        <span class="s1">return </span><span class="s2">[NumberOf(duration.enter)</span><span class="s1">, </span><span class="s2">NumberOf(duration.leave)]</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s1">const </span><span class="s2">n = NumberOf(duration)</span><span class="s1">;</span>
+        <span class="s1">return </span><span class="s2">[n</span><span class="s1">, </span><span class="s2">n]</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">NumberOf(val) {</span>
+    <span class="s1">const </span><span class="s2">res = shared.toNumber(val)</span><span class="s1">;</span>
+    <span class="s2">{</span>
+        <span class="s2">runtimeCore.assertNumber(res</span><span class="s1">, </span><span class="s0">'&lt;transition&gt; explicit duration'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">res</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">cls) {</span>
+    <span class="s2">cls.split(</span><span class="s4">/\s+/</span><span class="s2">).forEach(c =&gt; c &amp;&amp; el.classList.add(c))</span><span class="s1">;</span>
+    <span class="s2">(el._vtc ||</span>
+        <span class="s2">(el._vtc = </span><span class="s1">new </span><span class="s2">Set())).add(cls)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">cls) {</span>
+    <span class="s2">cls.split(</span><span class="s4">/\s+/</span><span class="s2">).forEach(c =&gt; c &amp;&amp; el.classList.remove(c))</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">{ _vtc } = el</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(_vtc) {</span>
+        <span class="s2">_vtc.delete(cls)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!_vtc.size) {</span>
+            <span class="s2">el._vtc = undefined</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">nextFrame(cb) {</span>
+    <span class="s2">requestAnimationFrame(() =&gt; {</span>
+        <span class="s2">requestAnimationFrame(cb)</span><span class="s1">;</span>
+    <span class="s2">})</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">let </span><span class="s2">endId = </span><span class="s4">0</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">whenTransitionEnds(el</span><span class="s1">, </span><span class="s2">expectedType</span><span class="s1">, </span><span class="s2">explicitTimeout</span><span class="s1">, </span><span class="s2">resolve) {</span>
+    <span class="s1">const </span><span class="s2">id = (el._endId = ++endId)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">resolveIfNotStale = () =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(id === el._endId) {</span>
+            <span class="s2">resolve()</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(explicitTimeout) {</span>
+        <span class="s1">return </span><span class="s2">setTimeout(resolveIfNotStale</span><span class="s1">, </span><span class="s2">explicitTimeout)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ type</span><span class="s1">, </span><span class="s2">timeout</span><span class="s1">, </span><span class="s2">propCount } = getTransitionInfo(el</span><span class="s1">, </span><span class="s2">expectedType)</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(!type) {</span>
+        <span class="s1">return </span><span class="s2">resolve()</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">endEvent = type + </span><span class="s0">'end'</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">ended = </span><span class="s4">0</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">end = () =&gt; {</span>
+        <span class="s2">el.removeEventListener(endEvent</span><span class="s1">, </span><span class="s2">onEnd)</span><span class="s1">;</span>
+        <span class="s2">resolveIfNotStale()</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">onEnd = (e) =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(e.target === el &amp;&amp; ++ended &gt;= propCount) {</span>
+            <span class="s2">end()</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">setTimeout(() =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(ended &lt; propCount) {</span>
+            <span class="s2">end()</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">, </span><span class="s2">timeout + </span><span class="s4">1</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">el.addEventListener(endEvent</span><span class="s1">, </span><span class="s2">onEnd)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">getTransitionInfo(el</span><span class="s1">, </span><span class="s2">expectedType) {</span>
+    <span class="s1">const </span><span class="s2">styles = window.getComputedStyle(el)</span><span class="s1">;</span>
+    <span class="s3">// JSDOM may return undefined for transition properties</span>
+    <span class="s1">const </span><span class="s2">getStyleProperties = (key) =&gt; (styles[key] || </span><span class="s0">''</span><span class="s2">).split(</span><span class="s0">', '</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">transitionDelays = getStyleProperties(</span><span class="s0">`</span><span class="s2">${TRANSITION}</span><span class="s0">Delay`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">transitionDurations = getStyleProperties(</span><span class="s0">`</span><span class="s2">${TRANSITION}</span><span class="s0">Duration`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">transitionTimeout = getTimeout(transitionDelays</span><span class="s1">, </span><span class="s2">transitionDurations)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">animationDelays = getStyleProperties(</span><span class="s0">`</span><span class="s2">${ANIMATION}</span><span class="s0">Delay`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">animationDurations = getStyleProperties(</span><span class="s0">`</span><span class="s2">${ANIMATION}</span><span class="s0">Duration`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">animationTimeout = getTimeout(animationDelays</span><span class="s1">, </span><span class="s2">animationDurations)</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">type = </span><span class="s1">null;</span>
+    <span class="s1">let </span><span class="s2">timeout = </span><span class="s4">0</span><span class="s1">;</span>
+    <span class="s1">let </span><span class="s2">propCount = </span><span class="s4">0</span><span class="s1">;</span>
+    <span class="s3">/* istanbul ignore if */</span>
+    <span class="s1">if </span><span class="s2">(expectedType === TRANSITION) {</span>
+        <span class="s1">if </span><span class="s2">(transitionTimeout &gt; </span><span class="s4">0</span><span class="s2">) {</span>
+            <span class="s2">type = TRANSITION</span><span class="s1">;</span>
+            <span class="s2">timeout = transitionTimeout</span><span class="s1">;</span>
+            <span class="s2">propCount = transitionDurations.length</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(expectedType === ANIMATION) {</span>
+        <span class="s1">if </span><span class="s2">(animationTimeout &gt; </span><span class="s4">0</span><span class="s2">) {</span>
+            <span class="s2">type = ANIMATION</span><span class="s1">;</span>
+            <span class="s2">timeout = animationTimeout</span><span class="s1">;</span>
+            <span class="s2">propCount = animationDurations.length</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">else </span><span class="s2">{</span>
+        <span class="s2">timeout = Math.max(transitionTimeout</span><span class="s1">, </span><span class="s2">animationTimeout)</span><span class="s1">;</span>
+        <span class="s2">type =</span>
+            <span class="s2">timeout &gt; </span><span class="s4">0</span>
+                <span class="s2">? transitionTimeout &gt; animationTimeout</span>
+                    <span class="s2">? TRANSITION</span>
+                    <span class="s2">: ANIMATION</span>
+                <span class="s2">: </span><span class="s1">null;</span>
+        <span class="s2">propCount = type</span>
+            <span class="s2">? type === TRANSITION</span>
+                <span class="s2">? transitionDurations.length</span>
+                <span class="s2">: animationDurations.length</span>
+            <span class="s2">: </span><span class="s4">0</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">hasTransform = type === TRANSITION &amp;&amp;</span>
+        <span class="s4">/\b(transform|all)(,|$)/</span><span class="s2">.test(getStyleProperties(</span><span class="s0">`</span><span class="s2">${TRANSITION}</span><span class="s0">Property`</span><span class="s2">).toString())</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">{</span>
+        <span class="s2">type</span><span class="s1">,</span>
+        <span class="s2">timeout</span><span class="s1">,</span>
+        <span class="s2">propCount</span><span class="s1">,</span>
+        <span class="s2">hasTransform</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">getTimeout(delays</span><span class="s1">, </span><span class="s2">durations) {</span>
+    <span class="s1">while </span><span class="s2">(delays.length &lt; durations.length) {</span>
+        <span class="s2">delays = delays.concat(delays)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">Math.max(...durations.map((d</span><span class="s1">, </span><span class="s2">i) =&gt; toMs(d) + toMs(delays[i])))</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// Old versions of Chromium (below 61.0.3163.100) formats floating pointer</span>
+<span class="s3">// numbers in a locale-dependent way, using a comma instead of a dot.</span>
+<span class="s3">// If comma is not replaced with a dot, the input will be rounded down</span>
+<span class="s3">// (i.e. acting as a floor function) causing unexpected behaviors</span>
+<span class="s1">function </span><span class="s2">toMs(s) {</span>
+    <span class="s1">return </span><span class="s2">Number(s.slice(</span><span class="s4">0</span><span class="s1">, </span><span class="s2">-</span><span class="s4">1</span><span class="s2">).replace(</span><span class="s0">','</span><span class="s1">, </span><span class="s0">'.'</span><span class="s2">)) * </span><span class="s4">1000</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// synchronously force layout to put elements into a certain state</span>
+<span class="s1">function </span><span class="s2">forceReflow() {</span>
+    <span class="s1">return </span><span class="s2">document.body.offsetHeight</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">positionMap = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">newPositionMap = </span><span class="s1">new </span><span class="s2">WeakMap()</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">TransitionGroupImpl = {</span>
+    <span class="s2">name: </span><span class="s0">'TransitionGroup'</span><span class="s1">,</span>
+    <span class="s2">props: </span><span class="s3">/*#__PURE__*/ </span><span class="s2">shared.extend({}</span><span class="s1">, </span><span class="s2">TransitionPropsValidators</span><span class="s1">, </span><span class="s2">{</span>
+        <span class="s2">tag: String</span><span class="s1">,</span>
+        <span class="s2">moveClass: String</span>
+    <span class="s2">})</span><span class="s1">,</span>
+    <span class="s2">setup(props</span><span class="s1">, </span><span class="s2">{ slots }) {</span>
+        <span class="s1">const </span><span class="s2">instance = runtimeCore.getCurrentInstance()</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">state = runtimeCore.useTransitionState()</span><span class="s1">;</span>
+        <span class="s1">let </span><span class="s2">prevChildren</span><span class="s1">;</span>
+        <span class="s1">let </span><span class="s2">children</span><span class="s1">;</span>
+        <span class="s2">runtimeCore.onUpdated(() =&gt; {</span>
+            <span class="s3">// children is guaranteed to exist after initial render</span>
+            <span class="s1">if </span><span class="s2">(!prevChildren.length) {</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s1">const </span><span class="s2">moveClass = props.moveClass || </span><span class="s0">`</span><span class="s2">${props.name || </span><span class="s0">'v'</span><span class="s2">}</span><span class="s0">-move`</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(!hasCSSTransform(prevChildren[</span><span class="s4">0</span><span class="s2">].el</span><span class="s1">, </span><span class="s2">instance.vnode.el</span><span class="s1">, </span><span class="s2">moveClass)) {</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s3">// we divide the work into three loops to avoid mixing DOM reads and writes</span>
+            <span class="s3">// in each iteration - which helps prevent layout thrashing.</span>
+            <span class="s2">prevChildren.forEach(callPendingCbs)</span><span class="s1">;</span>
+            <span class="s2">prevChildren.forEach(recordPosition)</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">movedChildren = prevChildren.filter(applyTranslation)</span><span class="s1">;</span>
+            <span class="s3">// force reflow to put everything in position</span>
+            <span class="s2">forceReflow()</span><span class="s1">;</span>
+            <span class="s2">movedChildren.forEach(c =&gt; {</span>
+                <span class="s1">const </span><span class="s2">el = c.el</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">style = el.style</span><span class="s1">;</span>
+                <span class="s2">addTransitionClass(el</span><span class="s1">, </span><span class="s2">moveClass)</span><span class="s1">;</span>
+                <span class="s2">style.transform = style.webkitTransform = style.transitionDuration = </span><span class="s0">''</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">cb = (el._moveCb = (e) =&gt; {</span>
+                    <span class="s1">if </span><span class="s2">(e &amp;&amp; e.target !== el) {</span>
+                        <span class="s1">return;</span>
+                    <span class="s2">}</span>
+                    <span class="s1">if </span><span class="s2">(!e || </span><span class="s4">/transform$/</span><span class="s2">.test(e.propertyName)) {</span>
+                        <span class="s2">el.removeEventListener(</span><span class="s0">'transitionend'</span><span class="s1">, </span><span class="s2">cb)</span><span class="s1">;</span>
+                        <span class="s2">el._moveCb = </span><span class="s1">null;</span>
+                        <span class="s2">removeTransitionClass(el</span><span class="s1">, </span><span class="s2">moveClass)</span><span class="s1">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">})</span><span class="s1">;</span>
+                <span class="s2">el.addEventListener(</span><span class="s0">'transitionend'</span><span class="s1">, </span><span class="s2">cb)</span><span class="s1">;</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">;</span>
+        <span class="s1">return </span><span class="s2">() =&gt; {</span>
+            <span class="s1">const </span><span class="s2">rawProps = runtimeCore.toRaw(props)</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">cssTransitionProps = resolveTransitionProps(rawProps)</span><span class="s1">;</span>
+            <span class="s1">let </span><span class="s2">tag = rawProps.tag || runtimeCore.Fragment</span><span class="s1">;</span>
+            <span class="s2">prevChildren = children</span><span class="s1">;</span>
+            <span class="s2">children = slots.default ? runtimeCore.getTransitionRawChildren(slots.default()) : []</span><span class="s1">;</span>
+            <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; children.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+                <span class="s1">const </span><span class="s2">child = children[i]</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(child.key != </span><span class="s1">null</span><span class="s2">) {</span>
+                    <span class="s2">runtimeCore.setTransitionHooks(child</span><span class="s1">, </span><span class="s2">runtimeCore.resolveTransitionHooks(child</span><span class="s1">, </span><span class="s2">cssTransitionProps</span><span class="s1">, </span><span class="s2">state</span><span class="s1">, </span><span class="s2">instance))</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s2">runtimeCore.warn(</span><span class="s0">`&lt;TransitionGroup&gt; children must be keyed.`</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(prevChildren) {</span>
+                <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; prevChildren.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+                    <span class="s1">const </span><span class="s2">child = prevChildren[i]</span><span class="s1">;</span>
+                    <span class="s2">runtimeCore.setTransitionHooks(child</span><span class="s1">, </span><span class="s2">runtimeCore.resolveTransitionHooks(child</span><span class="s1">, </span><span class="s2">cssTransitionProps</span><span class="s1">, </span><span class="s2">state</span><span class="s1">, </span><span class="s2">instance))</span><span class="s1">;</span>
+                    <span class="s2">positionMap.set(child</span><span class="s1">, </span><span class="s2">child.el.getBoundingClientRect())</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">return </span><span class="s2">runtimeCore.createVNode(tag</span><span class="s1">, null, </span><span class="s2">children)</span><span class="s1">;</span>
+        <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* TransitionGroup does not support &quot;mode&quot; so we need to remove it from the</span>
+ <span class="s5">* props declarations, but direct delete operation is considered a side effect</span>
+ <span class="s5">* and will make the entire transition feature non-tree-shakeable, so we do it</span>
+ <span class="s5">* in a function and mark the function's invocation as pure.</span>
+ <span class="s5">*/</span>
+<span class="s1">const </span><span class="s2">removeMode = (props) =&gt; </span><span class="s1">delete </span><span class="s2">props.mode</span><span class="s1">;</span>
+<span class="s3">/*#__PURE__*/ </span><span class="s2">removeMode(TransitionGroupImpl.props)</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">TransitionGroup = TransitionGroupImpl</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">callPendingCbs(c) {</span>
+    <span class="s1">const </span><span class="s2">el = c.el</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(el._moveCb) {</span>
+        <span class="s2">el._moveCb()</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(el._enterCb) {</span>
+        <span class="s2">el._enterCb()</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">recordPosition(c) {</span>
+    <span class="s2">newPositionMap.set(c</span><span class="s1">, </span><span class="s2">c.el.getBoundingClientRect())</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">applyTranslation(c) {</span>
+    <span class="s1">const </span><span class="s2">oldPos = positionMap.get(c)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">newPos = newPositionMap.get(c)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">dx = oldPos.left - newPos.left</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">dy = oldPos.top - newPos.top</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(dx || dy) {</span>
+        <span class="s1">const </span><span class="s2">s = c.el.style</span><span class="s1">;</span>
+        <span class="s2">s.transform = s.webkitTransform = </span><span class="s0">`translate(</span><span class="s2">${dx}</span><span class="s0">px,</span><span class="s2">${dy}</span><span class="s0">px)`</span><span class="s1">;</span>
+        <span class="s2">s.transitionDuration = </span><span class="s0">'0s'</span><span class="s1">;</span>
+        <span class="s1">return </span><span class="s2">c</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">hasCSSTransform(el</span><span class="s1">, </span><span class="s2">root</span><span class="s1">, </span><span class="s2">moveClass) {</span>
+    <span class="s3">// Detect whether an element with the move class applied has</span>
+    <span class="s3">// CSS transitions. Since the element may be inside an entering</span>
+    <span class="s3">// transition at this very moment, we make a clone of it and remove</span>
+    <span class="s3">// all other transition classes applied to ensure only the move class</span>
+    <span class="s3">// is applied.</span>
+    <span class="s1">const </span><span class="s2">clone = el.cloneNode()</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(el._vtc) {</span>
+        <span class="s2">el._vtc.forEach(cls =&gt; {</span>
+            <span class="s2">cls.split(</span><span class="s4">/\s+/</span><span class="s2">).forEach(c =&gt; c &amp;&amp; clone.classList.remove(c))</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s2">moveClass.split(</span><span class="s4">/\s+/</span><span class="s2">).forEach(c =&gt; c &amp;&amp; clone.classList.add(c))</span><span class="s1">;</span>
+    <span class="s2">clone.style.display = </span><span class="s0">'none'</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">container = (root.nodeType === </span><span class="s4">1 </span><span class="s2">? root : root.parentNode)</span><span class="s1">;</span>
+    <span class="s2">container.appendChild(clone)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">{ hasTransform } = getTransitionInfo(clone)</span><span class="s1">;</span>
+    <span class="s2">container.removeChild(clone)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">hasTransform</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">getModelAssigner = (vnode) =&gt; {</span>
+    <span class="s1">const </span><span class="s2">fn = vnode.props[</span><span class="s0">'onUpdate:modelValue'</span><span class="s2">] ||</span>
+        <span class="s2">(</span><span class="s1">false </span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">shared.isArray(fn) ? value =&gt; shared.invokeArrayFns(fn</span><span class="s1">, </span><span class="s2">value) : fn</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">onCompositionStart(e) {</span>
+    <span class="s2">e.target.composing = </span><span class="s1">true;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">onCompositionEnd(e) {</span>
+    <span class="s1">const </span><span class="s2">target = e.target</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(target.composing) {</span>
+        <span class="s2">target.composing = </span><span class="s1">false;</span>
+        <span class="s2">target.dispatchEvent(</span><span class="s1">new </span><span class="s2">Event(</span><span class="s0">'input'</span><span class="s2">))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s3">// We are exporting the v-model runtime directly as vnode hooks so that it can</span>
+<span class="s3">// be tree-shaken in case v-model is never used.</span>
+<span class="s1">const </span><span class="s2">vModelText = {</span>
+    <span class="s2">created(el</span><span class="s1">, </span><span class="s2">{ modifiers: { lazy</span><span class="s1">, </span><span class="s2">trim</span><span class="s1">, </span><span class="s2">number } }</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">castToNumber = number || (vnode.props &amp;&amp; vnode.props.type === </span><span class="s0">'number'</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s2">lazy ? </span><span class="s0">'change' </span><span class="s2">: </span><span class="s0">'input'</span><span class="s1">, </span><span class="s2">e =&gt; {</span>
+            <span class="s1">if </span><span class="s2">(e.target.composing)</span>
+                <span class="s1">return;</span>
+            <span class="s1">let </span><span class="s2">domValue = el.value</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(trim) {</span>
+                <span class="s2">domValue = domValue.trim()</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(castToNumber) {</span>
+                <span class="s2">domValue = shared.looseToNumber(domValue)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s2">el._assign(domValue)</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(trim) {</span>
+            <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'change'</span><span class="s1">, </span><span class="s2">() =&gt; {</span>
+                <span class="s2">el.value = el.value.trim()</span><span class="s1">;</span>
+            <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">if </span><span class="s2">(!lazy) {</span>
+            <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'compositionstart'</span><span class="s1">, </span><span class="s2">onCompositionStart)</span><span class="s1">;</span>
+            <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'compositionend'</span><span class="s1">, </span><span class="s2">onCompositionEnd)</span><span class="s1">;</span>
+            <span class="s3">// Safari &lt; 10.2 &amp; UIWebView doesn't fire compositionend when</span>
+            <span class="s3">// switching focus before confirming composition choice</span>
+            <span class="s3">// this also fixes the issue where some browsers e.g. iOS Chrome</span>
+            <span class="s3">// fires &quot;change&quot; instead of &quot;input&quot; on autocomplete.</span>
+            <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'change'</span><span class="s1">, </span><span class="s2">onCompositionEnd)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s3">// set value on mounted so it's after min/max for type=&quot;range&quot;</span>
+    <span class="s2">mounted(el</span><span class="s1">, </span><span class="s2">{ value }) {</span>
+        <span class="s2">el.value = value == </span><span class="s1">null </span><span class="s2">? </span><span class="s0">'' </span><span class="s2">: value</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">beforeUpdate(el</span><span class="s1">, </span><span class="s2">{ value</span><span class="s1">, </span><span class="s2">modifiers: { lazy</span><span class="s1">, </span><span class="s2">trim</span><span class="s1">, </span><span class="s2">number } }</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+        <span class="s3">// avoid clearing unresolved text. #2302</span>
+        <span class="s1">if </span><span class="s2">(el.composing)</span>
+            <span class="s1">return;</span>
+        <span class="s1">if </span><span class="s2">(document.activeElement === el &amp;&amp; el.type !== </span><span class="s0">'range'</span><span class="s2">) {</span>
+            <span class="s1">if </span><span class="s2">(lazy) {</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">(trim &amp;&amp; el.value.trim() === value) {</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+            <span class="s1">if </span><span class="s2">((number || el.type === </span><span class="s0">'number'</span><span class="s2">) &amp;&amp;</span>
+                <span class="s2">shared.looseToNumber(el.value) === value) {</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">const </span><span class="s2">newValue = value == </span><span class="s1">null </span><span class="s2">? </span><span class="s0">'' </span><span class="s2">: value</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(el.value !== newValue) {</span>
+            <span class="s2">el.value = newValue</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">vModelCheckbox = {</span>
+    <span class="s3">// #4096 array checkboxes need to be deep traversed</span>
+    <span class="s2">deep: </span><span class="s1">true,</span>
+    <span class="s2">created(el</span><span class="s1">, </span><span class="s2">_</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+        <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'change'</span><span class="s1">, </span><span class="s2">() =&gt; {</span>
+            <span class="s1">const </span><span class="s2">modelValue = el._modelValue</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">elementValue = getValue(el)</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">checked = el.checked</span><span class="s1">;</span>
+            <span class="s1">const </span><span class="s2">assign = el._assign</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(shared.isArray(modelValue)) {</span>
+                <span class="s1">const </span><span class="s2">index = shared.looseIndexOf(modelValue</span><span class="s1">, </span><span class="s2">elementValue)</span><span class="s1">;</span>
+                <span class="s1">const </span><span class="s2">found = index !== -</span><span class="s4">1</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(checked &amp;&amp; !found) {</span>
+                    <span class="s2">assign(modelValue.concat(elementValue))</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else if </span><span class="s2">(!checked &amp;&amp; found) {</span>
+                    <span class="s1">const </span><span class="s2">filtered = [...modelValue]</span><span class="s1">;</span>
+                    <span class="s2">filtered.splice(index</span><span class="s1">, </span><span class="s4">1</span><span class="s2">)</span><span class="s1">;</span>
+                    <span class="s2">assign(filtered)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s1">else if </span><span class="s2">(shared.isSet(modelValue)) {</span>
+                <span class="s1">const </span><span class="s2">cloned = </span><span class="s1">new </span><span class="s2">Set(modelValue)</span><span class="s1">;</span>
+                <span class="s1">if </span><span class="s2">(checked) {</span>
+                    <span class="s2">cloned.add(elementValue)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s1">else </span><span class="s2">{</span>
+                    <span class="s2">cloned.delete(elementValue)</span><span class="s1">;</span>
+                <span class="s2">}</span>
+                <span class="s2">assign(cloned)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">assign(getCheckboxValue(el</span><span class="s1">, </span><span class="s2">checked))</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s3">// set initial checked on mount to wait for true-value/false-value</span>
+    <span class="s2">mounted: setChecked</span><span class="s1">,</span>
+    <span class="s2">beforeUpdate(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+        <span class="s2">setChecked(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">setChecked(el</span><span class="s1">, </span><span class="s2">{ value</span><span class="s1">, </span><span class="s2">oldValue }</span><span class="s1">, </span><span class="s2">vnode) {</span>
+    <span class="s2">el._modelValue = value</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(shared.isArray(value)) {</span>
+        <span class="s2">el.checked = shared.looseIndexOf(value</span><span class="s1">, </span><span class="s2">vnode.props.value) &gt; -</span><span class="s4">1</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(shared.isSet(value)) {</span>
+        <span class="s2">el.checked = value.has(vnode.props.value)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">else if </span><span class="s2">(value !== oldValue) {</span>
+        <span class="s2">el.checked = shared.looseEqual(value</span><span class="s1">, </span><span class="s2">getCheckboxValue(el</span><span class="s1">, true</span><span class="s2">))</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">vModelRadio = {</span>
+    <span class="s2">created(el</span><span class="s1">, </span><span class="s2">{ value }</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el.checked = shared.looseEqual(value</span><span class="s1">, </span><span class="s2">vnode.props.value)</span><span class="s1">;</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+        <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'change'</span><span class="s1">, </span><span class="s2">() =&gt; {</span>
+            <span class="s2">el._assign(getValue(el))</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">beforeUpdate(el</span><span class="s1">, </span><span class="s2">{ value</span><span class="s1">, </span><span class="s2">oldValue }</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(value !== oldValue) {</span>
+            <span class="s2">el.checked = shared.looseEqual(value</span><span class="s1">, </span><span class="s2">vnode.props.value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">vModelSelect = {</span>
+    <span class="s3">// &lt;select multiple&gt; value need to be deep traversed</span>
+    <span class="s2">deep: </span><span class="s1">true,</span>
+    <span class="s2">created(el</span><span class="s1">, </span><span class="s2">{ value</span><span class="s1">, </span><span class="s2">modifiers: { number } }</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s1">const </span><span class="s2">isSetModel = shared.isSet(value)</span><span class="s1">;</span>
+        <span class="s2">addEventListener(el</span><span class="s1">, </span><span class="s0">'change'</span><span class="s1">, </span><span class="s2">() =&gt; {</span>
+            <span class="s1">const </span><span class="s2">selectedVal = Array.prototype.filter</span>
+                <span class="s2">.call(el.options</span><span class="s1">, </span><span class="s2">(o) =&gt; o.selected)</span>
+                <span class="s2">.map((o) =&gt; number ? shared.looseToNumber(getValue(o)) : getValue(o))</span><span class="s1">;</span>
+            <span class="s2">el._assign(el.multiple</span>
+                <span class="s2">? isSetModel</span>
+                    <span class="s2">? </span><span class="s1">new </span><span class="s2">Set(selectedVal)</span>
+                    <span class="s2">: selectedVal</span>
+                <span class="s2">: selectedVal[</span><span class="s4">0</span><span class="s2">])</span><span class="s1">;</span>
+        <span class="s2">})</span><span class="s1">;</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s3">// set value in mounted &amp; updated because &lt;select&gt; relies on its children</span>
+    <span class="s3">// &lt;option&gt;s.</span>
+    <span class="s2">mounted(el</span><span class="s1">, </span><span class="s2">{ value }) {</span>
+        <span class="s2">setSelected(el</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">beforeUpdate(el</span><span class="s1">, </span><span class="s2">_binding</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">el._assign = getModelAssigner(vnode)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">updated(el</span><span class="s1">, </span><span class="s2">{ value }) {</span>
+        <span class="s2">setSelected(el</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">setSelected(el</span><span class="s1">, </span><span class="s2">value) {</span>
+    <span class="s1">const </span><span class="s2">isMultiple = el.multiple</span><span class="s1">;</span>
+    <span class="s1">if </span><span class="s2">(isMultiple &amp;&amp; !shared.isArray(value) &amp;&amp; !shared.isSet(value)) {</span>
+        <span class="s2">runtimeCore.warn(</span><span class="s0">`&lt;select multiple v-model&gt; expects an Array or Set value for its binding, ` </span><span class="s2">+</span>
+                <span class="s0">`but got </span><span class="s2">${Object.prototype.toString.call(value).slice(</span><span class="s4">8</span><span class="s1">, </span><span class="s2">-</span><span class="s4">1</span><span class="s2">)}</span><span class="s0">.`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s1">return;</span>
+    <span class="s2">}</span>
+    <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">, </span><span class="s2">l = el.options.length</span><span class="s1">; </span><span class="s2">i &lt; l</span><span class="s1">; </span><span class="s2">i++) {</span>
+        <span class="s1">const </span><span class="s2">option = el.options[i]</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">optionValue = getValue(option)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(isMultiple) {</span>
+            <span class="s1">if </span><span class="s2">(shared.isArray(value)) {</span>
+                <span class="s2">option.selected = shared.looseIndexOf(value</span><span class="s1">, </span><span class="s2">optionValue) &gt; -</span><span class="s4">1</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">option.selected = value.has(optionValue)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s1">if </span><span class="s2">(shared.looseEqual(getValue(option)</span><span class="s1">, </span><span class="s2">value)) {</span>
+                <span class="s1">if </span><span class="s2">(el.selectedIndex !== i)</span>
+                    <span class="s2">el.selectedIndex = i</span><span class="s1">;</span>
+                <span class="s1">return;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(!isMultiple &amp;&amp; el.selectedIndex !== -</span><span class="s4">1</span><span class="s2">) {</span>
+        <span class="s2">el.selectedIndex = -</span><span class="s4">1</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s3">// retrieve raw value set via :value bindings</span>
+<span class="s1">function </span><span class="s2">getValue(el) {</span>
+    <span class="s1">return </span><span class="s0">'_value' </span><span class="s1">in </span><span class="s2">el ? el._value : el.value</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// retrieve raw value for true-value and false-value set via :true-value or :false-value bindings</span>
+<span class="s1">function </span><span class="s2">getCheckboxValue(el</span><span class="s1">, </span><span class="s2">checked) {</span>
+    <span class="s1">const </span><span class="s2">key = checked ? </span><span class="s0">'_trueValue' </span><span class="s2">: </span><span class="s0">'_falseValue'</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">key </span><span class="s1">in </span><span class="s2">el ? el[key] : checked</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">const </span><span class="s2">vModelDynamic = {</span>
+    <span class="s2">created(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">callModelHook(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, null, </span><span class="s0">'created'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">mounted(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode) {</span>
+        <span class="s2">callModelHook(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, null, </span><span class="s0">'mounted'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">beforeUpdate(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, </span><span class="s2">prevVNode) {</span>
+        <span class="s2">callModelHook(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, </span><span class="s2">prevVNode</span><span class="s1">, </span><span class="s0">'beforeUpdate'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">updated(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, </span><span class="s2">prevVNode) {</span>
+        <span class="s2">callModelHook(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, </span><span class="s2">prevVNode</span><span class="s1">, </span><span class="s0">'updated'</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">resolveDynamicModel(tagName</span><span class="s1">, </span><span class="s2">type) {</span>
+    <span class="s1">switch </span><span class="s2">(tagName) {</span>
+        <span class="s1">case </span><span class="s0">'SELECT'</span><span class="s2">:</span>
+            <span class="s1">return </span><span class="s2">vModelSelect</span><span class="s1">;</span>
+        <span class="s1">case </span><span class="s0">'TEXTAREA'</span><span class="s2">:</span>
+            <span class="s1">return </span><span class="s2">vModelText</span><span class="s1">;</span>
+        <span class="s1">default</span><span class="s2">:</span>
+            <span class="s1">switch </span><span class="s2">(type) {</span>
+                <span class="s1">case </span><span class="s0">'checkbox'</span><span class="s2">:</span>
+                    <span class="s1">return </span><span class="s2">vModelCheckbox</span><span class="s1">;</span>
+                <span class="s1">case </span><span class="s0">'radio'</span><span class="s2">:</span>
+                    <span class="s1">return </span><span class="s2">vModelRadio</span><span class="s1">;</span>
+                <span class="s1">default</span><span class="s2">:</span>
+                    <span class="s1">return </span><span class="s2">vModelText</span><span class="s1">;</span>
+            <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">callModelHook(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, </span><span class="s2">prevVNode</span><span class="s1">, </span><span class="s2">hook) {</span>
+    <span class="s1">const </span><span class="s2">modelToUse = resolveDynamicModel(el.tagName</span><span class="s1">, </span><span class="s2">vnode.props &amp;&amp; vnode.props.type)</span><span class="s1">;</span>
+    <span class="s1">const </span><span class="s2">fn = modelToUse[hook]</span><span class="s1">;</span>
+    <span class="s2">fn &amp;&amp; fn(el</span><span class="s1">, </span><span class="s2">binding</span><span class="s1">, </span><span class="s2">vnode</span><span class="s1">, </span><span class="s2">prevVNode)</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// SSR vnode transforms, only used when user includes client-oriented render</span>
+<span class="s3">// function in SSR</span>
+<span class="s1">function </span><span class="s2">initVModelForSSR() {</span>
+    <span class="s2">vModelText.getSSRProps = ({ value }) =&gt; ({ value })</span><span class="s1">;</span>
+    <span class="s2">vModelRadio.getSSRProps = ({ value }</span><span class="s1">, </span><span class="s2">vnode) =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(vnode.props &amp;&amp; shared.looseEqual(vnode.props.value</span><span class="s1">, </span><span class="s2">value)) {</span>
+            <span class="s1">return </span><span class="s2">{ checked: </span><span class="s1">true </span><span class="s2">}</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">vModelCheckbox.getSSRProps = ({ value }</span><span class="s1">, </span><span class="s2">vnode) =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(shared.isArray(value)) {</span>
+            <span class="s1">if </span><span class="s2">(vnode.props &amp;&amp; shared.looseIndexOf(value</span><span class="s1">, </span><span class="s2">vnode.props.value) &gt; -</span><span class="s4">1</span><span class="s2">) {</span>
+                <span class="s1">return </span><span class="s2">{ checked: </span><span class="s1">true </span><span class="s2">}</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(shared.isSet(value)) {</span>
+            <span class="s1">if </span><span class="s2">(vnode.props &amp;&amp; value.has(vnode.props.value)) {</span>
+                <span class="s1">return </span><span class="s2">{ checked: </span><span class="s1">true </span><span class="s2">}</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else if </span><span class="s2">(value) {</span>
+            <span class="s1">return </span><span class="s2">{ checked: </span><span class="s1">true </span><span class="s2">}</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s2">vModelDynamic.getSSRProps = (binding</span><span class="s1">, </span><span class="s2">vnode) =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(</span><span class="s1">typeof </span><span class="s2">vnode.type !== </span><span class="s0">'string'</span><span class="s2">) {</span>
+            <span class="s1">return;</span>
+        <span class="s2">}</span>
+        <span class="s1">const </span><span class="s2">modelToUse = resolveDynamicModel(</span>
+        <span class="s3">// resolveDynamicModel expects an uppercase tag name, but vnode.type is lowercase</span>
+        <span class="s2">vnode.type.toUpperCase()</span><span class="s1">, </span><span class="s2">vnode.props &amp;&amp; vnode.props.type)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(modelToUse.getSSRProps) {</span>
+            <span class="s1">return </span><span class="s2">modelToUse.getSSRProps(binding</span><span class="s1">, </span><span class="s2">vnode)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">systemModifiers = [</span><span class="s0">'ctrl'</span><span class="s1">, </span><span class="s0">'shift'</span><span class="s1">, </span><span class="s0">'alt'</span><span class="s1">, </span><span class="s0">'meta'</span><span class="s2">]</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">modifierGuards = {</span>
+    <span class="s2">stop: e =&gt; e.stopPropagation()</span><span class="s1">,</span>
+    <span class="s2">prevent: e =&gt; e.preventDefault()</span><span class="s1">,</span>
+    <span class="s2">self: e =&gt; e.target !== e.currentTarget</span><span class="s1">,</span>
+    <span class="s2">ctrl: e =&gt; !e.ctrlKey</span><span class="s1">,</span>
+    <span class="s2">shift: e =&gt; !e.shiftKey</span><span class="s1">,</span>
+    <span class="s2">alt: e =&gt; !e.altKey</span><span class="s1">,</span>
+    <span class="s2">meta: e =&gt; !e.metaKey</span><span class="s1">,</span>
+    <span class="s2">left: e =&gt; </span><span class="s0">'button' </span><span class="s1">in </span><span class="s2">e &amp;&amp; e.button !== </span><span class="s4">0</span><span class="s1">,</span>
+    <span class="s2">middle: e =&gt; </span><span class="s0">'button' </span><span class="s1">in </span><span class="s2">e &amp;&amp; e.button !== </span><span class="s4">1</span><span class="s1">,</span>
+    <span class="s2">right: e =&gt; </span><span class="s0">'button' </span><span class="s1">in </span><span class="s2">e &amp;&amp; e.button !== </span><span class="s4">2</span><span class="s1">,</span>
+    <span class="s2">exact: (e</span><span class="s1">, </span><span class="s2">modifiers) =&gt; systemModifiers.some(m =&gt; e[</span><span class="s0">`</span><span class="s2">${m}</span><span class="s0">Key`</span><span class="s2">] &amp;&amp; !modifiers.includes(m))</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* </span><span class="s6">@private</span>
+ <span class="s5">*/</span>
+<span class="s1">const </span><span class="s2">withModifiers = (fn</span><span class="s1">, </span><span class="s2">modifiers) =&gt; {</span>
+    <span class="s1">return </span><span class="s2">(event</span><span class="s1">, </span><span class="s2">...args) =&gt; {</span>
+        <span class="s1">for </span><span class="s2">(</span><span class="s1">let </span><span class="s2">i = </span><span class="s4">0</span><span class="s1">; </span><span class="s2">i &lt; modifiers.length</span><span class="s1">; </span><span class="s2">i++) {</span>
+            <span class="s1">const </span><span class="s2">guard = modifierGuards[modifiers[i]]</span><span class="s1">;</span>
+            <span class="s1">if </span><span class="s2">(guard &amp;&amp; guard(event</span><span class="s1">, </span><span class="s2">modifiers))</span>
+                <span class="s1">return;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">fn(event</span><span class="s1">, </span><span class="s2">...args)</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s3">// Kept for 2.x compat.</span>
+<span class="s3">// Note: IE11 compat for `spacebar` and `del` is removed for now.</span>
+<span class="s1">const </span><span class="s2">keyNames = {</span>
+    <span class="s2">esc: </span><span class="s0">'escape'</span><span class="s1">,</span>
+    <span class="s2">space: </span><span class="s0">' '</span><span class="s1">,</span>
+    <span class="s2">up: </span><span class="s0">'arrow-up'</span><span class="s1">,</span>
+    <span class="s2">left: </span><span class="s0">'arrow-left'</span><span class="s1">,</span>
+    <span class="s2">right: </span><span class="s0">'arrow-right'</span><span class="s1">,</span>
+    <span class="s2">down: </span><span class="s0">'arrow-down'</span><span class="s1">,</span>
+    <span class="s1">delete</span><span class="s2">: </span><span class="s0">'backspace'</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* </span><span class="s6">@private</span>
+ <span class="s5">*/</span>
+<span class="s1">const </span><span class="s2">withKeys = (fn</span><span class="s1">, </span><span class="s2">modifiers) =&gt; {</span>
+    <span class="s1">return </span><span class="s2">(event) =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(!(</span><span class="s0">'key' </span><span class="s1">in </span><span class="s2">event)) {</span>
+            <span class="s1">return;</span>
+        <span class="s2">}</span>
+        <span class="s1">const </span><span class="s2">eventKey = shared.hyphenate(event.key)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(modifiers.some(k =&gt; k === eventKey || keyNames[k] === eventKey)) {</span>
+            <span class="s1">return </span><span class="s2">fn(event)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span><span class="s1">;</span>
+
+<span class="s1">const </span><span class="s2">vShow = {</span>
+    <span class="s2">beforeMount(el</span><span class="s1">, </span><span class="s2">{ value }</span><span class="s1">, </span><span class="s2">{ transition }) {</span>
+        <span class="s2">el._vod = el.style.display === </span><span class="s0">'none' </span><span class="s2">? </span><span class="s0">'' </span><span class="s2">: el.style.display</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(transition &amp;&amp; value) {</span>
+            <span class="s2">transition.beforeEnter(el)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">setDisplay(el</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">mounted(el</span><span class="s1">, </span><span class="s2">{ value }</span><span class="s1">, </span><span class="s2">{ transition }) {</span>
+        <span class="s1">if </span><span class="s2">(transition &amp;&amp; value) {</span>
+            <span class="s2">transition.enter(el)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">updated(el</span><span class="s1">, </span><span class="s2">{ value</span><span class="s1">, </span><span class="s2">oldValue }</span><span class="s1">, </span><span class="s2">{ transition }) {</span>
+        <span class="s1">if </span><span class="s2">(!value === !oldValue)</span>
+            <span class="s1">return;</span>
+        <span class="s1">if </span><span class="s2">(transition) {</span>
+            <span class="s1">if </span><span class="s2">(value) {</span>
+                <span class="s2">transition.beforeEnter(el)</span><span class="s1">;</span>
+                <span class="s2">setDisplay(el</span><span class="s1">, true</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">transition.enter(el)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+            <span class="s1">else </span><span class="s2">{</span>
+                <span class="s2">transition.leave(el</span><span class="s1">, </span><span class="s2">() =&gt; {</span>
+                    <span class="s2">setDisplay(el</span><span class="s1">, false</span><span class="s2">)</span><span class="s1">;</span>
+                <span class="s2">})</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">else </span><span class="s2">{</span>
+            <span class="s2">setDisplay(el</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">,</span>
+    <span class="s2">beforeUnmount(el</span><span class="s1">, </span><span class="s2">{ value }) {</span>
+        <span class="s2">setDisplay(el</span><span class="s1">, </span><span class="s2">value)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">setDisplay(el</span><span class="s1">, </span><span class="s2">value) {</span>
+    <span class="s2">el.style.display = value ? el._vod : </span><span class="s0">'none'</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// SSR vnode transforms, only used when user includes client-oriented render</span>
+<span class="s3">// function in SSR</span>
+<span class="s1">function </span><span class="s2">initVShowForSSR() {</span>
+    <span class="s2">vShow.getSSRProps = ({ value }) =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(!value) {</span>
+            <span class="s1">return </span><span class="s2">{ style: { display: </span><span class="s0">'none' </span><span class="s2">} }</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+<span class="s2">}</span>
+
+<span class="s1">const </span><span class="s2">rendererOptions = </span><span class="s3">/*#__PURE__*/ </span><span class="s2">shared.extend({ patchProp }</span><span class="s1">, </span><span class="s2">nodeOps)</span><span class="s1">;</span>
+<span class="s3">// lazy create the renderer - this makes core renderer logic tree-shakable</span>
+<span class="s3">// in case the user only imports reactivity utilities from Vue.</span>
+<span class="s1">let </span><span class="s2">renderer</span><span class="s1">;</span>
+<span class="s1">let </span><span class="s2">enabledHydration = </span><span class="s1">false;</span>
+<span class="s1">function </span><span class="s2">ensureRenderer() {</span>
+    <span class="s1">return </span><span class="s2">(renderer ||</span>
+        <span class="s2">(renderer = runtimeCore.createRenderer(rendererOptions)))</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">ensureHydrationRenderer() {</span>
+    <span class="s2">renderer = enabledHydration</span>
+        <span class="s2">? renderer</span>
+        <span class="s2">: runtimeCore.createHydrationRenderer(rendererOptions)</span><span class="s1">;</span>
+    <span class="s2">enabledHydration = </span><span class="s1">true;</span>
+    <span class="s1">return </span><span class="s2">renderer</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// use explicit type casts here to avoid import() calls in rolled-up d.ts</span>
+<span class="s1">const </span><span class="s2">render = ((...args) =&gt; {</span>
+    <span class="s2">ensureRenderer().render(...args)</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">hydrate = ((...args) =&gt; {</span>
+    <span class="s2">ensureHydrationRenderer().hydrate(...args)</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">createApp = ((...args) =&gt; {</span>
+    <span class="s1">const </span><span class="s2">app = ensureRenderer().createApp(...args)</span><span class="s1">;</span>
+    <span class="s2">{</span>
+        <span class="s2">injectNativeTagCheck(app)</span><span class="s1">;</span>
+        <span class="s2">injectCompilerOptionsCheck(app)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ mount } = app</span><span class="s1">;</span>
+    <span class="s2">app.mount = (containerOrSelector) =&gt; {</span>
+        <span class="s1">const </span><span class="s2">container = normalizeContainer(containerOrSelector)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!container)</span>
+            <span class="s1">return;</span>
+        <span class="s1">const </span><span class="s2">component = app._component</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!shared.isFunction(component) &amp;&amp; !component.render &amp;&amp; !component.template) {</span>
+            <span class="s3">// __UNSAFE__</span>
+            <span class="s3">// Reason: potential execution of JS expressions in in-DOM template.</span>
+            <span class="s3">// The user must make sure the in-DOM template is trusted. If it's</span>
+            <span class="s3">// rendered by the server, the template should not contain any user data.</span>
+            <span class="s2">component.template = container.innerHTML</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s3">// clear content before mounting</span>
+        <span class="s2">container.innerHTML = </span><span class="s0">''</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">proxy = mount(container</span><span class="s1">, false, </span><span class="s2">container </span><span class="s1">instanceof </span><span class="s2">SVGElement)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(container </span><span class="s1">instanceof </span><span class="s2">Element) {</span>
+            <span class="s2">container.removeAttribute(</span><span class="s0">'v-cloak'</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">container.setAttribute(</span><span class="s0">'data-v-app'</span><span class="s1">, </span><span class="s0">''</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">proxy</span><span class="s1">;</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">app</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+<span class="s1">const </span><span class="s2">createSSRApp = ((...args) =&gt; {</span>
+    <span class="s1">const </span><span class="s2">app = ensureHydrationRenderer().createApp(...args)</span><span class="s1">;</span>
+    <span class="s2">{</span>
+        <span class="s2">injectNativeTagCheck(app)</span><span class="s1">;</span>
+        <span class="s2">injectCompilerOptionsCheck(app)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">const </span><span class="s2">{ mount } = app</span><span class="s1">;</span>
+    <span class="s2">app.mount = (containerOrSelector) =&gt; {</span>
+        <span class="s1">const </span><span class="s2">container = normalizeContainer(containerOrSelector)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(container) {</span>
+            <span class="s1">return </span><span class="s2">mount(container</span><span class="s1">, true, </span><span class="s2">container </span><span class="s1">instanceof </span><span class="s2">SVGElement)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span><span class="s1">;</span>
+    <span class="s1">return </span><span class="s2">app</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+<span class="s1">function </span><span class="s2">injectNativeTagCheck(app) {</span>
+    <span class="s3">// Inject `isNativeTag`</span>
+    <span class="s3">// this is used for component name validation (dev only)</span>
+    <span class="s2">Object.defineProperty(app.config</span><span class="s1">, </span><span class="s0">'isNativeTag'</span><span class="s1">, </span><span class="s2">{</span>
+        <span class="s2">value: (tag) =&gt; shared.isHTMLTag(tag) || shared.isSVGTag(tag)</span><span class="s1">,</span>
+        <span class="s2">writable: </span><span class="s1">false</span>
+    <span class="s2">})</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s3">// dev only</span>
+<span class="s1">function </span><span class="s2">injectCompilerOptionsCheck(app) {</span>
+    <span class="s1">if </span><span class="s2">(runtimeCore.isRuntimeOnly()) {</span>
+        <span class="s1">const </span><span class="s2">isCustomElement = app.config.isCustomElement</span><span class="s1">;</span>
+        <span class="s2">Object.defineProperty(app.config</span><span class="s1">, </span><span class="s0">'isCustomElement'</span><span class="s1">, </span><span class="s2">{</span>
+            <span class="s2">get() {</span>
+                <span class="s1">return </span><span class="s2">isCustomElement</span><span class="s1">;</span>
+            <span class="s2">}</span><span class="s1">,</span>
+            <span class="s2">set() {</span>
+                <span class="s2">runtimeCore.warn(</span><span class="s0">`The </span><span class="s1">\`</span><span class="s0">isCustomElement</span><span class="s1">\` </span><span class="s0">config option is deprecated. Use ` </span><span class="s2">+</span>
+                    <span class="s0">`</span><span class="s1">\`</span><span class="s0">compilerOptions.isCustomElement</span><span class="s1">\` </span><span class="s0">instead.`</span><span class="s2">)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">})</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">compilerOptions = app.config.compilerOptions</span><span class="s1">;</span>
+        <span class="s1">const </span><span class="s2">msg = </span><span class="s0">`The </span><span class="s1">\`</span><span class="s0">compilerOptions</span><span class="s1">\` </span><span class="s0">config option is only respected when using ` </span><span class="s2">+</span>
+            <span class="s0">`a build of Vue.js that includes the runtime compiler (aka &quot;full build&quot;). ` </span><span class="s2">+</span>
+            <span class="s0">`Since you are using the runtime-only build, </span><span class="s1">\`</span><span class="s0">compilerOptions</span><span class="s1">\` </span><span class="s0">` </span><span class="s2">+</span>
+            <span class="s0">`must be passed to </span><span class="s1">\`</span><span class="s0">@vue/compiler-dom</span><span class="s1">\` </span><span class="s0">in the build setup instead.</span><span class="s1">\n</span><span class="s0">` </span><span class="s2">+</span>
+            <span class="s0">`- For vue-loader: pass it via vue-loader's </span><span class="s1">\`</span><span class="s0">compilerOptions</span><span class="s1">\` </span><span class="s0">loader option.</span><span class="s1">\n</span><span class="s0">` </span><span class="s2">+</span>
+            <span class="s0">`- For vue-cli: see https://cli.vuejs.org/guide/webpack.html#modifying-options-of-a-loader</span><span class="s1">\n</span><span class="s0">` </span><span class="s2">+</span>
+            <span class="s0">`- For vite: pass it via @vitejs/plugin-vue options. See https://github.com/vitejs/vite/tree/main/packages/plugin-vue#example-for-passing-options-to-vuecompiler-dom`</span><span class="s1">;</span>
+        <span class="s2">Object.defineProperty(app.config</span><span class="s1">, </span><span class="s0">'compilerOptions'</span><span class="s1">, </span><span class="s2">{</span>
+            <span class="s2">get() {</span>
+                <span class="s2">runtimeCore.warn(msg)</span><span class="s1">;</span>
+                <span class="s1">return </span><span class="s2">compilerOptions</span><span class="s1">;</span>
+            <span class="s2">}</span><span class="s1">,</span>
+            <span class="s2">set() {</span>
+                <span class="s2">runtimeCore.warn(msg)</span><span class="s1">;</span>
+            <span class="s2">}</span>
+        <span class="s2">})</span><span class="s1">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s1">function </span><span class="s2">normalizeContainer(container) {</span>
+    <span class="s1">if </span><span class="s2">(shared.isString(container)) {</span>
+        <span class="s1">const </span><span class="s2">res = document.querySelector(container)</span><span class="s1">;</span>
+        <span class="s1">if </span><span class="s2">(!res) {</span>
+            <span class="s2">runtimeCore.warn(</span><span class="s0">`Failed to mount app: mount target selector &quot;</span><span class="s2">${container}</span><span class="s0">&quot; returned null.`</span><span class="s2">)</span><span class="s1">;</span>
+        <span class="s2">}</span>
+        <span class="s1">return </span><span class="s2">res</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">if </span><span class="s2">(window.ShadowRoot &amp;&amp;</span>
+        <span class="s2">container </span><span class="s1">instanceof </span><span class="s2">window.ShadowRoot &amp;&amp;</span>
+        <span class="s2">container.mode === </span><span class="s0">'closed'</span><span class="s2">) {</span>
+        <span class="s2">runtimeCore.warn(</span><span class="s0">`mounting on a ShadowRoot with </span><span class="s1">\`</span><span class="s0">{mode: &quot;closed&quot;}</span><span class="s1">\` </span><span class="s0">may lead to unpredictable bugs`</span><span class="s2">)</span><span class="s1">;</span>
+    <span class="s2">}</span>
+    <span class="s1">return </span><span class="s2">container</span><span class="s1">;</span>
+<span class="s2">}</span>
+<span class="s1">let </span><span class="s2">ssrDirectiveInitialized = </span><span class="s1">false;</span>
+<span class="s5">/**</span>
+ <span class="s5">* </span><span class="s6">@internal</span>
+ <span class="s5">*/</span>
+<span class="s1">const </span><span class="s2">initDirectivesForSSR = () =&gt; {</span>
+        <span class="s1">if </span><span class="s2">(!ssrDirectiveInitialized) {</span>
+            <span class="s2">ssrDirectiveInitialized = </span><span class="s1">true;</span>
+            <span class="s2">initVModelForSSR()</span><span class="s1">;</span>
+            <span class="s2">initVShowForSSR()</span><span class="s1">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    <span class="s1">;</span>
+
+<span class="s2">exports.Transition = Transition</span><span class="s1">;</span>
+<span class="s2">exports.TransitionGroup = TransitionGroup</span><span class="s1">;</span>
+<span class="s2">exports.VueElement = VueElement</span><span class="s1">;</span>
+<span class="s2">exports.createApp = createApp</span><span class="s1">;</span>
+<span class="s2">exports.createSSRApp = createSSRApp</span><span class="s1">;</span>
+<span class="s2">exports.defineCustomElement = defineCustomElement</span><span class="s1">;</span>
+<span class="s2">exports.defineSSRCustomElement = defineSSRCustomElement</span><span class="s1">;</span>
+<span class="s2">exports.hydrate = hydrate</span><span class="s1">;</span>
+<span class="s2">exports.initDirectivesForSSR = initDirectivesForSSR</span><span class="s1">;</span>
+<span class="s2">exports.render = render</span><span class="s1">;</span>
+<span class="s2">exports.useCssModule = useCssModule</span><span class="s1">;</span>
+<span class="s2">exports.useCssVars = useCssVars</span><span class="s1">;</span>
+<span class="s2">exports.vModelCheckbox = vModelCheckbox</span><span class="s1">;</span>
+<span class="s2">exports.vModelDynamic = vModelDynamic</span><span class="s1">;</span>
+<span class="s2">exports.vModelRadio = vModelRadio</span><span class="s1">;</span>
+<span class="s2">exports.vModelSelect = vModelSelect</span><span class="s1">;</span>
+<span class="s2">exports.vModelText = vModelText</span><span class="s1">;</span>
+<span class="s2">exports.vShow = vShow</span><span class="s1">;</span>
+<span class="s2">exports.withKeys = withKeys</span><span class="s1">;</span>
+<span class="s2">exports.withModifiers = withModifiers</span><span class="s1">;</span>
+<span class="s2">Object.keys(runtimeCore).forEach(</span><span class="s1">function</span><span class="s2">(k) {</span>
+  <span class="s1">if </span><span class="s2">(k !== </span><span class="s0">'default'</span><span class="s2">) exports[k] = runtimeCore[k]</span><span class="s1">;</span>
+<span class="s2">})</span><span class="s1">;</span>
+</pre>
+</body>
+</html>

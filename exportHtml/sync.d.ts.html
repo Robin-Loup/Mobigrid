@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>sync.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #629755; font-style: italic;}
+.s1 { color: #629755; font-weight: bold; font-style: italic;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #cc7832;}
+.s4 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+sync.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">/** </span><span class="s1">@typedef </span><span class="s0">{ import('estree').BaseNode} BaseNode */</span>
+<span class="s0">/** </span><span class="s1">@typedef </span><span class="s0">{ import('./walker.js').WalkerContext} WalkerContext */</span>
+<span class="s0">/** </span><span class="s1">@typedef </span><span class="s0">{(</span>
+ <span class="s0">*    this: WalkerContext,</span>
+ <span class="s0">*    node: BaseNode,</span>
+ <span class="s0">*    parent: BaseNode,</span>
+ <span class="s0">*    key: string,</span>
+ <span class="s0">*    index: number</span>
+ <span class="s0">* ) =&gt; void} SyncHandler */</span>
+<span class="s3">export class </span><span class="s2">SyncWalker </span><span class="s3">extends </span><span class="s2">WalkerBase {</span>
+    <span class="s0">/**</span>
+     <span class="s0">*</span>
+     <span class="s0">* </span><span class="s1">@param </span><span class="s0">{SyncHandler} enter</span>
+     <span class="s0">* </span><span class="s1">@param </span><span class="s0">{SyncHandler} leave</span>
+     <span class="s0">*/</span>
+    <span class="s2">constructor(enter: (</span><span class="s3">this</span><span class="s2">: {</span>
+        <span class="s2">skip: () =&gt; </span><span class="s3">void;</span>
+        <span class="s2">remove: () =&gt; </span><span class="s3">void;</span>
+        <span class="s2">replace: (node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode) =&gt; </span><span class="s3">void;</span>
+    <span class="s2">}</span><span class="s3">, </span><span class="s2">node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">parent: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">key: string</span><span class="s3">, </span><span class="s2">index: number) =&gt; </span><span class="s3">void, </span><span class="s2">leave: (</span><span class="s3">this</span><span class="s2">: {</span>
+        <span class="s2">skip: () =&gt; </span><span class="s3">void;</span>
+        <span class="s2">remove: () =&gt; </span><span class="s3">void;</span>
+        <span class="s2">replace: (node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode) =&gt; </span><span class="s3">void;</span>
+    <span class="s2">}</span><span class="s3">, </span><span class="s2">node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">parent: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">key: string</span><span class="s3">, </span><span class="s2">index: number) =&gt; </span><span class="s3">void</span><span class="s2">)</span><span class="s3">;</span>
+    <span class="s0">/** </span><span class="s1">@type </span><span class="s0">{SyncHandler} */</span>
+    <span class="s2">enter: SyncHandler</span><span class="s3">;</span>
+    <span class="s0">/** </span><span class="s1">@type </span><span class="s0">{SyncHandler} */</span>
+    <span class="s2">leave: SyncHandler</span><span class="s3">;</span>
+    <span class="s0">/**</span>
+     <span class="s0">*</span>
+     <span class="s0">* </span><span class="s1">@param </span><span class="s0">{BaseNode} node</span>
+     <span class="s0">* </span><span class="s1">@param </span><span class="s0">{BaseNode} parent</span>
+     <span class="s0">* </span><span class="s1">@param </span><span class="s0">{string} [prop]</span>
+     <span class="s0">* </span><span class="s1">@param </span><span class="s0">{number} [index]</span>
+     <span class="s0">* </span><span class="s1">@returns </span><span class="s0">{BaseNode}</span>
+     <span class="s0">*/</span>
+    <span class="s2">visit(node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">parent: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">prop?: string</span><span class="s3">, </span><span class="s2">index?: number): </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">;</span>
+    <span class="s2">should_skip: any</span><span class="s3">;</span>
+    <span class="s2">should_remove: any</span><span class="s3">;</span>
+    <span class="s2">replacement: any</span><span class="s3">;</span>
+<span class="s2">}</span>
+<span class="s3">export </span><span class="s2">type BaseNode = </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">;</span>
+<span class="s3">export </span><span class="s2">type WalkerContext = {</span>
+    <span class="s2">skip: () =&gt; </span><span class="s3">void;</span>
+    <span class="s2">remove: () =&gt; </span><span class="s3">void;</span>
+    <span class="s2">replace: (node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode) =&gt; </span><span class="s3">void;</span>
+<span class="s2">}</span><span class="s3">;</span>
+<span class="s3">export </span><span class="s2">type SyncHandler = (</span><span class="s3">this</span><span class="s2">: {</span>
+    <span class="s2">skip: () =&gt; </span><span class="s3">void;</span>
+    <span class="s2">remove: () =&gt; </span><span class="s3">void;</span>
+    <span class="s2">replace: (node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode) =&gt; </span><span class="s3">void;</span>
+<span class="s2">}</span><span class="s3">, </span><span class="s2">node: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">parent: </span><span class="s3">import</span><span class="s2">(</span><span class="s4">&quot;estree&quot;</span><span class="s2">).BaseNode</span><span class="s3">, </span><span class="s2">key: string</span><span class="s3">, </span><span class="s2">index: number) =&gt; </span><span class="s3">void;</span>
+<span class="s3">import </span><span class="s2">{ WalkerBase } from </span><span class="s4">&quot;./walker.js&quot;</span><span class="s3">;</span>
+</pre>
+</body>
+</html>

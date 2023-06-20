@@ -1,0 +1,918 @@
+<html>
+<head>
+<title>cli.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+.s5 { color: #629755; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+cli.js</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">path from </span><span class="s2">'node:path'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">fs from </span><span class="s2">'node:fs'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ performance } from </span><span class="s2">'node:perf_hooks'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ EventEmitter } from </span><span class="s2">'events'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ C as picocolorsExports</span><span class="s0">, </span><span class="s1">D as bindShortcuts</span><span class="s0">, </span><span class="s1">x as createLogger</span><span class="s0">, </span><span class="s1">h as resolveConfig } from </span><span class="s2">'./chunks/dep-24daf00c.js'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">{ VERSION } from </span><span class="s2">'./constants.js'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:fs/promises'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:url'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:module'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'tty'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'esbuild'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'path'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'fs'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'assert'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'util'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'net'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'url'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'http'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'stream'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'os'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'child_process'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:os'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:child_process'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:crypto'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:dns'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'crypto'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:buffer'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:util'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'module'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:assert'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:process'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:v8'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'worker_threads'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'zlib'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'buffer'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'https'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'tls'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:http'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:https'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'rollup'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'querystring'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:readline'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'node:zlib'</span><span class="s0">;</span>
+
+<span class="s0">function </span><span class="s1">toArr(any) {</span>
+	<span class="s0">return </span><span class="s1">any == </span><span class="s0">null </span><span class="s1">? [] : Array.isArray(any) ? any : [any]</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">toVal(out</span><span class="s0">, </span><span class="s1">key</span><span class="s0">, </span><span class="s1">val</span><span class="s0">, </span><span class="s1">opts) {</span>
+	<span class="s0">var </span><span class="s1">x</span><span class="s0">, </span><span class="s1">old=out[key]</span><span class="s0">, </span><span class="s1">nxt=(</span>
+		<span class="s1">!!~opts.string.indexOf(key) ? (val == </span><span class="s0">null </span><span class="s1">|| val === </span><span class="s0">true </span><span class="s1">? </span><span class="s2">'' </span><span class="s1">: String(val))</span>
+		<span class="s1">: </span><span class="s0">typeof </span><span class="s1">val === </span><span class="s2">'boolean' </span><span class="s1">? val</span>
+		<span class="s1">: !!~opts.boolean.indexOf(key) ? (val === </span><span class="s2">'false' </span><span class="s1">? </span><span class="s0">false </span><span class="s1">: val === </span><span class="s2">'true' </span><span class="s1">|| (out._.push((x = +val</span><span class="s0">,</span><span class="s1">x * </span><span class="s3">0 </span><span class="s1">=== </span><span class="s3">0</span><span class="s1">) ? x : val)</span><span class="s0">,</span><span class="s1">!!val))</span>
+		<span class="s1">: (x = +val</span><span class="s0">,</span><span class="s1">x * </span><span class="s3">0 </span><span class="s1">=== </span><span class="s3">0</span><span class="s1">) ? x : val</span>
+	<span class="s1">)</span><span class="s0">;</span>
+	<span class="s1">out[key] = old == </span><span class="s0">null </span><span class="s1">? nxt : (Array.isArray(old) ? old.concat(nxt) : [old</span><span class="s0">, </span><span class="s1">nxt])</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">function </span><span class="s1">mri2 (args</span><span class="s0">, </span><span class="s1">opts) {</span>
+	<span class="s1">args = args || []</span><span class="s0">;</span>
+	<span class="s1">opts = opts || {}</span><span class="s0">;</span>
+
+	<span class="s0">var </span><span class="s1">k</span><span class="s0">, </span><span class="s1">arr</span><span class="s0">, </span><span class="s1">arg</span><span class="s0">, </span><span class="s1">name</span><span class="s0">, </span><span class="s1">val</span><span class="s0">, </span><span class="s1">out={ _:[] }</span><span class="s0">;</span>
+	<span class="s0">var </span><span class="s1">i=</span><span class="s3">0</span><span class="s0">, </span><span class="s1">j=</span><span class="s3">0</span><span class="s0">, </span><span class="s1">idx=</span><span class="s3">0</span><span class="s0">, </span><span class="s1">len=args.length</span><span class="s0">;</span>
+
+	<span class="s0">const </span><span class="s1">alibi = opts.alias !== </span><span class="s0">void </span><span class="s3">0</span><span class="s0">;</span>
+	<span class="s0">const </span><span class="s1">strict = opts.unknown !== </span><span class="s0">void </span><span class="s3">0</span><span class="s0">;</span>
+	<span class="s0">const </span><span class="s1">defaults = opts.default !== </span><span class="s0">void </span><span class="s3">0</span><span class="s0">;</span>
+
+	<span class="s1">opts.alias = opts.alias || {}</span><span class="s0">;</span>
+	<span class="s1">opts.string = toArr(opts.string)</span><span class="s0">;</span>
+	<span class="s1">opts.boolean = toArr(opts.boolean)</span><span class="s0">;</span>
+
+	<span class="s0">if </span><span class="s1">(alibi) {</span>
+		<span class="s0">for </span><span class="s1">(k </span><span class="s0">in </span><span class="s1">opts.alias) {</span>
+			<span class="s1">arr = opts.alias[k] = toArr(opts.alias[k])</span><span class="s0">;</span>
+			<span class="s0">for </span><span class="s1">(i=</span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; arr.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+				<span class="s1">(opts.alias[arr[i]] = arr.concat(k)).splice(i</span><span class="s0">, </span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+			<span class="s1">}</span>
+		<span class="s1">}</span>
+	<span class="s1">}</span>
+
+	<span class="s0">for </span><span class="s1">(i=opts.boolean.length</span><span class="s0">; </span><span class="s1">i-- &gt; </span><span class="s3">0</span><span class="s0">;</span><span class="s1">) {</span>
+		<span class="s1">arr = opts.alias[opts.boolean[i]] || []</span><span class="s0">;</span>
+		<span class="s0">for </span><span class="s1">(j=arr.length</span><span class="s0">; </span><span class="s1">j-- &gt; </span><span class="s3">0</span><span class="s0">;</span><span class="s1">) opts.boolean.push(arr[j])</span><span class="s0">;</span>
+	<span class="s1">}</span>
+
+	<span class="s0">for </span><span class="s1">(i=opts.string.length</span><span class="s0">; </span><span class="s1">i-- &gt; </span><span class="s3">0</span><span class="s0">;</span><span class="s1">) {</span>
+		<span class="s1">arr = opts.alias[opts.string[i]] || []</span><span class="s0">;</span>
+		<span class="s0">for </span><span class="s1">(j=arr.length</span><span class="s0">; </span><span class="s1">j-- &gt; </span><span class="s3">0</span><span class="s0">;</span><span class="s1">) opts.string.push(arr[j])</span><span class="s0">;</span>
+	<span class="s1">}</span>
+
+	<span class="s0">if </span><span class="s1">(defaults) {</span>
+		<span class="s0">for </span><span class="s1">(k </span><span class="s0">in </span><span class="s1">opts.default) {</span>
+			<span class="s1">name = </span><span class="s0">typeof </span><span class="s1">opts.default[k]</span><span class="s0">;</span>
+			<span class="s1">arr = opts.alias[k] = opts.alias[k] || []</span><span class="s0">;</span>
+			<span class="s0">if </span><span class="s1">(opts[name] !== </span><span class="s0">void </span><span class="s3">0</span><span class="s1">) {</span>
+				<span class="s1">opts[name].push(k)</span><span class="s0">;</span>
+				<span class="s0">for </span><span class="s1">(i=</span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; arr.length</span><span class="s0">; </span><span class="s1">i++) {</span>
+					<span class="s1">opts[name].push(arr[i])</span><span class="s0">;</span>
+				<span class="s1">}</span>
+			<span class="s1">}</span>
+		<span class="s1">}</span>
+	<span class="s1">}</span>
+
+	<span class="s0">const </span><span class="s1">keys = strict ? Object.keys(opts.alias) : []</span><span class="s0">;</span>
+
+	<span class="s0">for </span><span class="s1">(i=</span><span class="s3">0</span><span class="s0">; </span><span class="s1">i &lt; len</span><span class="s0">; </span><span class="s1">i++) {</span>
+		<span class="s1">arg = args[i]</span><span class="s0">;</span>
+
+		<span class="s0">if </span><span class="s1">(arg === </span><span class="s2">'--'</span><span class="s1">) {</span>
+			<span class="s1">out._ = out._.concat(args.slice(++i))</span><span class="s0">;</span>
+			<span class="s0">break;</span>
+		<span class="s1">}</span>
+
+		<span class="s0">for </span><span class="s1">(j=</span><span class="s3">0</span><span class="s0">; </span><span class="s1">j &lt; arg.length</span><span class="s0">; </span><span class="s1">j++) {</span>
+			<span class="s0">if </span><span class="s1">(arg.charCodeAt(j) !== </span><span class="s3">45</span><span class="s1">) </span><span class="s0">break; </span><span class="s4">// &quot;-&quot;</span>
+		<span class="s1">}</span>
+
+		<span class="s0">if </span><span class="s1">(j === </span><span class="s3">0</span><span class="s1">) {</span>
+			<span class="s1">out._.push(arg)</span><span class="s0">;</span>
+		<span class="s1">} </span><span class="s0">else if </span><span class="s1">(arg.substring(j</span><span class="s0">, </span><span class="s1">j + </span><span class="s3">3</span><span class="s1">) === </span><span class="s2">'no-'</span><span class="s1">) {</span>
+			<span class="s1">name = arg.substring(j + </span><span class="s3">3</span><span class="s1">)</span><span class="s0">;</span>
+			<span class="s0">if </span><span class="s1">(strict &amp;&amp; !~keys.indexOf(name)) {</span>
+				<span class="s0">return </span><span class="s1">opts.unknown(arg)</span><span class="s0">;</span>
+			<span class="s1">}</span>
+			<span class="s1">out[name] = </span><span class="s0">false;</span>
+		<span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+			<span class="s0">for </span><span class="s1">(idx=j+</span><span class="s3">1</span><span class="s0">; </span><span class="s1">idx &lt; arg.length</span><span class="s0">; </span><span class="s1">idx++) {</span>
+				<span class="s0">if </span><span class="s1">(arg.charCodeAt(idx) === </span><span class="s3">61</span><span class="s1">) </span><span class="s0">break; </span><span class="s4">// &quot;=&quot;</span>
+			<span class="s1">}</span>
+
+			<span class="s1">name = arg.substring(j</span><span class="s0">, </span><span class="s1">idx)</span><span class="s0">;</span>
+			<span class="s1">val = arg.substring(++idx) || (i+</span><span class="s3">1 </span><span class="s1">=== len || (</span><span class="s2">''</span><span class="s1">+args[i+</span><span class="s3">1</span><span class="s1">]).charCodeAt(</span><span class="s3">0</span><span class="s1">) === </span><span class="s3">45 </span><span class="s1">|| args[++i])</span><span class="s0">;</span>
+			<span class="s1">arr = (j === </span><span class="s3">2 </span><span class="s1">? [name] : name)</span><span class="s0">;</span>
+
+			<span class="s0">for </span><span class="s1">(idx=</span><span class="s3">0</span><span class="s0">; </span><span class="s1">idx &lt; arr.length</span><span class="s0">; </span><span class="s1">idx++) {</span>
+				<span class="s1">name = arr[idx]</span><span class="s0">;</span>
+				<span class="s0">if </span><span class="s1">(strict &amp;&amp; !~keys.indexOf(name)) </span><span class="s0">return </span><span class="s1">opts.unknown(</span><span class="s2">'-'</span><span class="s1">.repeat(j) + name)</span><span class="s0">;</span>
+				<span class="s1">toVal(out</span><span class="s0">, </span><span class="s1">name</span><span class="s0">, </span><span class="s1">(idx + </span><span class="s3">1 </span><span class="s1">&lt; arr.length) || val</span><span class="s0">, </span><span class="s1">opts)</span><span class="s0">;</span>
+			<span class="s1">}</span>
+		<span class="s1">}</span>
+	<span class="s1">}</span>
+
+	<span class="s0">if </span><span class="s1">(defaults) {</span>
+		<span class="s0">for </span><span class="s1">(k </span><span class="s0">in </span><span class="s1">opts.default) {</span>
+			<span class="s0">if </span><span class="s1">(out[k] === </span><span class="s0">void </span><span class="s3">0</span><span class="s1">) {</span>
+				<span class="s1">out[k] = opts.default[k]</span><span class="s0">;</span>
+			<span class="s1">}</span>
+		<span class="s1">}</span>
+	<span class="s1">}</span>
+
+	<span class="s0">if </span><span class="s1">(alibi) {</span>
+		<span class="s0">for </span><span class="s1">(k </span><span class="s0">in </span><span class="s1">out) {</span>
+			<span class="s1">arr = opts.alias[k] || []</span><span class="s0">;</span>
+			<span class="s0">while </span><span class="s1">(arr.length &gt; </span><span class="s3">0</span><span class="s1">) {</span>
+				<span class="s1">out[arr.shift()] = out[k]</span><span class="s0">;</span>
+			<span class="s1">}</span>
+		<span class="s1">}</span>
+	<span class="s1">}</span>
+
+	<span class="s0">return </span><span class="s1">out</span><span class="s0">;</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">removeBrackets = (v) =&gt; v.replace(</span><span class="s3">/[&lt;[].+/</span><span class="s0">, </span><span class="s2">&quot;&quot;</span><span class="s1">).trim()</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">findAllBrackets = (v) =&gt; {</span>
+  <span class="s0">const </span><span class="s1">ANGLED_BRACKET_RE_GLOBAL = </span><span class="s3">/&lt;([^&gt;]+)&gt;/g</span><span class="s0">;</span>
+  <span class="s0">const </span><span class="s1">SQUARE_BRACKET_RE_GLOBAL = </span><span class="s3">/\[([^\]]+)\]/g</span><span class="s0">;</span>
+  <span class="s0">const </span><span class="s1">res = []</span><span class="s0">;</span>
+  <span class="s0">const </span><span class="s1">parse = (match) =&gt; {</span>
+    <span class="s0">let </span><span class="s1">variadic = </span><span class="s0">false;</span>
+    <span class="s0">let </span><span class="s1">value = match[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(value.startsWith(</span><span class="s2">&quot;...&quot;</span><span class="s1">)) {</span>
+      <span class="s1">value = value.slice(</span><span class="s3">3</span><span class="s1">)</span><span class="s0">;</span>
+      <span class="s1">variadic = </span><span class="s0">true;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{</span>
+      <span class="s1">required: match[</span><span class="s3">0</span><span class="s1">].startsWith(</span><span class="s2">&quot;&lt;&quot;</span><span class="s1">)</span><span class="s0">,</span>
+      <span class="s1">value</span><span class="s0">,</span>
+      <span class="s1">variadic</span>
+    <span class="s1">}</span><span class="s0">;</span>
+  <span class="s1">}</span><span class="s0">;</span>
+  <span class="s0">let </span><span class="s1">angledMatch</span><span class="s0">;</span>
+  <span class="s0">while </span><span class="s1">(angledMatch = ANGLED_BRACKET_RE_GLOBAL.exec(v)) {</span>
+    <span class="s1">res.push(parse(angledMatch))</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s0">let </span><span class="s1">squareMatch</span><span class="s0">;</span>
+  <span class="s0">while </span><span class="s1">(squareMatch = SQUARE_BRACKET_RE_GLOBAL.exec(v)) {</span>
+    <span class="s1">res.push(parse(squareMatch))</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s0">return </span><span class="s1">res</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">getMriOptions = (options) =&gt; {</span>
+  <span class="s0">const </span><span class="s1">result = {alias: {}</span><span class="s0">, </span><span class="s1">boolean: []}</span><span class="s0">;</span>
+  <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">[index</span><span class="s0">, </span><span class="s1">option] of options.entries()) {</span>
+    <span class="s0">if </span><span class="s1">(option.names.length &gt; </span><span class="s3">1</span><span class="s1">) {</span>
+      <span class="s1">result.alias[option.names[</span><span class="s3">0</span><span class="s1">]] = option.names.slice(</span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(option.isBoolean) {</span>
+      <span class="s0">if </span><span class="s1">(option.negated) {</span>
+        <span class="s0">const </span><span class="s1">hasStringTypeOption = options.some((o</span><span class="s0">, </span><span class="s1">i) =&gt; {</span>
+          <span class="s0">return </span><span class="s1">i !== index &amp;&amp; o.names.some((name) =&gt; option.names.includes(name)) &amp;&amp; </span><span class="s0">typeof </span><span class="s1">o.required === </span><span class="s2">&quot;boolean&quot;</span><span class="s0">;</span>
+        <span class="s1">})</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(!hasStringTypeOption) {</span>
+          <span class="s1">result.boolean.push(option.names[</span><span class="s3">0</span><span class="s1">])</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">result.boolean.push(option.names[</span><span class="s3">0</span><span class="s1">])</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s0">return </span><span class="s1">result</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">findLongest = (arr) =&gt; {</span>
+  <span class="s0">return </span><span class="s1">arr.sort((a</span><span class="s0">, </span><span class="s1">b) =&gt; {</span>
+    <span class="s0">return </span><span class="s1">a.length &gt; b.length ? -</span><span class="s3">1 </span><span class="s1">: </span><span class="s3">1</span><span class="s0">;</span>
+  <span class="s1">})[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">padRight = (str</span><span class="s0">, </span><span class="s1">length) =&gt; {</span>
+  <span class="s0">return </span><span class="s1">str.length &gt;= length ? str : </span><span class="s2">`</span><span class="s1">${str}${</span><span class="s2">&quot; &quot;</span><span class="s1">.repeat(length - str.length)}</span><span class="s2">`</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">camelcase = (input) =&gt; {</span>
+  <span class="s0">return </span><span class="s1">input.replace(</span><span class="s3">/([a-z])-([a-z])/g</span><span class="s0">, </span><span class="s1">(_</span><span class="s0">, </span><span class="s1">p1</span><span class="s0">, </span><span class="s1">p2) =&gt; {</span>
+    <span class="s0">return </span><span class="s1">p1 + p2.toUpperCase()</span><span class="s0">;</span>
+  <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">setDotProp = (obj</span><span class="s0">, </span><span class="s1">keys</span><span class="s0">, </span><span class="s1">val) =&gt; {</span>
+  <span class="s0">let </span><span class="s1">i = </span><span class="s3">0</span><span class="s0">;</span>
+  <span class="s0">let </span><span class="s1">length = keys.length</span><span class="s0">;</span>
+  <span class="s0">let </span><span class="s1">t = obj</span><span class="s0">;</span>
+  <span class="s0">let </span><span class="s1">x</span><span class="s0">;</span>
+  <span class="s0">for </span><span class="s1">(</span><span class="s0">; </span><span class="s1">i &lt; length</span><span class="s0">; </span><span class="s1">++i) {</span>
+    <span class="s1">x = t[keys[i]]</span><span class="s0">;</span>
+    <span class="s1">t = t[keys[i]] = i === length - </span><span class="s3">1 </span><span class="s1">? val : x != </span><span class="s0">null </span><span class="s1">? x : !!~keys[i + </span><span class="s3">1</span><span class="s1">].indexOf(</span><span class="s2">&quot;.&quot;</span><span class="s1">) || !(+keys[i + </span><span class="s3">1</span><span class="s1">] &gt; -</span><span class="s3">1</span><span class="s1">) ? {} : []</span><span class="s0">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">setByType = (obj</span><span class="s0">, </span><span class="s1">transforms) =&gt; {</span>
+  <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">key of Object.keys(transforms)) {</span>
+    <span class="s0">const </span><span class="s1">transform = transforms[key]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(transform.shouldTransform) {</span>
+      <span class="s1">obj[key] = Array.prototype.concat.call([]</span><span class="s0">, </span><span class="s1">obj[key])</span><span class="s0">;</span>
+      <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">transform.transformFunction === </span><span class="s2">&quot;function&quot;</span><span class="s1">) {</span>
+        <span class="s1">obj[key] = obj[key].map(transform.transformFunction)</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">getFileName = (input) =&gt; {</span>
+  <span class="s0">const </span><span class="s1">m = </span><span class="s3">/([^\\\/]+)$/</span><span class="s1">.exec(input)</span><span class="s0">;</span>
+  <span class="s0">return </span><span class="s1">m ? m[</span><span class="s3">1</span><span class="s1">] : </span><span class="s2">&quot;&quot;</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">camelcaseOptionName = (name) =&gt; {</span>
+  <span class="s0">return </span><span class="s1">name.split(</span><span class="s2">&quot;.&quot;</span><span class="s1">).map((v</span><span class="s0">, </span><span class="s1">i) =&gt; {</span>
+    <span class="s0">return </span><span class="s1">i === </span><span class="s3">0 </span><span class="s1">? camelcase(v) : v</span><span class="s0">;</span>
+  <span class="s1">}).join(</span><span class="s2">&quot;.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">class </span><span class="s1">CACError </span><span class="s0">extends </span><span class="s1">Error {</span>
+  <span class="s1">constructor(message) {</span>
+    <span class="s0">super</span><span class="s1">(message)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.name = </span><span class="s0">this</span><span class="s1">.constructor.name</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">Error.captureStackTrace === </span><span class="s2">&quot;function&quot;</span><span class="s1">) {</span>
+      <span class="s1">Error.captureStackTrace(</span><span class="s0">this, this</span><span class="s1">.constructor)</span><span class="s0">;</span>
+    <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+      <span class="s0">this</span><span class="s1">.stack = </span><span class="s0">new </span><span class="s1">Error(message).stack</span><span class="s0">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">class </span><span class="s1">Option {</span>
+  <span class="s1">constructor(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config) {</span>
+    <span class="s0">this</span><span class="s1">.rawName = rawName</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.description = description</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.config = Object.assign({}</span><span class="s0">, </span><span class="s1">config)</span><span class="s0">;</span>
+    <span class="s1">rawName = rawName.replace(</span><span class="s3">/\.\*/g</span><span class="s0">, </span><span class="s2">&quot;&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.negated = </span><span class="s0">false;</span>
+    <span class="s0">this</span><span class="s1">.names = removeBrackets(rawName).split(</span><span class="s2">&quot;,&quot;</span><span class="s1">).map((v) =&gt; {</span>
+      <span class="s0">let </span><span class="s1">name = v.trim().replace(</span><span class="s3">/^-{1,2}/</span><span class="s0">, </span><span class="s2">&quot;&quot;</span><span class="s1">)</span><span class="s0">;</span>
+      <span class="s0">if </span><span class="s1">(name.startsWith(</span><span class="s2">&quot;no-&quot;</span><span class="s1">)) {</span>
+        <span class="s0">this</span><span class="s1">.negated = </span><span class="s0">true;</span>
+        <span class="s1">name = name.replace(</span><span class="s3">/^no-/</span><span class="s0">, </span><span class="s2">&quot;&quot;</span><span class="s1">)</span><span class="s0">;</span>
+      <span class="s1">}</span>
+      <span class="s0">return </span><span class="s1">camelcaseOptionName(name)</span><span class="s0">;</span>
+    <span class="s1">}).sort((a</span><span class="s0">, </span><span class="s1">b) =&gt; a.length &gt; b.length ? </span><span class="s3">1 </span><span class="s1">: -</span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.name = </span><span class="s0">this</span><span class="s1">.names[</span><span class="s0">this</span><span class="s1">.names.length - </span><span class="s3">1</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.negated &amp;&amp; </span><span class="s0">this</span><span class="s1">.config.default == </span><span class="s0">null</span><span class="s1">) {</span>
+      <span class="s0">this</span><span class="s1">.config.default = </span><span class="s0">true;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(rawName.includes(</span><span class="s2">&quot;&lt;&quot;</span><span class="s1">)) {</span>
+      <span class="s0">this</span><span class="s1">.required = </span><span class="s0">true;</span>
+    <span class="s1">} </span><span class="s0">else if </span><span class="s1">(rawName.includes(</span><span class="s2">&quot;[&quot;</span><span class="s1">)) {</span>
+      <span class="s0">this</span><span class="s1">.required = </span><span class="s0">false;</span>
+    <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+      <span class="s0">this</span><span class="s1">.isBoolean = </span><span class="s0">true;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">processArgs = process.argv</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">platformInfo = </span><span class="s2">`</span><span class="s1">${process.platform}</span><span class="s2">-</span><span class="s1">${process.arch} </span><span class="s2">node-</span><span class="s1">${process.version}</span><span class="s2">`</span><span class="s0">;</span>
+
+<span class="s0">class </span><span class="s1">Command {</span>
+  <span class="s1">constructor(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config = {}</span><span class="s0">, </span><span class="s1">cli) {</span>
+    <span class="s0">this</span><span class="s1">.rawName = rawName</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.description = description</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.config = config</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.cli = cli</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.options = []</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.aliasNames = []</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.name = removeBrackets(rawName)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.args = findAllBrackets(rawName)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.examples = []</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">usage(text) {</span>
+    <span class="s0">this</span><span class="s1">.usageText = text</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">allowUnknownOptions() {</span>
+    <span class="s0">this</span><span class="s1">.config.allowUnknownOptions = </span><span class="s0">true;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">ignoreOptionDefaultValue() {</span>
+    <span class="s0">this</span><span class="s1">.config.ignoreOptionDefaultValue = </span><span class="s0">true;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">version(version</span><span class="s0">, </span><span class="s1">customFlags = </span><span class="s2">&quot;-v, --version&quot;</span><span class="s1">) {</span>
+    <span class="s0">this</span><span class="s1">.versionNumber = version</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.option(customFlags</span><span class="s0">, </span><span class="s2">&quot;Display version number&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">example(example) {</span>
+    <span class="s0">this</span><span class="s1">.examples.push(example)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">option(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config) {</span>
+    <span class="s0">const </span><span class="s1">option = </span><span class="s0">new </span><span class="s1">Option(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.options.push(option)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">alias(name) {</span>
+    <span class="s0">this</span><span class="s1">.aliasNames.push(name)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">action(callback) {</span>
+    <span class="s0">this</span><span class="s1">.commandAction = callback</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">isMatched(name) {</span>
+    <span class="s0">return this</span><span class="s1">.name === name || </span><span class="s0">this</span><span class="s1">.aliasNames.includes(name)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">get isDefaultCommand() {</span>
+    <span class="s0">return this</span><span class="s1">.name === </span><span class="s2">&quot;&quot; </span><span class="s1">|| </span><span class="s0">this</span><span class="s1">.aliasNames.includes(</span><span class="s2">&quot;!&quot;</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">get isGlobalCommand() {</span>
+    <span class="s0">return this instanceof </span><span class="s1">GlobalCommand</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">hasOption(name) {</span>
+    <span class="s1">name = name.split(</span><span class="s2">&quot;.&quot;</span><span class="s1">)[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">return this</span><span class="s1">.options.find((option) =&gt; {</span>
+      <span class="s0">return </span><span class="s1">option.names.includes(name)</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">outputHelp() {</span>
+    <span class="s0">const </span><span class="s1">{name</span><span class="s0">, </span><span class="s1">commands} = </span><span class="s0">this</span><span class="s1">.cli</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">{</span>
+      <span class="s1">versionNumber</span><span class="s0">,</span>
+      <span class="s1">options: globalOptions</span><span class="s0">,</span>
+      <span class="s1">helpCallback</span>
+    <span class="s1">} = </span><span class="s0">this</span><span class="s1">.cli.globalCommand</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">sections = [</span>
+      <span class="s1">{</span>
+        <span class="s1">body: </span><span class="s2">`</span><span class="s1">${name}${versionNumber ? </span><span class="s2">`/</span><span class="s1">${versionNumber}</span><span class="s2">` </span><span class="s1">: </span><span class="s2">&quot;&quot;</span><span class="s1">}</span><span class="s2">`</span>
+      <span class="s1">}</span>
+    <span class="s1">]</span><span class="s0">;</span>
+    <span class="s1">sections.push({</span>
+      <span class="s1">title: </span><span class="s2">&quot;Usage&quot;</span><span class="s0">,</span>
+      <span class="s1">body: </span><span class="s2">`  $ </span><span class="s1">${name} ${</span><span class="s0">this</span><span class="s1">.usageText || </span><span class="s0">this</span><span class="s1">.rawName}</span><span class="s2">`</span>
+    <span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">showCommands = (</span><span class="s0">this</span><span class="s1">.isGlobalCommand || </span><span class="s0">this</span><span class="s1">.isDefaultCommand) &amp;&amp; commands.length &gt; </span><span class="s3">0</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(showCommands) {</span>
+      <span class="s0">const </span><span class="s1">longestCommandName = findLongest(commands.map((command) =&gt; command.rawName))</span><span class="s0">;</span>
+      <span class="s1">sections.push({</span>
+        <span class="s1">title: </span><span class="s2">&quot;Commands&quot;</span><span class="s0">,</span>
+        <span class="s1">body: commands.map((command) =&gt; {</span>
+          <span class="s0">return </span><span class="s2">`  </span><span class="s1">${padRight(command.rawName</span><span class="s0">, </span><span class="s1">longestCommandName.length)}  ${command.description}</span><span class="s2">`</span><span class="s0">;</span>
+        <span class="s1">}).join(</span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s1">)</span>
+      <span class="s1">})</span><span class="s0">;</span>
+      <span class="s1">sections.push({</span>
+        <span class="s1">title: </span><span class="s2">`For more info, run any command with the </span><span class="s0">\`</span><span class="s2">--help</span><span class="s0">\` </span><span class="s2">flag`</span><span class="s0">,</span>
+        <span class="s1">body: commands.map((command) =&gt; </span><span class="s2">`  $ </span><span class="s1">${name}${command.name === </span><span class="s2">&quot;&quot; </span><span class="s1">? </span><span class="s2">&quot;&quot; </span><span class="s1">: </span><span class="s2">` </span><span class="s1">${command.name}</span><span class="s2">`</span><span class="s1">} </span><span class="s2">--help`</span><span class="s1">).join(</span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s1">)</span>
+      <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">let </span><span class="s1">options = </span><span class="s0">this</span><span class="s1">.isGlobalCommand ? globalOptions : [...</span><span class="s0">this</span><span class="s1">.options</span><span class="s0">, </span><span class="s1">...globalOptions || []]</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!</span><span class="s0">this</span><span class="s1">.isGlobalCommand &amp;&amp; !</span><span class="s0">this</span><span class="s1">.isDefaultCommand) {</span>
+      <span class="s1">options = options.filter((option) =&gt; option.name !== </span><span class="s2">&quot;version&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(options.length &gt; </span><span class="s3">0</span><span class="s1">) {</span>
+      <span class="s0">const </span><span class="s1">longestOptionName = findLongest(options.map((option) =&gt; option.rawName))</span><span class="s0">;</span>
+      <span class="s1">sections.push({</span>
+        <span class="s1">title: </span><span class="s2">&quot;Options&quot;</span><span class="s0">,</span>
+        <span class="s1">body: options.map((option) =&gt; {</span>
+          <span class="s0">return </span><span class="s2">`  </span><span class="s1">${padRight(option.rawName</span><span class="s0">, </span><span class="s1">longestOptionName.length)}  ${option.description} ${option.config.default === </span><span class="s0">void </span><span class="s3">0 </span><span class="s1">? </span><span class="s2">&quot;&quot; </span><span class="s1">: </span><span class="s2">`(default: </span><span class="s1">${option.config.default}</span><span class="s2">)`</span><span class="s1">}</span><span class="s2">`</span><span class="s0">;</span>
+        <span class="s1">}).join(</span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s1">)</span>
+      <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.examples.length &gt; </span><span class="s3">0</span><span class="s1">) {</span>
+      <span class="s1">sections.push({</span>
+        <span class="s1">title: </span><span class="s2">&quot;Examples&quot;</span><span class="s0">,</span>
+        <span class="s1">body: </span><span class="s0">this</span><span class="s1">.examples.map((example) =&gt; {</span>
+          <span class="s0">if </span><span class="s1">(</span><span class="s0">typeof </span><span class="s1">example === </span><span class="s2">&quot;function&quot;</span><span class="s1">) {</span>
+            <span class="s0">return </span><span class="s1">example(name)</span><span class="s0">;</span>
+          <span class="s1">}</span>
+          <span class="s0">return </span><span class="s1">example</span><span class="s0">;</span>
+        <span class="s1">}).join(</span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s1">)</span>
+      <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(helpCallback) {</span>
+      <span class="s1">sections = helpCallback(sections) || sections</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s1">console.log(sections.map((section) =&gt; {</span>
+      <span class="s0">return </span><span class="s1">section.title ? </span><span class="s2">`</span><span class="s1">${section.title}</span><span class="s2">: 
+</span><span class="s1">${section.body}</span><span class="s2">` </span><span class="s1">: section.body</span><span class="s0">;</span>
+    <span class="s1">}).join(</span><span class="s2">&quot;</span><span class="s0">\n\n</span><span class="s2">&quot;</span><span class="s1">))</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">outputVersion() {</span>
+    <span class="s0">const </span><span class="s1">{name} = </span><span class="s0">this</span><span class="s1">.cli</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">{versionNumber} = </span><span class="s0">this</span><span class="s1">.cli.globalCommand</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(versionNumber) {</span>
+      <span class="s1">console.log(</span><span class="s2">`</span><span class="s1">${name}</span><span class="s2">/</span><span class="s1">${versionNumber} ${platformInfo}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">checkRequiredArgs() {</span>
+    <span class="s0">const </span><span class="s1">minimalArgsCount = </span><span class="s0">this</span><span class="s1">.args.filter((arg) =&gt; arg.required).length</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.cli.args.length &lt; minimalArgsCount) {</span>
+      <span class="s0">throw new </span><span class="s1">CACError(</span><span class="s2">`missing required args for command </span><span class="s0">\`</span><span class="s1">${</span><span class="s0">this</span><span class="s1">.rawName}</span><span class="s0">\`</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">checkUnknownOptions() {</span>
+    <span class="s0">const </span><span class="s1">{options</span><span class="s0">, </span><span class="s1">globalCommand} = </span><span class="s0">this</span><span class="s1">.cli</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!</span><span class="s0">this</span><span class="s1">.config.allowUnknownOptions) {</span>
+      <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">name of Object.keys(options)) {</span>
+        <span class="s0">if </span><span class="s1">(name !== </span><span class="s2">&quot;--&quot; </span><span class="s1">&amp;&amp; !</span><span class="s0">this</span><span class="s1">.hasOption(name) &amp;&amp; !globalCommand.hasOption(name)) {</span>
+          <span class="s0">throw new </span><span class="s1">CACError(</span><span class="s2">`Unknown option </span><span class="s0">\`</span><span class="s1">${name.length &gt; </span><span class="s3">1 </span><span class="s1">? </span><span class="s2">`--</span><span class="s1">${name}</span><span class="s2">` </span><span class="s1">: </span><span class="s2">`-</span><span class="s1">${name}</span><span class="s2">`</span><span class="s1">}</span><span class="s0">\`</span><span class="s2">`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">checkOptionValue() {</span>
+    <span class="s0">const </span><span class="s1">{options: parsedOptions</span><span class="s0">, </span><span class="s1">globalCommand} = </span><span class="s0">this</span><span class="s1">.cli</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">options = [...globalCommand.options</span><span class="s0">, </span><span class="s1">...</span><span class="s0">this</span><span class="s1">.options]</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">option of options) {</span>
+      <span class="s0">const </span><span class="s1">value = parsedOptions[option.name.split(</span><span class="s2">&quot;.&quot;</span><span class="s1">)[</span><span class="s3">0</span><span class="s1">]]</span><span class="s0">;</span>
+      <span class="s0">if </span><span class="s1">(option.required) {</span>
+        <span class="s0">const </span><span class="s1">hasNegated = options.some((o) =&gt; o.negated &amp;&amp; o.names.includes(option.name))</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(value === </span><span class="s0">true </span><span class="s1">|| value === </span><span class="s0">false </span><span class="s1">&amp;&amp; !hasNegated) {</span>
+          <span class="s0">throw new </span><span class="s1">CACError(</span><span class="s2">`option </span><span class="s0">\`</span><span class="s1">${option.rawName}</span><span class="s0">\` </span><span class="s2">value is missing`</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+<span class="s0">class </span><span class="s1">GlobalCommand </span><span class="s0">extends </span><span class="s1">Command {</span>
+  <span class="s1">constructor(cli) {</span>
+    <span class="s0">super</span><span class="s1">(</span><span class="s2">&quot;@@global@@&quot;</span><span class="s0">, </span><span class="s2">&quot;&quot;</span><span class="s0">, </span><span class="s1">{}</span><span class="s0">, </span><span class="s1">cli)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">var </span><span class="s1">__assign = Object.assign</span><span class="s0">;</span>
+<span class="s0">class </span><span class="s1">CAC </span><span class="s0">extends </span><span class="s1">EventEmitter {</span>
+  <span class="s1">constructor(name = </span><span class="s2">&quot;&quot;</span><span class="s1">) {</span>
+    <span class="s0">super</span><span class="s1">()</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.name = name</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.commands = []</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.rawArgs = []</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.args = []</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.options = {}</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.globalCommand = </span><span class="s0">new </span><span class="s1">GlobalCommand(</span><span class="s0">this</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.usage(</span><span class="s2">&quot;&lt;command&gt; [options]&quot;</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">usage(text) {</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.usage(text)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">command(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config) {</span>
+    <span class="s0">const </span><span class="s1">command = </span><span class="s0">new </span><span class="s1">Command(rawName</span><span class="s0">, </span><span class="s1">description || </span><span class="s2">&quot;&quot;</span><span class="s0">, </span><span class="s1">config</span><span class="s0">, this</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">command.globalCommand = </span><span class="s0">this</span><span class="s1">.globalCommand</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.commands.push(command)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">command</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">option(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config) {</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.option(rawName</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">config)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">help(callback) {</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.option(</span><span class="s2">&quot;-h, --help&quot;</span><span class="s0">, </span><span class="s2">&quot;Display this message&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.helpCallback = callback</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.showHelpOnExit = </span><span class="s0">true;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">version(version</span><span class="s0">, </span><span class="s1">customFlags = </span><span class="s2">&quot;-v, --version&quot;</span><span class="s1">) {</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.version(version</span><span class="s0">, </span><span class="s1">customFlags)</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.showVersionOnExit = </span><span class="s0">true;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">example(example) {</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.example(example)</span><span class="s0">;</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">outputHelp() {</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.matchedCommand) {</span>
+      <span class="s0">this</span><span class="s1">.matchedCommand.outputHelp()</span><span class="s0">;</span>
+    <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+      <span class="s0">this</span><span class="s1">.globalCommand.outputHelp()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">outputVersion() {</span>
+    <span class="s0">this</span><span class="s1">.globalCommand.outputVersion()</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">setParsedInfo({args</span><span class="s0">, </span><span class="s1">options}</span><span class="s0">, </span><span class="s1">matchedCommand</span><span class="s0">, </span><span class="s1">matchedCommandName) {</span>
+    <span class="s0">this</span><span class="s1">.args = args</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.options = options</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(matchedCommand) {</span>
+      <span class="s0">this</span><span class="s1">.matchedCommand = matchedCommand</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(matchedCommandName) {</span>
+      <span class="s0">this</span><span class="s1">.matchedCommandName = matchedCommandName</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return this;</span>
+  <span class="s1">}</span>
+  <span class="s1">unsetMatchedCommand() {</span>
+    <span class="s0">this</span><span class="s1">.matchedCommand = </span><span class="s0">void </span><span class="s3">0</span><span class="s0">;</span>
+    <span class="s0">this</span><span class="s1">.matchedCommandName = </span><span class="s0">void </span><span class="s3">0</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">parse(argv = processArgs</span><span class="s0">, </span><span class="s1">{</span>
+    <span class="s1">run = </span><span class="s0">true</span>
+  <span class="s1">} = {}) {</span>
+    <span class="s0">this</span><span class="s1">.rawArgs = argv</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(!</span><span class="s0">this</span><span class="s1">.name) {</span>
+      <span class="s0">this</span><span class="s1">.name = argv[</span><span class="s3">1</span><span class="s1">] ? getFileName(argv[</span><span class="s3">1</span><span class="s1">]) : </span><span class="s2">&quot;cli&quot;</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">let </span><span class="s1">shouldParse = </span><span class="s0">true;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">command of </span><span class="s0">this</span><span class="s1">.commands) {</span>
+      <span class="s0">const </span><span class="s1">parsed = </span><span class="s0">this</span><span class="s1">.mri(argv.slice(</span><span class="s3">2</span><span class="s1">)</span><span class="s0">, </span><span class="s1">command)</span><span class="s0">;</span>
+      <span class="s0">const </span><span class="s1">commandName = parsed.args[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">;</span>
+      <span class="s0">if </span><span class="s1">(command.isMatched(commandName)) {</span>
+        <span class="s1">shouldParse = </span><span class="s0">false;</span>
+        <span class="s0">const </span><span class="s1">parsedInfo = __assign(__assign({}</span><span class="s0">, </span><span class="s1">parsed)</span><span class="s0">, </span><span class="s1">{</span>
+          <span class="s1">args: parsed.args.slice(</span><span class="s3">1</span><span class="s1">)</span>
+        <span class="s1">})</span><span class="s0">;</span>
+        <span class="s0">this</span><span class="s1">.setParsedInfo(parsedInfo</span><span class="s0">, </span><span class="s1">command</span><span class="s0">, </span><span class="s1">commandName)</span><span class="s0">;</span>
+        <span class="s0">this</span><span class="s1">.emit(</span><span class="s2">`command:</span><span class="s1">${commandName}</span><span class="s2">`</span><span class="s0">, </span><span class="s1">command)</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(shouldParse) {</span>
+      <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">command of </span><span class="s0">this</span><span class="s1">.commands) {</span>
+        <span class="s0">if </span><span class="s1">(command.name === </span><span class="s2">&quot;&quot;</span><span class="s1">) {</span>
+          <span class="s1">shouldParse = </span><span class="s0">false;</span>
+          <span class="s0">const </span><span class="s1">parsed = </span><span class="s0">this</span><span class="s1">.mri(argv.slice(</span><span class="s3">2</span><span class="s1">)</span><span class="s0">, </span><span class="s1">command)</span><span class="s0">;</span>
+          <span class="s0">this</span><span class="s1">.setParsedInfo(parsed</span><span class="s0">, </span><span class="s1">command)</span><span class="s0">;</span>
+          <span class="s0">this</span><span class="s1">.emit(</span><span class="s2">`command:!`</span><span class="s0">, </span><span class="s1">command)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(shouldParse) {</span>
+      <span class="s0">const </span><span class="s1">parsed = </span><span class="s0">this</span><span class="s1">.mri(argv.slice(</span><span class="s3">2</span><span class="s1">))</span><span class="s0">;</span>
+      <span class="s0">this</span><span class="s1">.setParsedInfo(parsed)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.options.help &amp;&amp; </span><span class="s0">this</span><span class="s1">.showHelpOnExit) {</span>
+      <span class="s0">this</span><span class="s1">.outputHelp()</span><span class="s0">;</span>
+      <span class="s1">run = </span><span class="s0">false;</span>
+      <span class="s0">this</span><span class="s1">.unsetMatchedCommand()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.options.version &amp;&amp; </span><span class="s0">this</span><span class="s1">.showVersionOnExit &amp;&amp; </span><span class="s0">this</span><span class="s1">.matchedCommandName == </span><span class="s0">null</span><span class="s1">) {</span>
+      <span class="s0">this</span><span class="s1">.outputVersion()</span><span class="s0">;</span>
+      <span class="s1">run = </span><span class="s0">false;</span>
+      <span class="s0">this</span><span class="s1">.unsetMatchedCommand()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">const </span><span class="s1">parsedArgv = {args: </span><span class="s0">this</span><span class="s1">.args</span><span class="s0">, </span><span class="s1">options: </span><span class="s0">this</span><span class="s1">.options}</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(run) {</span>
+      <span class="s0">this</span><span class="s1">.runMatchedCommand()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">if </span><span class="s1">(!</span><span class="s0">this</span><span class="s1">.matchedCommand &amp;&amp; </span><span class="s0">this</span><span class="s1">.args[</span><span class="s3">0</span><span class="s1">]) {</span>
+      <span class="s0">this</span><span class="s1">.emit(</span><span class="s2">&quot;command:*&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">parsedArgv</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">mri(argv</span><span class="s0">, </span><span class="s1">command) {</span>
+    <span class="s0">const </span><span class="s1">cliOptions = [</span>
+      <span class="s1">...</span><span class="s0">this</span><span class="s1">.globalCommand.options</span><span class="s0">,</span>
+      <span class="s1">...command ? command.options : []</span>
+    <span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">mriOptions = getMriOptions(cliOptions)</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">argsAfterDoubleDashes = []</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">doubleDashesIndex = argv.indexOf(</span><span class="s2">&quot;--&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">if </span><span class="s1">(doubleDashesIndex &gt; -</span><span class="s3">1</span><span class="s1">) {</span>
+      <span class="s1">argsAfterDoubleDashes = argv.slice(doubleDashesIndex + </span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+      <span class="s1">argv = argv.slice(</span><span class="s3">0</span><span class="s0">, </span><span class="s1">doubleDashesIndex)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">let </span><span class="s1">parsed = mri2(argv</span><span class="s0">, </span><span class="s1">mriOptions)</span><span class="s0">;</span>
+    <span class="s1">parsed = Object.keys(parsed).reduce((res</span><span class="s0">, </span><span class="s1">name) =&gt; {</span>
+      <span class="s0">return </span><span class="s1">__assign(__assign({}</span><span class="s0">, </span><span class="s1">res)</span><span class="s0">, </span><span class="s1">{</span>
+        <span class="s1">[camelcaseOptionName(name)]: parsed[name]</span>
+      <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span><span class="s0">, </span><span class="s1">{_: []})</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">args = parsed._</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">options = {</span>
+      <span class="s2">&quot;--&quot;</span><span class="s1">: argsAfterDoubleDashes</span>
+    <span class="s1">}</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">ignoreDefault = command &amp;&amp; command.config.ignoreOptionDefaultValue ? command.config.ignoreOptionDefaultValue : </span><span class="s0">this</span><span class="s1">.globalCommand.config.ignoreOptionDefaultValue</span><span class="s0">;</span>
+    <span class="s0">let </span><span class="s1">transforms = Object.create(</span><span class="s0">null</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">cliOption of cliOptions) {</span>
+      <span class="s0">if </span><span class="s1">(!ignoreDefault &amp;&amp; cliOption.config.default !== </span><span class="s0">void </span><span class="s3">0</span><span class="s1">) {</span>
+        <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">name of cliOption.names) {</span>
+          <span class="s1">options[name] = cliOption.config.default</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+      <span class="s0">if </span><span class="s1">(Array.isArray(cliOption.config.type)) {</span>
+        <span class="s0">if </span><span class="s1">(transforms[cliOption.name] === </span><span class="s0">void </span><span class="s3">0</span><span class="s1">) {</span>
+          <span class="s1">transforms[cliOption.name] = Object.create(</span><span class="s0">null</span><span class="s1">)</span><span class="s0">;</span>
+          <span class="s1">transforms[cliOption.name][</span><span class="s2">&quot;shouldTransform&quot;</span><span class="s1">] = </span><span class="s0">true;</span>
+          <span class="s1">transforms[cliOption.name][</span><span class="s2">&quot;transformFunction&quot;</span><span class="s1">] = cliOption.config.type[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">;</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">key of Object.keys(parsed)) {</span>
+      <span class="s0">if </span><span class="s1">(key !== </span><span class="s2">&quot;_&quot;</span><span class="s1">) {</span>
+        <span class="s0">const </span><span class="s1">keys = key.split(</span><span class="s2">&quot;.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">setDotProp(options</span><span class="s0">, </span><span class="s1">keys</span><span class="s0">, </span><span class="s1">parsed[key])</span><span class="s0">;</span>
+        <span class="s1">setByType(options</span><span class="s0">, </span><span class="s1">transforms)</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s0">return </span><span class="s1">{</span>
+      <span class="s1">args</span><span class="s0">,</span>
+      <span class="s1">options</span>
+    <span class="s1">}</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">runMatchedCommand() {</span>
+    <span class="s0">const </span><span class="s1">{args</span><span class="s0">, </span><span class="s1">options</span><span class="s0">, </span><span class="s1">matchedCommand: command} = </span><span class="s0">this;</span>
+    <span class="s0">if </span><span class="s1">(!command || !command.commandAction)</span>
+      <span class="s0">return;</span>
+    <span class="s1">command.checkUnknownOptions()</span><span class="s0">;</span>
+    <span class="s1">command.checkOptionValue()</span><span class="s0">;</span>
+    <span class="s1">command.checkRequiredArgs()</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">actionArgs = []</span><span class="s0">;</span>
+    <span class="s1">command.args.forEach((arg</span><span class="s0">, </span><span class="s1">index) =&gt; {</span>
+      <span class="s0">if </span><span class="s1">(arg.variadic) {</span>
+        <span class="s1">actionArgs.push(args.slice(index))</span><span class="s0">;</span>
+      <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+        <span class="s1">actionArgs.push(args[index])</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">actionArgs.push(options)</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">command.commandAction.apply(</span><span class="s0">this, </span><span class="s1">actionArgs)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">const </span><span class="s1">cac = (name = </span><span class="s2">&quot;&quot;</span><span class="s1">) =&gt; </span><span class="s0">new </span><span class="s1">CAC(name)</span><span class="s0">;</span>
+
+<span class="s0">const </span><span class="s1">cli = cac(</span><span class="s2">'vite'</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s0">let </span><span class="s1">profileSession = global.__vite_profile_session</span><span class="s0">;</span>
+<span class="s0">let </span><span class="s1">profileCount = </span><span class="s3">0</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">stopProfiler = (log) =&gt; {</span>
+    <span class="s0">if </span><span class="s1">(!profileSession)</span>
+        <span class="s0">return;</span>
+    <span class="s0">return new </span><span class="s1">Promise((res</span><span class="s0">, </span><span class="s1">rej) =&gt; {</span>
+        <span class="s1">profileSession.post(</span><span class="s2">'Profiler.stop'</span><span class="s0">, </span><span class="s1">(err</span><span class="s0">, </span><span class="s1">{ profile }) =&gt; {</span>
+            <span class="s4">// Write profile to disk, upload, etc.</span>
+            <span class="s0">if </span><span class="s1">(!err) {</span>
+                <span class="s0">const </span><span class="s1">outPath = path.resolve(</span><span class="s2">`./vite-profile-</span><span class="s1">${profileCount++}</span><span class="s2">.cpuprofile`</span><span class="s1">)</span><span class="s0">;</span>
+                <span class="s1">fs.writeFileSync(outPath</span><span class="s0">, </span><span class="s1">JSON.stringify(profile))</span><span class="s0">;</span>
+                <span class="s1">log(picocolorsExports.yellow(</span><span class="s2">`CPU profile written to </span><span class="s1">${picocolorsExports.white(picocolorsExports.dim(outPath))}</span><span class="s2">`</span><span class="s1">))</span><span class="s0">;</span>
+                <span class="s1">profileSession = undefined</span><span class="s0">;</span>
+                <span class="s1">res()</span><span class="s0">;</span>
+            <span class="s1">}</span>
+            <span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">rej(err)</span><span class="s0">;</span>
+            <span class="s1">}</span>
+        <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s0">const </span><span class="s1">filterDuplicateOptions = (options) =&gt; {</span>
+    <span class="s0">for </span><span class="s1">(</span><span class="s0">const </span><span class="s1">[key</span><span class="s0">, </span><span class="s1">value] of Object.entries(options)) {</span>
+        <span class="s0">if </span><span class="s1">(Array.isArray(value)) {</span>
+            <span class="s1">options[key] = value[value.length - </span><span class="s3">1</span><span class="s1">]</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span><span class="s0">;</span>
+<span class="s5">/**</span>
+ <span class="s5">* removing global flags before passing as command specific sub-configs</span>
+ <span class="s5">*/</span>
+<span class="s0">function </span><span class="s1">cleanOptions(options) {</span>
+    <span class="s0">const </span><span class="s1">ret = { ...options }</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret[</span><span class="s2">'--'</span><span class="s1">]</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.c</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.config</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.base</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.l</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.logLevel</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.clearScreen</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.d</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.debug</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.f</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.filter</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.m</span><span class="s0">;</span>
+    <span class="s0">delete </span><span class="s1">ret.mode</span><span class="s0">;</span>
+    <span class="s0">return </span><span class="s1">ret</span><span class="s0">;</span>
+<span class="s1">}</span>
+<span class="s1">cli</span>
+    <span class="s1">.option(</span><span class="s2">'-c, --config &lt;file&gt;'</span><span class="s0">, </span><span class="s2">`[string] use specified config file`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--base &lt;path&gt;'</span><span class="s0">, </span><span class="s2">`[string] public base path (default: /)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'-l, --logLevel &lt;level&gt;'</span><span class="s0">, </span><span class="s2">`[string] info | warn | error | silent`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--clearScreen'</span><span class="s0">, </span><span class="s2">`[boolean] allow/disable clear screen when logging`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'-d, --debug [feat]'</span><span class="s0">, </span><span class="s2">`[string | boolean] show debug logs`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'-f, --filter &lt;filter&gt;'</span><span class="s0">, </span><span class="s2">`[string] filter debug logs`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'-m, --mode &lt;mode&gt;'</span><span class="s0">, </span><span class="s2">`[string] set env mode`</span><span class="s1">)</span><span class="s0">;</span>
+<span class="s4">// dev</span>
+<span class="s1">cli</span>
+    <span class="s1">.command(</span><span class="s2">'[root]'</span><span class="s0">, </span><span class="s2">'start dev server'</span><span class="s1">) </span><span class="s4">// default command</span>
+    <span class="s1">.alias(</span><span class="s2">'serve'</span><span class="s1">) </span><span class="s4">// the command is called 'serve' in Vite's API</span>
+    <span class="s1">.alias(</span><span class="s2">'dev'</span><span class="s1">) </span><span class="s4">// alias to align with the script name</span>
+    <span class="s1">.option(</span><span class="s2">'--host [host]'</span><span class="s0">, </span><span class="s2">`[string] specify hostname`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--port &lt;port&gt;'</span><span class="s0">, </span><span class="s2">`[number] specify port`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--https'</span><span class="s0">, </span><span class="s2">`[boolean] use TLS + HTTP/2`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--open [path]'</span><span class="s0">, </span><span class="s2">`[boolean | string] open browser on startup`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--cors'</span><span class="s0">, </span><span class="s2">`[boolean] enable CORS`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--strictPort'</span><span class="s0">, </span><span class="s2">`[boolean] exit if specified port is already in use`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--force'</span><span class="s0">, </span><span class="s2">`[boolean] force the optimizer to ignore the cache and re-bundle`</span><span class="s1">)</span>
+    <span class="s1">.action(async (root</span><span class="s0">, </span><span class="s1">options) =&gt; {</span>
+    <span class="s1">filterDuplicateOptions(options)</span><span class="s0">;</span>
+    <span class="s4">// output structure is preserved even after bundling so require()</span>
+    <span class="s4">// is ok here</span>
+    <span class="s0">const </span><span class="s1">{ createServer } = </span><span class="s0">await import</span><span class="s1">(</span><span class="s2">'./chunks/dep-24daf00c.js'</span><span class="s1">).then(</span><span class="s0">function </span><span class="s1">(n) { </span><span class="s0">return </span><span class="s1">n.H</span><span class="s0">; </span><span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">try </span><span class="s1">{</span>
+        <span class="s0">const </span><span class="s1">server = </span><span class="s0">await </span><span class="s1">createServer({</span>
+            <span class="s1">root</span><span class="s0">,</span>
+            <span class="s1">base: options.base</span><span class="s0">,</span>
+            <span class="s1">mode: options.mode</span><span class="s0">,</span>
+            <span class="s1">configFile: options.config</span><span class="s0">,</span>
+            <span class="s1">logLevel: options.logLevel</span><span class="s0">,</span>
+            <span class="s1">clearScreen: options.clearScreen</span><span class="s0">,</span>
+            <span class="s1">optimizeDeps: { force: options.force }</span><span class="s0">,</span>
+            <span class="s1">server: cleanOptions(options)</span><span class="s0">,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+        <span class="s0">if </span><span class="s1">(!server.httpServer) {</span>
+            <span class="s0">throw new </span><span class="s1">Error(</span><span class="s2">'HTTP server not available'</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+        <span class="s0">await </span><span class="s1">server.listen()</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">info = server.config.logger.info</span><span class="s0">;</span>
+        <span class="s0">const </span><span class="s1">viteStartTime = global.__vite_start_time ?? </span><span class="s0">false;</span>
+        <span class="s0">const </span><span class="s1">startupDurationString = viteStartTime</span>
+            <span class="s1">? picocolorsExports.dim(</span><span class="s2">`ready in </span><span class="s1">${picocolorsExports.reset(picocolorsExports.bold(Math.ceil(performance.now() - viteStartTime)))} </span><span class="s2">ms`</span><span class="s1">)</span>
+            <span class="s1">: </span><span class="s2">''</span><span class="s0">;</span>
+        <span class="s1">info(</span><span class="s2">`</span><span class="s0">\n  </span><span class="s1">${picocolorsExports.green(</span><span class="s2">`</span><span class="s1">${picocolorsExports.bold(</span><span class="s2">'VITE'</span><span class="s1">)} </span><span class="s2">v</span><span class="s1">${VERSION}</span><span class="s2">`</span><span class="s1">)}  ${startupDurationString}</span><span class="s0">\n</span><span class="s2">`</span><span class="s0">, </span><span class="s1">{ clear: !server.config.logger.hasWarned })</span><span class="s0">;</span>
+        <span class="s1">server.printUrls()</span><span class="s0">;</span>
+        <span class="s1">bindShortcuts(server</span><span class="s0">, </span><span class="s1">{</span>
+            <span class="s1">print: </span><span class="s0">true,</span>
+            <span class="s1">customShortcuts: [</span>
+                <span class="s1">profileSession &amp;&amp; {</span>
+                    <span class="s1">key: </span><span class="s2">'p'</span><span class="s0">,</span>
+                    <span class="s1">description: </span><span class="s2">'start/stop the profiler'</span><span class="s0">,</span>
+                    <span class="s1">async action(server) {</span>
+                        <span class="s0">if </span><span class="s1">(profileSession) {</span>
+                            <span class="s0">await </span><span class="s1">stopProfiler(server.config.logger.info)</span><span class="s0">;</span>
+                        <span class="s1">}</span>
+                        <span class="s0">else </span><span class="s1">{</span>
+                            <span class="s0">const </span><span class="s1">inspector = </span><span class="s0">await import</span><span class="s1">(</span><span class="s2">'node:inspector'</span><span class="s1">).then((r) =&gt; r.default)</span><span class="s0">;</span>
+                            <span class="s0">await new </span><span class="s1">Promise((res) =&gt; {</span>
+                                <span class="s1">profileSession = </span><span class="s0">new </span><span class="s1">inspector.Session()</span><span class="s0">;</span>
+                                <span class="s1">profileSession.connect()</span><span class="s0">;</span>
+                                <span class="s1">profileSession.post(</span><span class="s2">'Profiler.enable'</span><span class="s0">, </span><span class="s1">() =&gt; {</span>
+                                    <span class="s1">profileSession.post(</span><span class="s2">'Profiler.start'</span><span class="s0">, </span><span class="s1">() =&gt; {</span>
+                                        <span class="s1">server.config.logger.info(</span><span class="s2">'Profiler started'</span><span class="s1">)</span><span class="s0">;</span>
+                                        <span class="s1">res()</span><span class="s0">;</span>
+                                    <span class="s1">})</span><span class="s0">;</span>
+                                <span class="s1">})</span><span class="s0">;</span>
+                            <span class="s1">})</span><span class="s0">;</span>
+                        <span class="s1">}</span>
+                    <span class="s1">}</span><span class="s0">,</span>
+                <span class="s1">}</span><span class="s0">,</span>
+            <span class="s1">]</span><span class="s0">,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">catch </span><span class="s1">(e) {</span>
+        <span class="s0">const </span><span class="s1">logger = createLogger(options.logLevel)</span><span class="s0">;</span>
+        <span class="s1">logger.error(picocolorsExports.red(</span><span class="s2">`error when starting dev server:</span><span class="s0">\n</span><span class="s1">${e.stack}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">, </span><span class="s1">{</span>
+            <span class="s1">error: e</span><span class="s0">,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+        <span class="s1">stopProfiler(logger.info)</span><span class="s0">;</span>
+        <span class="s1">process.exit(</span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">})</span><span class="s0">;</span>
+<span class="s4">// build</span>
+<span class="s1">cli</span>
+    <span class="s1">.command(</span><span class="s2">'build [root]'</span><span class="s0">, </span><span class="s2">'build for production'</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--target &lt;target&gt;'</span><span class="s0">, </span><span class="s2">`[string] transpile target (default: 'modules')`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--outDir &lt;dir&gt;'</span><span class="s0">, </span><span class="s2">`[string] output directory (default: dist)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--assetsDir &lt;dir&gt;'</span><span class="s0">, </span><span class="s2">`[string] directory under outDir to place assets in (default: assets)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--assetsInlineLimit &lt;number&gt;'</span><span class="s0">, </span><span class="s2">`[number] static asset base64 inline threshold in bytes (default: 4096)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--ssr [entry]'</span><span class="s0">, </span><span class="s2">`[string] build specified entry for server-side rendering`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--sourcemap [output]'</span><span class="s0">, </span><span class="s2">`[boolean | &quot;inline&quot; | &quot;hidden&quot;] output source maps for build (default: false)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--minify [minifier]'</span><span class="s0">, </span><span class="s2">`[boolean | &quot;terser&quot; | &quot;esbuild&quot;] enable/disable minification, ` </span><span class="s1">+</span>
+    <span class="s2">`or specify minifier to use (default: esbuild)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--manifest [name]'</span><span class="s0">, </span><span class="s2">`[boolean | string] emit build manifest json`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--ssrManifest [name]'</span><span class="s0">, </span><span class="s2">`[boolean | string] emit ssr manifest json`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--force'</span><span class="s0">, </span><span class="s2">`[boolean] force the optimizer to ignore the cache and re-bundle (experimental)`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--emptyOutDir'</span><span class="s0">, </span><span class="s2">`[boolean] force empty outDir when it's outside of root`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'-w, --watch'</span><span class="s0">, </span><span class="s2">`[boolean] rebuilds when modules have changed on disk`</span><span class="s1">)</span>
+    <span class="s1">.action(async (root</span><span class="s0">, </span><span class="s1">options) =&gt; {</span>
+    <span class="s1">filterDuplicateOptions(options)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">{ build } = </span><span class="s0">await import</span><span class="s1">(</span><span class="s2">'./chunks/dep-24daf00c.js'</span><span class="s1">).then(</span><span class="s0">function </span><span class="s1">(n) { </span><span class="s0">return </span><span class="s1">n.G</span><span class="s0">; </span><span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">buildOptions = cleanOptions(options)</span><span class="s0">;</span>
+    <span class="s0">try </span><span class="s1">{</span>
+        <span class="s0">await </span><span class="s1">build({</span>
+            <span class="s1">root</span><span class="s0">,</span>
+            <span class="s1">base: options.base</span><span class="s0">,</span>
+            <span class="s1">mode: options.mode</span><span class="s0">,</span>
+            <span class="s1">configFile: options.config</span><span class="s0">,</span>
+            <span class="s1">logLevel: options.logLevel</span><span class="s0">,</span>
+            <span class="s1">clearScreen: options.clearScreen</span><span class="s0">,</span>
+            <span class="s1">optimizeDeps: { force: options.force }</span><span class="s0">,</span>
+            <span class="s1">build: buildOptions</span><span class="s0">,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">catch </span><span class="s1">(e) {</span>
+        <span class="s1">createLogger(options.logLevel).error(picocolorsExports.red(</span><span class="s2">`error during build:</span><span class="s0">\n</span><span class="s1">${e.stack}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">, </span><span class="s1">{ error: e })</span><span class="s0">;</span>
+        <span class="s1">process.exit(</span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">finally </span><span class="s1">{</span>
+        <span class="s1">stopProfiler((message) =&gt; createLogger(options.logLevel).info(message))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">})</span><span class="s0">;</span>
+<span class="s4">// optimize</span>
+<span class="s1">cli</span>
+    <span class="s1">.command(</span><span class="s2">'optimize [root]'</span><span class="s0">, </span><span class="s2">'pre-bundle dependencies'</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--force'</span><span class="s0">, </span><span class="s2">`[boolean] force the optimizer to ignore the cache and re-bundle`</span><span class="s1">)</span>
+    <span class="s1">.action(async (root</span><span class="s0">, </span><span class="s1">options) =&gt; {</span>
+    <span class="s1">filterDuplicateOptions(options)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">{ optimizeDeps } = </span><span class="s0">await import</span><span class="s1">(</span><span class="s2">'./chunks/dep-24daf00c.js'</span><span class="s1">).then(</span><span class="s0">function </span><span class="s1">(n) { </span><span class="s0">return </span><span class="s1">n.F</span><span class="s0">; </span><span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">try </span><span class="s1">{</span>
+        <span class="s0">const </span><span class="s1">config = </span><span class="s0">await </span><span class="s1">resolveConfig({</span>
+            <span class="s1">root</span><span class="s0">,</span>
+            <span class="s1">base: options.base</span><span class="s0">,</span>
+            <span class="s1">configFile: options.config</span><span class="s0">,</span>
+            <span class="s1">logLevel: options.logLevel</span><span class="s0">,</span>
+            <span class="s1">mode: options.mode</span><span class="s0">,</span>
+        <span class="s1">}</span><span class="s0">, </span><span class="s2">'serve'</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">await </span><span class="s1">optimizeDeps(config</span><span class="s0">, </span><span class="s1">options.force</span><span class="s0">, true</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">catch </span><span class="s1">(e) {</span>
+        <span class="s1">createLogger(options.logLevel).error(picocolorsExports.red(</span><span class="s2">`error when optimizing deps:</span><span class="s0">\n</span><span class="s1">${e.stack}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">, </span><span class="s1">{ error: e })</span><span class="s0">;</span>
+        <span class="s1">process.exit(</span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">})</span><span class="s0">;</span>
+<span class="s1">cli</span>
+    <span class="s1">.command(</span><span class="s2">'preview [root]'</span><span class="s0">, </span><span class="s2">'locally preview production build'</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--host [host]'</span><span class="s0">, </span><span class="s2">`[string] specify hostname`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--port &lt;port&gt;'</span><span class="s0">, </span><span class="s2">`[number] specify port`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--strictPort'</span><span class="s0">, </span><span class="s2">`[boolean] exit if specified port is already in use`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--https'</span><span class="s0">, </span><span class="s2">`[boolean] use TLS + HTTP/2`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--open [path]'</span><span class="s0">, </span><span class="s2">`[boolean | string] open browser on startup`</span><span class="s1">)</span>
+    <span class="s1">.option(</span><span class="s2">'--outDir &lt;dir&gt;'</span><span class="s0">, </span><span class="s2">`[string] output directory (default: dist)`</span><span class="s1">)</span>
+    <span class="s1">.action(async (root</span><span class="s0">, </span><span class="s1">options) =&gt; {</span>
+    <span class="s1">filterDuplicateOptions(options)</span><span class="s0">;</span>
+    <span class="s0">const </span><span class="s1">{ preview } = </span><span class="s0">await import</span><span class="s1">(</span><span class="s2">'./chunks/dep-24daf00c.js'</span><span class="s1">).then(</span><span class="s0">function </span><span class="s1">(n) { </span><span class="s0">return </span><span class="s1">n.I</span><span class="s0">; </span><span class="s1">})</span><span class="s0">;</span>
+    <span class="s0">try </span><span class="s1">{</span>
+        <span class="s0">const </span><span class="s1">server = </span><span class="s0">await </span><span class="s1">preview({</span>
+            <span class="s1">root</span><span class="s0">,</span>
+            <span class="s1">base: options.base</span><span class="s0">,</span>
+            <span class="s1">configFile: options.config</span><span class="s0">,</span>
+            <span class="s1">logLevel: options.logLevel</span><span class="s0">,</span>
+            <span class="s1">mode: options.mode</span><span class="s0">,</span>
+            <span class="s1">build: {</span>
+                <span class="s1">outDir: options.outDir</span><span class="s0">,</span>
+            <span class="s1">}</span><span class="s0">,</span>
+            <span class="s1">preview: {</span>
+                <span class="s1">port: options.port</span><span class="s0">,</span>
+                <span class="s1">strictPort: options.strictPort</span><span class="s0">,</span>
+                <span class="s1">host: options.host</span><span class="s0">,</span>
+                <span class="s1">https: options.https</span><span class="s0">,</span>
+                <span class="s1">open: options.open</span><span class="s0">,</span>
+            <span class="s1">}</span><span class="s0">,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+        <span class="s1">server.printUrls()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">catch </span><span class="s1">(e) {</span>
+        <span class="s1">createLogger(options.logLevel).error(picocolorsExports.red(</span><span class="s2">`error when starting preview server:</span><span class="s0">\n</span><span class="s1">${e.stack}</span><span class="s2">`</span><span class="s1">)</span><span class="s0">, </span><span class="s1">{ error: e })</span><span class="s0">;</span>
+        <span class="s1">process.exit(</span><span class="s3">1</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+    <span class="s0">finally </span><span class="s1">{</span>
+        <span class="s1">stopProfiler((message) =&gt; createLogger(options.logLevel).info(message))</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">})</span><span class="s0">;</span>
+<span class="s1">cli.help()</span><span class="s0">;</span>
+<span class="s1">cli.version(VERSION)</span><span class="s0">;</span>
+<span class="s1">cli.parse()</span><span class="s0">;</span>
+
+<span class="s0">export </span><span class="s1">{ stopProfiler }</span><span class="s0">;</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>no-work-result.d.ts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #629755; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+no-work-result.d.ts</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">Result</span><span class="s0">, </span><span class="s1">{ Message</span><span class="s0">, </span><span class="s1">ResultOptions } from </span><span class="s2">'./result.js'</span>
+<span class="s0">import </span><span class="s1">{ SourceMap } from </span><span class="s2">'./postcss.js'</span>
+<span class="s0">import </span><span class="s1">Processor from </span><span class="s2">'./processor.js'</span>
+<span class="s0">import </span><span class="s1">Warning from </span><span class="s2">'./warning.js'</span>
+<span class="s0">import </span><span class="s1">Root from </span><span class="s2">'./root.js'</span>
+<span class="s0">import </span><span class="s1">LazyResult from </span><span class="s2">'./lazy-result.js'</span>
+
+<span class="s1">declare namespace NoWorkResult {</span>
+  <span class="s3">// eslint-disable-next-line @typescript-eslint/no-use-before-define</span>
+  <span class="s0">export </span><span class="s1">{ NoWorkResult_ as </span><span class="s0">default </span><span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s4">/**</span>
+ <span class="s4">* A Promise proxy for the result of PostCSS transformations.</span>
+ <span class="s4">* This lazy result instance doesn't parse css unless `NoWorkResult#root` or `Result#root`</span>
+ <span class="s4">* are accessed. See the example below for details.</span>
+ <span class="s4">* A `NoWork` instance is returned by `Processor#process` ONLY when no plugins defined.</span>
+ <span class="s4">*</span>
+ <span class="s4">* ```js</span>
+ <span class="s4">* const noWorkResult = postcss().process(css) // No plugins are defined.</span>
+ <span class="s4">*                                             // CSS is not parsed</span>
+ <span class="s4">* let root = noWorkResult.root // now css is parsed because we accessed the root</span>
+ <span class="s4">* ```</span>
+ <span class="s4">*/</span>
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">NoWorkResult_ </span><span class="s0">implements </span><span class="s1">LazyResult {</span>
+  <span class="s1">then: Promise&lt;Result&gt;[</span><span class="s2">'then'</span><span class="s1">]</span>
+  <span class="s0">catch</span><span class="s1">: Promise&lt;Result&gt;[</span><span class="s2">'catch'</span><span class="s1">]</span>
+  <span class="s0">finally</span><span class="s1">: Promise&lt;Result&gt;[</span><span class="s2">'finally'</span><span class="s1">]</span>
+  <span class="s1">constructor(processor: Processor</span><span class="s0">, </span><span class="s1">css: string</span><span class="s0">, </span><span class="s1">opts: ResultOptions)</span>
+  <span class="s1">get [Symbol.toStringTag](): string</span>
+  <span class="s1">get processor(): Processor</span>
+  <span class="s1">get opts(): ResultOptions</span>
+  <span class="s1">get css(): string</span>
+  <span class="s1">get content(): string</span>
+  <span class="s1">get map(): SourceMap</span>
+  <span class="s1">get root(): Root</span>
+  <span class="s1">get messages(): Message[]</span>
+  <span class="s1">warnings(): Warning[]</span>
+  <span class="s1">toString(): string</span>
+  <span class="s1">sync(): Result</span>
+  <span class="s1">async(): Promise&lt;Result&gt;</span>
+<span class="s1">}</span>
+
+<span class="s1">declare </span><span class="s0">class </span><span class="s1">NoWorkResult </span><span class="s0">extends </span><span class="s1">NoWorkResult_ {}</span>
+
+<span class="s0">export </span><span class="s1">= NoWorkResult</span>
+</pre>
+</body>
+</html>

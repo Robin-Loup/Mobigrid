@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>vite.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+vite.js</font>
+</center></td></tr></table>
+<pre><span class="s0">#!/usr/bin/env node</span>
+<span class="s2">import </span><span class="s1">{ performance } from </span><span class="s3">'node:perf_hooks'</span>
+
+<span class="s2">if </span><span class="s1">(!</span><span class="s2">import</span><span class="s1">.meta.url.includes(</span><span class="s3">'node_modules'</span><span class="s1">)) {</span>
+  <span class="s2">try </span><span class="s1">{</span>
+    <span class="s0">// only available as dev dependency</span>
+    <span class="s2">await import</span><span class="s1">(</span><span class="s3">'source-map-support'</span><span class="s1">).then((r) =&gt; r.default.install())</span>
+  <span class="s1">} </span><span class="s2">catch </span><span class="s1">(e) {}</span>
+<span class="s1">}</span>
+
+<span class="s1">global.__vite_start_time = performance.now()</span>
+
+<span class="s0">// check debug mode first before requiring the CLI.</span>
+<span class="s2">const </span><span class="s1">debugIndex = process.argv.findIndex((arg) =&gt; </span><span class="s4">/^(?:-d|--debug)$/</span><span class="s1">.test(arg))</span>
+<span class="s2">const </span><span class="s1">filterIndex = process.argv.findIndex((arg) =&gt;</span>
+  <span class="s4">/^(?:-f|--filter)$/</span><span class="s1">.test(arg)</span><span class="s2">,</span>
+<span class="s1">)</span>
+<span class="s2">const </span><span class="s1">profileIndex = process.argv.indexOf(</span><span class="s3">'--profile'</span><span class="s1">)</span>
+
+<span class="s2">if </span><span class="s1">(debugIndex &gt; </span><span class="s4">0</span><span class="s1">) {</span>
+  <span class="s2">let </span><span class="s1">value = process.argv[debugIndex + </span><span class="s4">1</span><span class="s1">]</span>
+  <span class="s2">if </span><span class="s1">(!value || value.startsWith(</span><span class="s3">'-'</span><span class="s1">)) {</span>
+    <span class="s1">value = </span><span class="s3">'vite:*'</span>
+  <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+    <span class="s0">// support debugging multiple flags with comma-separated list</span>
+    <span class="s1">value = value</span>
+      <span class="s1">.split(</span><span class="s3">','</span><span class="s1">)</span>
+      <span class="s1">.map((v) =&gt; </span><span class="s3">`vite:</span><span class="s1">${v}</span><span class="s3">`</span><span class="s1">)</span>
+      <span class="s1">.join(</span><span class="s3">','</span><span class="s1">)</span>
+  <span class="s1">}</span>
+  <span class="s1">process.env.DEBUG = </span><span class="s3">`</span><span class="s1">${</span>
+    <span class="s1">process.env.DEBUG ? process.env.DEBUG + </span><span class="s3">',' </span><span class="s1">: </span><span class="s3">''</span>
+  <span class="s1">}${value}</span><span class="s3">`</span>
+
+  <span class="s2">if </span><span class="s1">(filterIndex &gt; </span><span class="s4">0</span><span class="s1">) {</span>
+    <span class="s2">const </span><span class="s1">filter = process.argv[filterIndex + </span><span class="s4">1</span><span class="s1">]</span>
+    <span class="s2">if </span><span class="s1">(filter &amp;&amp; !filter.startsWith(</span><span class="s3">'-'</span><span class="s1">)) {</span>
+      <span class="s1">process.env.VITE_DEBUG_FILTER = filter</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s2">function </span><span class="s1">start() {</span>
+  <span class="s2">return import</span><span class="s1">(</span><span class="s3">'../dist/node/cli.js'</span><span class="s1">)</span>
+<span class="s1">}</span>
+
+<span class="s2">if </span><span class="s1">(profileIndex &gt; </span><span class="s4">0</span><span class="s1">) {</span>
+  <span class="s1">process.argv.splice(profileIndex</span><span class="s2">, </span><span class="s4">1</span><span class="s1">)</span>
+  <span class="s2">const </span><span class="s1">next = process.argv[profileIndex]</span>
+  <span class="s2">if </span><span class="s1">(next &amp;&amp; !next.startsWith(</span><span class="s3">'-'</span><span class="s1">)) {</span>
+    <span class="s1">process.argv.splice(profileIndex</span><span class="s2">, </span><span class="s4">1</span><span class="s1">)</span>
+  <span class="s1">}</span>
+  <span class="s2">const </span><span class="s1">inspector = </span><span class="s2">await import</span><span class="s1">(</span><span class="s3">'node:inspector'</span><span class="s1">).then((r) =&gt; r.default)</span>
+  <span class="s2">const </span><span class="s1">session = (global.__vite_profile_session = </span><span class="s2">new </span><span class="s1">inspector.Session())</span>
+  <span class="s1">session.connect()</span>
+  <span class="s1">session.post(</span><span class="s3">'Profiler.enable'</span><span class="s2">, </span><span class="s1">() =&gt; {</span>
+    <span class="s1">session.post(</span><span class="s3">'Profiler.start'</span><span class="s2">, </span><span class="s1">start)</span>
+  <span class="s1">})</span>
+<span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+  <span class="s1">start()</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

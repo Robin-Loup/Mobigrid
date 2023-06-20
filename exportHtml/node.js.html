@@ -1,0 +1,400 @@
+<html>
+<head>
+<title>node.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6a8759;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+node.js</font>
+</center></td></tr></table>
+<pre><span class="s0">'use strict'</span>
+
+<span class="s2">let </span><span class="s1">{ isClean</span><span class="s2">, </span><span class="s1">my } = require(</span><span class="s0">'./symbols'</span><span class="s1">)</span>
+<span class="s2">let </span><span class="s1">CssSyntaxError = require(</span><span class="s0">'./css-syntax-error'</span><span class="s1">)</span>
+<span class="s2">let </span><span class="s1">Stringifier = require(</span><span class="s0">'./stringifier'</span><span class="s1">)</span>
+<span class="s2">let </span><span class="s1">stringify = require(</span><span class="s0">'./stringify'</span><span class="s1">)</span>
+
+<span class="s2">function </span><span class="s1">cloneNode(obj</span><span class="s2">, </span><span class="s1">parent) {</span>
+  <span class="s2">let </span><span class="s1">cloned = </span><span class="s2">new </span><span class="s1">obj.constructor()</span>
+
+  <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i </span><span class="s2">in </span><span class="s1">obj) {</span>
+    <span class="s2">if </span><span class="s1">(!Object.prototype.hasOwnProperty.call(obj</span><span class="s2">, </span><span class="s1">i)) {</span>
+      <span class="s3">/* c8 ignore next 2 */</span>
+      <span class="s2">continue</span>
+    <span class="s1">}</span>
+    <span class="s2">if </span><span class="s1">(i === </span><span class="s0">'proxyCache'</span><span class="s1">) </span><span class="s2">continue</span>
+    <span class="s2">let </span><span class="s1">value = obj[i]</span>
+    <span class="s2">let </span><span class="s1">type = </span><span class="s2">typeof </span><span class="s1">value</span>
+
+    <span class="s2">if </span><span class="s1">(i === </span><span class="s0">'parent' </span><span class="s1">&amp;&amp; type === </span><span class="s0">'object'</span><span class="s1">) {</span>
+      <span class="s2">if </span><span class="s1">(parent) cloned[i] = parent</span>
+    <span class="s1">} </span><span class="s2">else if </span><span class="s1">(i === </span><span class="s0">'source'</span><span class="s1">) {</span>
+      <span class="s1">cloned[i] = value</span>
+    <span class="s1">} </span><span class="s2">else if </span><span class="s1">(Array.isArray(value)) {</span>
+      <span class="s1">cloned[i] = value.map(j =&gt; cloneNode(j</span><span class="s2">, </span><span class="s1">cloned))</span>
+    <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+      <span class="s2">if </span><span class="s1">(type === </span><span class="s0">'object' </span><span class="s1">&amp;&amp; value !== </span><span class="s2">null</span><span class="s1">) value = cloneNode(value)</span>
+      <span class="s1">cloned[i] = value</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+  <span class="s2">return </span><span class="s1">cloned</span>
+<span class="s1">}</span>
+
+<span class="s2">class </span><span class="s1">Node {</span>
+  <span class="s1">constructor(defaults = {}) {</span>
+    <span class="s2">this</span><span class="s1">.raws = {}</span>
+    <span class="s2">this</span><span class="s1">[isClean] = </span><span class="s2">false</span>
+    <span class="s2">this</span><span class="s1">[my] = </span><span class="s2">true</span>
+
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">name </span><span class="s2">in </span><span class="s1">defaults) {</span>
+      <span class="s2">if </span><span class="s1">(name === </span><span class="s0">'nodes'</span><span class="s1">) {</span>
+        <span class="s2">this</span><span class="s1">.nodes = []</span>
+        <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">node of defaults[name]) {</span>
+          <span class="s2">if </span><span class="s1">(</span><span class="s2">typeof </span><span class="s1">node.clone === </span><span class="s0">'function'</span><span class="s1">) {</span>
+            <span class="s2">this</span><span class="s1">.append(node.clone())</span>
+          <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+            <span class="s2">this</span><span class="s1">.append(node)</span>
+          <span class="s1">}</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+        <span class="s2">this</span><span class="s1">[name] = defaults[name]</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+  <span class="s1">error(message</span><span class="s2">, </span><span class="s1">opts = {}) {</span>
+    <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.source) {</span>
+      <span class="s2">let </span><span class="s1">{ start</span><span class="s2">, </span><span class="s1">end } = </span><span class="s2">this</span><span class="s1">.rangeBy(opts)</span>
+      <span class="s2">return this</span><span class="s1">.source.input.error(</span>
+        <span class="s1">message</span><span class="s2">,</span>
+        <span class="s1">{ line: start.line</span><span class="s2">, </span><span class="s1">column: start.column }</span><span class="s2">,</span>
+        <span class="s1">{ line: end.line</span><span class="s2">, </span><span class="s1">column: end.column }</span><span class="s2">,</span>
+        <span class="s1">opts</span>
+      <span class="s1">)</span>
+    <span class="s1">}</span>
+    <span class="s2">return new </span><span class="s1">CssSyntaxError(message)</span>
+  <span class="s1">}</span>
+
+  <span class="s1">warn(result</span><span class="s2">, </span><span class="s1">text</span><span class="s2">, </span><span class="s1">opts) {</span>
+    <span class="s2">let </span><span class="s1">data = { node: </span><span class="s2">this </span><span class="s1">}</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i </span><span class="s2">in </span><span class="s1">opts) data[i] = opts[i]</span>
+    <span class="s2">return </span><span class="s1">result.warn(text</span><span class="s2">, </span><span class="s1">data)</span>
+  <span class="s1">}</span>
+
+  <span class="s1">remove() {</span>
+    <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.parent) {</span>
+      <span class="s2">this</span><span class="s1">.parent.removeChild(</span><span class="s2">this</span><span class="s1">)</span>
+    <span class="s1">}</span>
+    <span class="s2">this</span><span class="s1">.parent = undefined</span>
+    <span class="s2">return this</span>
+  <span class="s1">}</span>
+
+  <span class="s1">toString(stringifier = stringify) {</span>
+    <span class="s2">if </span><span class="s1">(stringifier.stringify) stringifier = stringifier.stringify</span>
+    <span class="s2">let </span><span class="s1">result = </span><span class="s0">''</span>
+    <span class="s1">stringifier(</span><span class="s2">this, </span><span class="s1">i =&gt; {</span>
+      <span class="s1">result += i</span>
+    <span class="s1">})</span>
+    <span class="s2">return </span><span class="s1">result</span>
+  <span class="s1">}</span>
+
+  <span class="s1">assign(overrides = {}) {</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">name </span><span class="s2">in </span><span class="s1">overrides) {</span>
+      <span class="s2">this</span><span class="s1">[name] = overrides[name]</span>
+    <span class="s1">}</span>
+    <span class="s2">return this</span>
+  <span class="s1">}</span>
+
+  <span class="s1">clone(overrides = {}) {</span>
+    <span class="s2">let </span><span class="s1">cloned = cloneNode(</span><span class="s2">this</span><span class="s1">)</span>
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">name </span><span class="s2">in </span><span class="s1">overrides) {</span>
+      <span class="s1">cloned[name] = overrides[name]</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">cloned</span>
+  <span class="s1">}</span>
+
+  <span class="s1">cloneBefore(overrides = {}) {</span>
+    <span class="s2">let </span><span class="s1">cloned = </span><span class="s2">this</span><span class="s1">.clone(overrides)</span>
+    <span class="s2">this</span><span class="s1">.parent.insertBefore(</span><span class="s2">this, </span><span class="s1">cloned)</span>
+    <span class="s2">return </span><span class="s1">cloned</span>
+  <span class="s1">}</span>
+
+  <span class="s1">cloneAfter(overrides = {}) {</span>
+    <span class="s2">let </span><span class="s1">cloned = </span><span class="s2">this</span><span class="s1">.clone(overrides)</span>
+    <span class="s2">this</span><span class="s1">.parent.insertAfter(</span><span class="s2">this, </span><span class="s1">cloned)</span>
+    <span class="s2">return </span><span class="s1">cloned</span>
+  <span class="s1">}</span>
+
+  <span class="s1">replaceWith(...nodes) {</span>
+    <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">.parent) {</span>
+      <span class="s2">let </span><span class="s1">bookmark = </span><span class="s2">this</span>
+      <span class="s2">let </span><span class="s1">foundSelf = </span><span class="s2">false</span>
+      <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">node of nodes) {</span>
+        <span class="s2">if </span><span class="s1">(node === </span><span class="s2">this</span><span class="s1">) {</span>
+          <span class="s1">foundSelf = </span><span class="s2">true</span>
+        <span class="s1">} </span><span class="s2">else if </span><span class="s1">(foundSelf) {</span>
+          <span class="s2">this</span><span class="s1">.parent.insertAfter(bookmark</span><span class="s2">, </span><span class="s1">node)</span>
+          <span class="s1">bookmark = node</span>
+        <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+          <span class="s2">this</span><span class="s1">.parent.insertBefore(bookmark</span><span class="s2">, </span><span class="s1">node)</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+
+      <span class="s2">if </span><span class="s1">(!foundSelf) {</span>
+        <span class="s2">this</span><span class="s1">.remove()</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">return this</span>
+  <span class="s1">}</span>
+
+  <span class="s1">next() {</span>
+    <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.parent) </span><span class="s2">return </span><span class="s1">undefined</span>
+    <span class="s2">let </span><span class="s1">index = </span><span class="s2">this</span><span class="s1">.parent.index(</span><span class="s2">this</span><span class="s1">)</span>
+    <span class="s2">return this</span><span class="s1">.parent.nodes[index + </span><span class="s4">1</span><span class="s1">]</span>
+  <span class="s1">}</span>
+
+  <span class="s1">prev() {</span>
+    <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.parent) </span><span class="s2">return </span><span class="s1">undefined</span>
+    <span class="s2">let </span><span class="s1">index = </span><span class="s2">this</span><span class="s1">.parent.index(</span><span class="s2">this</span><span class="s1">)</span>
+    <span class="s2">return this</span><span class="s1">.parent.nodes[index - </span><span class="s4">1</span><span class="s1">]</span>
+  <span class="s1">}</span>
+
+  <span class="s1">before(add) {</span>
+    <span class="s2">this</span><span class="s1">.parent.insertBefore(</span><span class="s2">this, </span><span class="s1">add)</span>
+    <span class="s2">return this</span>
+  <span class="s1">}</span>
+
+  <span class="s1">after(add) {</span>
+    <span class="s2">this</span><span class="s1">.parent.insertAfter(</span><span class="s2">this, </span><span class="s1">add)</span>
+    <span class="s2">return this</span>
+  <span class="s1">}</span>
+
+  <span class="s1">root() {</span>
+    <span class="s2">let </span><span class="s1">result = </span><span class="s2">this</span>
+    <span class="s2">while </span><span class="s1">(result.parent &amp;&amp; result.parent.type !== </span><span class="s0">'document'</span><span class="s1">) {</span>
+      <span class="s1">result = result.parent</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">result</span>
+  <span class="s1">}</span>
+
+  <span class="s1">raw(prop</span><span class="s2">, </span><span class="s1">defaultType) {</span>
+    <span class="s2">let </span><span class="s1">str = </span><span class="s2">new </span><span class="s1">Stringifier()</span>
+    <span class="s2">return </span><span class="s1">str.raw(</span><span class="s2">this, </span><span class="s1">prop</span><span class="s2">, </span><span class="s1">defaultType)</span>
+  <span class="s1">}</span>
+
+  <span class="s1">cleanRaws(keepBetween) {</span>
+    <span class="s2">delete this</span><span class="s1">.raws.before</span>
+    <span class="s2">delete this</span><span class="s1">.raws.after</span>
+    <span class="s2">if </span><span class="s1">(!keepBetween) </span><span class="s2">delete this</span><span class="s1">.raws.between</span>
+  <span class="s1">}</span>
+
+  <span class="s1">toJSON(_</span><span class="s2">, </span><span class="s1">inputs) {</span>
+    <span class="s2">let </span><span class="s1">fixed = {}</span>
+    <span class="s2">let </span><span class="s1">emitInputs = inputs == </span><span class="s2">null</span>
+    <span class="s1">inputs = inputs || </span><span class="s2">new </span><span class="s1">Map()</span>
+    <span class="s2">let </span><span class="s1">inputsNextIndex = </span><span class="s4">0</span>
+
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">name </span><span class="s2">in this</span><span class="s1">) {</span>
+      <span class="s2">if </span><span class="s1">(!Object.prototype.hasOwnProperty.call(</span><span class="s2">this, </span><span class="s1">name)) {</span>
+        <span class="s3">/* c8 ignore next 2 */</span>
+        <span class="s2">continue</span>
+      <span class="s1">}</span>
+      <span class="s2">if </span><span class="s1">(name === </span><span class="s0">'parent' </span><span class="s1">|| name === </span><span class="s0">'proxyCache'</span><span class="s1">) </span><span class="s2">continue</span>
+      <span class="s2">let </span><span class="s1">value = </span><span class="s2">this</span><span class="s1">[name]</span>
+
+      <span class="s2">if </span><span class="s1">(Array.isArray(value)) {</span>
+        <span class="s1">fixed[name] = value.map(i =&gt; {</span>
+          <span class="s2">if </span><span class="s1">(</span><span class="s2">typeof </span><span class="s1">i === </span><span class="s0">'object' </span><span class="s1">&amp;&amp; i.toJSON) {</span>
+            <span class="s2">return </span><span class="s1">i.toJSON(</span><span class="s2">null, </span><span class="s1">inputs)</span>
+          <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+            <span class="s2">return </span><span class="s1">i</span>
+          <span class="s1">}</span>
+        <span class="s1">})</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(</span><span class="s2">typeof </span><span class="s1">value === </span><span class="s0">'object' </span><span class="s1">&amp;&amp; value.toJSON) {</span>
+        <span class="s1">fixed[name] = value.toJSON(</span><span class="s2">null, </span><span class="s1">inputs)</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(name === </span><span class="s0">'source'</span><span class="s1">) {</span>
+        <span class="s2">let </span><span class="s1">inputId = inputs.get(value.input)</span>
+        <span class="s2">if </span><span class="s1">(inputId == </span><span class="s2">null</span><span class="s1">) {</span>
+          <span class="s1">inputId = inputsNextIndex</span>
+          <span class="s1">inputs.set(value.input</span><span class="s2">, </span><span class="s1">inputsNextIndex)</span>
+          <span class="s1">inputsNextIndex++</span>
+        <span class="s1">}</span>
+        <span class="s1">fixed[name] = {</span>
+          <span class="s1">inputId</span><span class="s2">,</span>
+          <span class="s1">start: value.start</span><span class="s2">,</span>
+          <span class="s1">end: value.end</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">fixed[name] = value</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">if </span><span class="s1">(emitInputs) {</span>
+      <span class="s1">fixed.inputs = [...inputs.keys()].map(input =&gt; input.toJSON())</span>
+    <span class="s1">}</span>
+
+    <span class="s2">return </span><span class="s1">fixed</span>
+  <span class="s1">}</span>
+
+  <span class="s1">positionInside(index) {</span>
+    <span class="s2">let </span><span class="s1">string = </span><span class="s2">this</span><span class="s1">.toString()</span>
+    <span class="s2">let </span><span class="s1">column = </span><span class="s2">this</span><span class="s1">.source.start.column</span>
+    <span class="s2">let </span><span class="s1">line = </span><span class="s2">this</span><span class="s1">.source.start.line</span>
+
+    <span class="s2">for </span><span class="s1">(</span><span class="s2">let </span><span class="s1">i = </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i &lt; index</span><span class="s2">; </span><span class="s1">i++) {</span>
+      <span class="s2">if </span><span class="s1">(string[i] === </span><span class="s0">'</span><span class="s2">\n</span><span class="s0">'</span><span class="s1">) {</span>
+        <span class="s1">column = </span><span class="s4">1</span>
+        <span class="s1">line += </span><span class="s4">1</span>
+      <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+        <span class="s1">column += </span><span class="s4">1</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">return </span><span class="s1">{ line</span><span class="s2">, </span><span class="s1">column }</span>
+  <span class="s1">}</span>
+
+  <span class="s1">positionBy(opts) {</span>
+    <span class="s2">let </span><span class="s1">pos = </span><span class="s2">this</span><span class="s1">.source.start</span>
+    <span class="s2">if </span><span class="s1">(opts.index) {</span>
+      <span class="s1">pos = </span><span class="s2">this</span><span class="s1">.positionInside(opts.index)</span>
+    <span class="s1">} </span><span class="s2">else if </span><span class="s1">(opts.word) {</span>
+      <span class="s2">let </span><span class="s1">index = </span><span class="s2">this</span><span class="s1">.toString().indexOf(opts.word)</span>
+      <span class="s2">if </span><span class="s1">(index !== -</span><span class="s4">1</span><span class="s1">) pos = </span><span class="s2">this</span><span class="s1">.positionInside(index)</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">pos</span>
+  <span class="s1">}</span>
+
+  <span class="s1">rangeBy(opts) {</span>
+    <span class="s2">let </span><span class="s1">start = {</span>
+      <span class="s1">line: </span><span class="s2">this</span><span class="s1">.source.start.line</span><span class="s2">,</span>
+      <span class="s1">column: </span><span class="s2">this</span><span class="s1">.source.start.column</span>
+    <span class="s1">}</span>
+    <span class="s2">let </span><span class="s1">end = </span><span class="s2">this</span><span class="s1">.source.end</span>
+      <span class="s1">? {</span>
+          <span class="s1">line: </span><span class="s2">this</span><span class="s1">.source.end.line</span><span class="s2">,</span>
+          <span class="s1">column: </span><span class="s2">this</span><span class="s1">.source.end.column + </span><span class="s4">1</span>
+        <span class="s1">}</span>
+      <span class="s1">: {</span>
+          <span class="s1">line: start.line</span><span class="s2">,</span>
+          <span class="s1">column: start.column + </span><span class="s4">1</span>
+        <span class="s1">}</span>
+
+    <span class="s2">if </span><span class="s1">(opts.word) {</span>
+      <span class="s2">let </span><span class="s1">index = </span><span class="s2">this</span><span class="s1">.toString().indexOf(opts.word)</span>
+      <span class="s2">if </span><span class="s1">(index !== -</span><span class="s4">1</span><span class="s1">) {</span>
+        <span class="s1">start = </span><span class="s2">this</span><span class="s1">.positionInside(index)</span>
+        <span class="s1">end = </span><span class="s2">this</span><span class="s1">.positionInside(index + opts.word.length)</span>
+      <span class="s1">}</span>
+    <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+      <span class="s2">if </span><span class="s1">(opts.start) {</span>
+        <span class="s1">start = {</span>
+          <span class="s1">line: opts.start.line</span><span class="s2">,</span>
+          <span class="s1">column: opts.start.column</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(opts.index) {</span>
+        <span class="s1">start = </span><span class="s2">this</span><span class="s1">.positionInside(opts.index)</span>
+      <span class="s1">}</span>
+
+      <span class="s2">if </span><span class="s1">(opts.end) {</span>
+        <span class="s1">end = {</span>
+          <span class="s1">line: opts.end.line</span><span class="s2">,</span>
+          <span class="s1">column: opts.end.column</span>
+        <span class="s1">}</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(opts.endIndex) {</span>
+        <span class="s1">end = </span><span class="s2">this</span><span class="s1">.positionInside(opts.endIndex)</span>
+      <span class="s1">} </span><span class="s2">else if </span><span class="s1">(opts.index) {</span>
+        <span class="s1">end = </span><span class="s2">this</span><span class="s1">.positionInside(opts.index + </span><span class="s4">1</span><span class="s1">)</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">if </span><span class="s1">(</span>
+      <span class="s1">end.line &lt; start.line ||</span>
+      <span class="s1">(end.line === start.line &amp;&amp; end.column &lt;= start.column)</span>
+    <span class="s1">) {</span>
+      <span class="s1">end = { line: start.line</span><span class="s2">, </span><span class="s1">column: start.column + </span><span class="s4">1 </span><span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s2">return </span><span class="s1">{ start</span><span class="s2">, </span><span class="s1">end }</span>
+  <span class="s1">}</span>
+
+  <span class="s1">getProxyProcessor() {</span>
+    <span class="s2">return </span><span class="s1">{</span>
+      <span class="s1">set(node</span><span class="s2">, </span><span class="s1">prop</span><span class="s2">, </span><span class="s1">value) {</span>
+        <span class="s2">if </span><span class="s1">(node[prop] === value) </span><span class="s2">return true</span>
+        <span class="s1">node[prop] = value</span>
+        <span class="s2">if </span><span class="s1">(</span>
+          <span class="s1">prop === </span><span class="s0">'prop' </span><span class="s1">||</span>
+          <span class="s1">prop === </span><span class="s0">'value' </span><span class="s1">||</span>
+          <span class="s1">prop === </span><span class="s0">'name' </span><span class="s1">||</span>
+          <span class="s1">prop === </span><span class="s0">'params' </span><span class="s1">||</span>
+          <span class="s1">prop === </span><span class="s0">'important' </span><span class="s1">||</span>
+          <span class="s3">/* c8 ignore next */</span>
+          <span class="s1">prop === </span><span class="s0">'text'</span>
+        <span class="s1">) {</span>
+          <span class="s1">node.markDirty()</span>
+        <span class="s1">}</span>
+        <span class="s2">return true</span>
+      <span class="s1">}</span><span class="s2">,</span>
+
+      <span class="s1">get(node</span><span class="s2">, </span><span class="s1">prop) {</span>
+        <span class="s2">if </span><span class="s1">(prop === </span><span class="s0">'proxyOf'</span><span class="s1">) {</span>
+          <span class="s2">return </span><span class="s1">node</span>
+        <span class="s1">} </span><span class="s2">else if </span><span class="s1">(prop === </span><span class="s0">'root'</span><span class="s1">) {</span>
+          <span class="s2">return </span><span class="s1">() =&gt; node.root().toProxy()</span>
+        <span class="s1">} </span><span class="s2">else </span><span class="s1">{</span>
+          <span class="s2">return </span><span class="s1">node[prop]</span>
+        <span class="s1">}</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+  <span class="s1">toProxy() {</span>
+    <span class="s2">if </span><span class="s1">(!</span><span class="s2">this</span><span class="s1">.proxyCache) {</span>
+      <span class="s2">this</span><span class="s1">.proxyCache = </span><span class="s2">new </span><span class="s1">Proxy(</span><span class="s2">this, this</span><span class="s1">.getProxyProcessor())</span>
+    <span class="s1">}</span>
+    <span class="s2">return this</span><span class="s1">.proxyCache</span>
+  <span class="s1">}</span>
+
+  <span class="s1">addToError(error) {</span>
+    <span class="s1">error.postcssNode = </span><span class="s2">this</span>
+    <span class="s2">if </span><span class="s1">(error.stack &amp;&amp; </span><span class="s2">this</span><span class="s1">.source &amp;&amp; </span><span class="s4">/\n\s{4}at /</span><span class="s1">.test(error.stack)) {</span>
+      <span class="s2">let </span><span class="s1">s = </span><span class="s2">this</span><span class="s1">.source</span>
+      <span class="s1">error.stack = error.stack.replace(</span>
+        <span class="s4">/\n\s{4}at /</span><span class="s2">,</span>
+        <span class="s0">`$&amp;</span><span class="s1">${s.input.from}</span><span class="s0">:</span><span class="s1">${s.start.line}</span><span class="s0">:</span><span class="s1">${s.start.column}</span><span class="s0">$&amp;`</span>
+      <span class="s1">)</span>
+    <span class="s1">}</span>
+    <span class="s2">return </span><span class="s1">error</span>
+  <span class="s1">}</span>
+
+  <span class="s1">markDirty() {</span>
+    <span class="s2">if </span><span class="s1">(</span><span class="s2">this</span><span class="s1">[isClean]) {</span>
+      <span class="s2">this</span><span class="s1">[isClean] = </span><span class="s2">false</span>
+      <span class="s2">let </span><span class="s1">next = </span><span class="s2">this</span>
+      <span class="s2">while </span><span class="s1">((next = next.parent)) {</span>
+        <span class="s1">next[isClean] = </span><span class="s2">false</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+  <span class="s1">get proxyOf() {</span>
+    <span class="s2">return this</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s1">module.exports = Node</span>
+<span class="s1">Node.default = Node</span>
+</pre>
+</body>
+</html>
