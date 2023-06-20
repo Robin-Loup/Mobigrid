@@ -12,7 +12,7 @@ export default {
       <h1 class="text-center">Transpolis</h1>
   </header>
   <div class="row justify-content-center, transpolis">
-      <a id="superviseur" class="btn btn-primary" href="src/superviseur.html">Superviseur</a>
+      <a id="superviseur" class="btn btn-primary" href="assets/src/superviseur.html">Superviseur</a>
       <a id="bat" class="btn btn-primary" href="src/bat172.html">Bat 172</a>
 
       <a id="atelier" class="btn btn-primary" href="src/atelier.html">Atelier</a>
