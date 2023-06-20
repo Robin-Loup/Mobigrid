@@ -12,12 +12,12 @@ export default {
       <h1 class="text-center">Transpolis</h1>
   </header>
   <div class="row justify-content-center, transpolis">
-      <a id="superviseur" class="btn btn-primary" href="assets/src/superviseur.html">Superviseur</a>
-      <a id="bat" class="btn btn-primary" href="assets/src/bat172.html">Bat 172</a>
+      <a id="superviseur" class="btn btn-primary" href="src/superviseur.html">Superviseur</a>
+      <a id="bat" class="btn btn-primary" href="src/bat172.html">Bat 172</a>
 
-      <a id="atelier" class="btn btn-primary" href="assets/src/atelier.html">Atelier</a>
-      <a id="bureau" class="btn btn-primary" href="assets/src/bureau.html">Bureau</a>
-      <a id="plug" class="btn btn-secondary" href="assets/src/plug.html">Plug</a>
+      <a id="atelier" class="btn btn-primary" href="src/atelier.html">Atelier</a>
+      <a id="bureau" class="btn btn-primary" href="src/bureau.html">Bureau</a>
+      <a id="plug" class="btn btn-secondary" href="src/plug.html">Plug</a>
   </div>
 </template>
 
