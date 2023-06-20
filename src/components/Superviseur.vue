@@ -1,7 +1,7 @@
 <script>
 
 import Capteur_ambiance from "@/components/Capteur_ambiance.vue";
-import Form_date from "@/components/Form_date.vue"
+import Form_date from "@/components/Form_date.vue";
 import Capteur_elec from "@/components/Capteur_elec.vue";
 
 export default {
