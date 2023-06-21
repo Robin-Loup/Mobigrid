@@ -19,10 +19,9 @@ export default {
   <div class="row justify-content-center, transpolis">
       <router-link to="/superviseur" id="superviseur" class="btn btn-primary">Superviseur</router-link>
       <router-link to="/bat172" id="bat" class="btn btn-primary">Bat 172</router-link>
-
-      <a id="atelier" class="btn btn-primary" href="src/atelier.html">Atelier</a>
-      <a id="bureau" class="btn btn-primary" href="src/bureau.html">Bureau</a>
-      <a id="plug" class="btn btn-secondary" href="src/plug.html">Plug</a>
+      <router-link to="/atelier" id="atelier" class="btn btn-primary">Atelier</router-link>
+      <router-link to="/bureau" id="bureau" class="btn btn-primary">Bureau</router-link>
+      <router-link to="/plug" id="plug" class="btn btn-primary">Plug</router-link>
   </div>
 </template>
 
