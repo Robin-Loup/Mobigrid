@@ -6,6 +6,9 @@
     <h2 class="d-flex justify-content-center">
       <a class="btn btn-primary btn-lg" href="/grafana/">Grafana</a>
     </h2>
+    <h2 class="d-flex justify-content-center">
+        <a class="btn btn-primary btn-lg" href="/dashboard.html">DashBoard</a>
+    </h2>
 </template>
 
 <script>
